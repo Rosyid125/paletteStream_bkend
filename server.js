@@ -1,5 +1,4 @@
 // This is a file for server setup and running the server
-
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
