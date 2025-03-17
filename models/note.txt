@@ -1,0 +1,1 @@
+Turns out objection.js model is not able to validate on unique combo, eg. userid,achievementid combination just like laravel eloquent, unlike sequilize.

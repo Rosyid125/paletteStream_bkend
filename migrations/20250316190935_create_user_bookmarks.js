@@ -6,7 +6,7 @@ exports.up = function (knex) {
   return knex.schema.createTable("user_bookmarks", (table) => {
     table.increments("id").primary();
     table.integer("user_id").unsigned().notNullable().references("id").inTable("users").onDelete("CASCADE"); // Foreign key
-    table.integer("post_id").unsigned().notNullable().references("id").inTable("posts").onDelete("CASCADE"); // Foreign key
+    table.integer("post_id").unsigned().notNullable().references("id").inTable("user_posts").onDelete("CASCADE"); // Foreign key
     table.timestamps(true, true);
 
     table.unique(["user_id", "post_id"]);
