@@ -3,14 +3,14 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.schema.createTable("user_posts", (table) => {
+  return knex.schema.createTable("user_social_links", (table) => {
     table.increments("id").primary();
     table.integer("user_id").unsigned().notNullable().references("id").inTable("users").onDelete("CASCADE"); // Foreign key
-    table.string("title").notNullable();
-    table.string("description").notNullable();
-    table.string("images").notNullable();
-    table.integer("tag_id").unsigned().notNullable().references("id").inTable("post_tags").onDelete("CASCADE"); // Foreign key
+    table.string("platform").notNullable(); // Facebook, Twitter, etc.
     table.timestamps(true, true);
+
+    // Unique constraint to make sure 1 user has only 1 link per platform
+    table.unique(["user_id", "platform"]);
   });
 };
 
@@ -19,5 +19,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable("user_posts");
+  return knex.schema.dropTable("user_social_links");
 };

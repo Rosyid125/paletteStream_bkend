@@ -9,8 +9,10 @@ exports.up = function (knex) {
     table.string("avatar").nullable();
     table.string("bio").nullable();
     table.string("location").nullable();
-    table.specificType("social_links", "text ARRAY").nullable();
     table.timestamps(true, true);
+
+    // Add unique constraint
+    table.unique("user_id");
   });
 };
 
