@@ -16,22 +16,20 @@ class UserBadgeRepository {
   }
 
   // Create a new user badge
-  static async create(userId, badgeId) {
-    const userBadge = await UserBadge.query().insert({ userId, badgeId });
+  static async create(user_id, badge_id) {
+    const userBadge = await UserBadge.query().insert({ user_id, badge_id });
     return userBadge;
   }
 
   // Update user badge
-  static async update(userId, badgeId) {
-    const userBadge = await UserBadge.query().findOne({ userId });
+  static async update(user_id, badge_id) {
+    const userBadge = await UserBadge.query().findOne({ user_id });
     if (!userBadge) {
       return null;
     }
-    await UserBadge.query().findOne({ userId }).patch({ badgeId });
+    await UserBadge.query().findOne({ user_id }).patch({ badge_id });
     return userBadge;
   }
-
-  // More based on app requirements
 }
 
 module.exports = UserBadgeRepository;

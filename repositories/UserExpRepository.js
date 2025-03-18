@@ -30,8 +30,6 @@ class UserExpRepository {
     await UserExp.query().findOne({ userId }).patch({ exp, level });
     return userExp;
   }
-
-  // More based on app requirements
 }
 
 module.exports = UserExpRepository;

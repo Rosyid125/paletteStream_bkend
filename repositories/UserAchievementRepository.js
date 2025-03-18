@@ -16,22 +16,20 @@ class UserAchievementRepository {
   }
 
   // Create a new user achievement
-  static async create(userId, achievementId) {
-    const userAchievement = await UserAchievement.query().insert({ userId, achievementId });
+  static async create(user_id, achievement_id, progress, status) {
+    const userAchievement = await UserAchievement.query().insert({ user_id, achievement_id, progress, status });
     return userAchievement;
   }
 
   // Update user achievement
-  static async update(userId, achievementId) {
-    const userAchievement = await UserAchievement.query().findOne({ userId });
+  static async update(user_id, achievement_id, progress, status) {
+    const userAchievement = await UserAchievement.query().findOne({ user_id });
     if (!userAchievement) {
       return null;
     }
-    await UserAchievement.query().findOne({ userId }).patch({ achievementId });
+    await UserAchievement.query().findOne({ user_id }).patch({ achievement_id, progress, status });
     return userAchievement;
   }
-
-  // More based on app requirements
 }
 
 module.exports = UserAchievementRepository;

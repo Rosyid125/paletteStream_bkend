@@ -5,6 +5,7 @@ const AuthRepository = require("../repositories/AuthRepository");
 const UserRepository = require("../repositories/UserRepository");
 const UserExpRepository = require("../repositories/UserExpRepository");
 const UserProfileRepository = require("../repositories/UserProfileRepository");
+const UserAchievementRepository = require("../repositories/UserAchievementRepository");
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
@@ -27,6 +28,13 @@ class AuthService {
     // Create default entries in some tables
     await UserExpRepository.create(user.id, 0, 1);
     await UserProfileRepository.create(user.id, `Player_${user.id}`, "../storage/avatar/.noimg", "Better than most people", "anywhere");
+
+    // Get all achievements id from achievements table
+    const achievements = await UserAchievementRepository.findAll();
+    // Create default entries in user_achievements table based on achievements table
+    for (const achievement of achievements) {
+      await UserAchievementRepository.create(user.id, achievement.id, 0, "in-progress");
+    }
 
     return user;
   }

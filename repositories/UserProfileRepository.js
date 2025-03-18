@@ -30,8 +30,6 @@ class UserProfileRepository {
     await UserProfile.query().findOne({ userId }).patch({ username, avatar, bio, location });
     return userProfile;
   }
-
-  // More based on app requirements
 }
 
 module.exports = UserProfileRepository;

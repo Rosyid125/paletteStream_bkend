@@ -4,7 +4,9 @@ const UserBadgeRepository = require("../repositories/UserBadgeRepository");
 const UserExpRepository = require("../repositories/UserExpRepository");
 const UserRepository = require("../repositories/UserRepository");
 const UserProfileRepository = require("../repositories/UserProfileRepository");
-const UserFollowRepository = require("../repositories/UserFollowRepository");
+
+// Import from another service
+const UserFollowService = require("./UserFollowService");
 
 // Define the UserProfileService class
 class UserProfileService {
@@ -17,8 +19,8 @@ class UserProfileService {
       const userAchievements = await UserAchievementRepository.findByUserId(userId);
       const userBadges = await UserBadgeRepository.findByUserId(userId);
       const userExp = await UserExpRepository.findByUserId(userId);
-      const userFollowings = await UserFollowRepository.countFollowingsByUserId(userId);
-      const userFollowersCount = await UserFollowRepository.countFollowersByUserId(userId);
+      const userFollowingsCount = await UserFollowService.getUserFollowingsCount(userId);
+      const userFollowersCount = await UserFollowService.getUserFollowersCount(userId);
 
       // Return user profile
       if (!user) {
@@ -36,9 +38,25 @@ class UserProfileService {
         badges: userBadges,
         exp: userExp.exp,
         level: userExp.level,
-        followings: userFollowings,
+        followings: userFollowingsCount,
         followers: userFollowersCount,
       };
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  // Static method to update user profile
+  static async updateUserProfile(userId, username, avatar, bio, location) {
+    try {
+      // Update user profile
+      const userProfile = await UserProfileRepository.update(userId, username, avatar, bio, location);
+      if (!userProfile) {
+        throw new Error("User profile not found");
+      }
+
+      // Return updated user profile
+      return userProfile;
     } catch (error) {
       throw new Error(error.message);
     }

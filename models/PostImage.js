@@ -1,20 +1,19 @@
 const { Model } = require("objection");
 const UserPost = require("./UserPost");
-const Tag = require("./Tag");
 
-class PostTag extends Model {
+class PostImage extends Model {
   static get tableName() {
-    return "post_tags";
+    return "post_images";
   }
 
   static get jsonSchema() {
     return {
       type: "object",
-      required: ["post_id", "tag_id"],
+      required: ["post_id", "image_url"],
       properties: {
         id: { type: "integer" },
         post_id: { type: "integer" },
-        tag_id: { type: "integer" },
+        image_url: { type: "string" },
       },
     };
   }
@@ -25,20 +24,12 @@ class PostTag extends Model {
         relation: Model.BelongsToOneRelation,
         modelClass: UserPost,
         join: {
-          from: "post_tags.post_id",
+          from: "post_images.post_id",
           to: "user_posts.id",
-        },
-      },
-      tag: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: Tag,
-        join: {
-          from: "post_tags.tag_id",
-          to: "tags.id",
         },
       },
     };
   }
 }
 
-module.exports = PostTag;
+module.exports = PostImage;

@@ -10,11 +10,13 @@ class UserAchievement extends Model {
   static get jsonSchema() {
     return {
       type: "object",
-      required: ["user_id", "achievement_id"],
+      required: ["user_id", "achievement_id", "progress", "status"],
       properties: {
         id: { type: "integer" },
         user_id: { type: "integer" },
         achievement_id: { type: "integer" },
+        progress: { type: "integer" },
+        status: { type: "string", enum: ["in-progress", "completed"] },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
       },
