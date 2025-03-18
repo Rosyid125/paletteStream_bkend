@@ -8,6 +8,7 @@ exports.up = function (knex) {
     table.integer("post_id").unsigned().notNullable().references("id").inTable("user_posts").onDelete("CASCADE"); // Foreign key
     table.integer("user_id").unsigned().notNullable().references("id").inTable("users").onDelete("CASCADE"); // Foreign key
     table.string("content").notNullable();
+    table.integer("likes").unsigned().defaultTo(0);
     table.timestamps(true, true);
   });
 };

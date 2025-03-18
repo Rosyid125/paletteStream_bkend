@@ -10,6 +10,7 @@ exports.up = function (knex) {
     table.string("description").notNullable();
     table.string("images").notNullable();
     table.integer("tag_id").unsigned().notNullable().references("id").inTable("post_tags").onDelete("CASCADE"); // Foreign key
+    table.enum("type", ["illustration", "manga", "novel"]).notNullable();
     table.timestamps(true, true);
   });
 };

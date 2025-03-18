@@ -18,6 +18,7 @@ class UserPost extends Model {
         description: { type: "string", minLength: 1 },
         images: { type: "string", minLength: 1 },
         tag_id: { type: "integer" },
+        type: { type: "string", enum: ["illustration", "manga", "novel"] },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
       },

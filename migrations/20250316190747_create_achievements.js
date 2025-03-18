@@ -11,7 +11,7 @@ exports.up = function (knex) {
     table.timestamps(true, true);
 
     // Add unique constraint
-    table.unique("title, icon");
+    table.unique(["title", "icon"]);
   });
 };
 

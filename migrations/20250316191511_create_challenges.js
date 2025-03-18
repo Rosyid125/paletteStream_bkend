@@ -8,6 +8,9 @@ exports.up = function (knex) {
     table.string("title").notNullable();
     table.string("description").notNullable();
     table.string("images").nullable();
+    table.string("start_date").notNullable();
+    table.string("end_date").notNullable();
+    table.enu("status", ["open", "closed"]).notNullable();
     table.timestamps(true, true);
   });
 };

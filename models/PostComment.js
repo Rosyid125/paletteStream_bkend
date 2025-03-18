@@ -16,6 +16,7 @@ class PostComment extends Model {
         post_id: { type: "integer" },
         user_id: { type: "integer" },
         content: { type: "string", minLength: 1, maxLength: 1000 },
+        likes: { type: "integer" },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
       },

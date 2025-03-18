@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { getUsers, createUser, createAdmin } = require("../controllers/userController");
+const userProfileController = require("../controllers/UserProfileController");
+const { verifyAccessToken } = require("../middlewares/authMiddleware");
 
-router.get("/get", getUsers);
-router.post("/create", createUser);
-router.post("/create/admin", createAdmin);
+// Get user profile
+router.get("/profile/:userId", verifyAccessToken, userProfileController.getUserProfile);
 
 module.exports = router;

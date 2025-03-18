@@ -1,18 +1,23 @@
 const { Model } = require("objection");
 
-class UserGroup extends Model {
+class Token extends Model {
   static get tableName() {
-    return "user_groups";
+    return "tokens";
+  }
+
+  static get idColumn() {
+    return "id";
   }
 
   static get jsonSchema() {
     return {
       type: "object",
-      required: ["user_id", "group_id"],
+      required: ["user_id", "refresh_token", "expires_at"],
       properties: {
         id: { type: "integer" },
         user_id: { type: "integer" },
-        group_id: { type: "integer" },
+        refresh_token: { type: "string" },
+        expires_at: { type: "string" },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
       },
@@ -21,27 +26,18 @@ class UserGroup extends Model {
 
   static get relationMappings() {
     const User = require("./User");
-    const Group = require("./Group");
 
     return {
       user: {
         relation: Model.BelongsToOneRelation,
         modelClass: User,
         join: {
-          from: "user_groups.user_id",
+          from: "tokens.user_id",
           to: "users.id",
-        },
-      },
-      group: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: Group,
-        join: {
-          from: "user_groups.group_id",
-          to: "groups.id",
         },
       },
     };
   }
 }
 
-module.exports = UserGroup;
+module.exports = Token;

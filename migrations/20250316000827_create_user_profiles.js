@@ -6,6 +6,7 @@ exports.up = function (knex) {
   return knex.schema.createTable("user_profiles", (table) => {
     table.increments("id").primary();
     table.integer("user_id").unsigned().notNullable().references("id").inTable("users").onDelete("CASCADE"); // Foreign key
+    table.string("username").notNullable();
     table.string("avatar").nullable();
     table.string("bio").nullable();
     table.string("location").nullable();

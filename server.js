@@ -3,11 +3,13 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const apiRoutes = require("./routes/api");
+const cookieParser = require("cookie-parser");
 
 const app = express(); // Create an express app
 
 app.use(express.json()); // Use the express.json() middleware
 app.use(cors()); // Use the cors middleware
+app.use(cookieParser()); // Use the cookieParser middleware
 
 app.get("/", (req, res) => {
   // Create a route for the home page

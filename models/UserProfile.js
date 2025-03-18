@@ -13,6 +13,7 @@ class UserProfile extends Model {
       properties: {
         id: { type: "integer" },
         user_id: { type: "integer" },
+        username: { type: "string", minLength: 1, maxLength: 255 },
         avatar: { type: "string", nullable: true },
         bio: { type: "string", nullable: true },
         location: { type: "string", nullable: true },
