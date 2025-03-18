@@ -1,4 +1,4 @@
-const PostLikeRepository = require("../repositories/PostLike");
+const PostLikeRepository = require("../repositories/PostLikeRepository");
 
 class PostLikeService {
   // Get all post likes by post id
@@ -32,7 +32,9 @@ class PostLikeService {
 
   // Count post likes by post id
   static async countByPostId(post_id) {
-    return PostLikeRepository.countByPostId(post_id);
+    let count = await PostLikeRepository.countByPostId(post_id);
+    count = count[0]["count(`post_id`)"];
+    return count;
   }
 }
 

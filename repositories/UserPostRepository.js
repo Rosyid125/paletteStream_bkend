@@ -22,18 +22,19 @@ class UserPostRepository {
   }
 
   // Create a new user post
-  static async create(user_id, content) {
-    const userPost = await UserPost.query().insert({ user_id, content });
+  static async create(user_id, title, description, type) {
+    const userPost = await UserPost.query().insert({
+      user_id,
+      title,
+      description,
+      type,
+    });
     return userPost;
   }
 
   // Update user post
-  static async update(id, content) {
-    const userPost = await UserPost.query().findOne({ id });
-    if (!userPost) {
-      return null;
-    }
-    await UserPost.query().findOne({ id }).patch({ content });
+  static async update(id, title, description, type) {
+    const userPost = await UserPost.query().findOne({ id }).patch({ title, description, type });
     return userPost;
   }
 

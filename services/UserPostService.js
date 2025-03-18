@@ -1,15 +1,15 @@
 // Import all necessary repositories
-import UserPostRepository from "../repositories/UserPostRepository";
-import UserPostImageRepository from "../repositories/UserPostImageRepository";
-import UserPostTagsRepository from "../repositories/UserPostTagsRepository";
-import UserRepository from "../repositories/UserRepository";
-import UserProfileRepository from "../repositories/UserRepository";
-import UserExpRepository from "../repositories/UserExpRepository";
-import TagRepository from "../repositories/TagRepository";
+const UserPostRepository = require("../repositories/UserPostRepository");
+const PostImageRepository = require("../repositories/PostImageRepository");
+const PostTagRepository = require("../repositories/PostTagRepository");
+const UserRepository = require("../repositories/UserRepository");
+const UserProfileRepository = require("../repositories/UserProfileRepository");
+const UserExpRepository = require("../repositories/UserExpRepository");
+const TagRepository = require("../repositories/TagRepository");
 
 // Import needed services
-import PostCommentService from "./PostCommentService";
-import PostLikeService from "./PostLikeService";
+const PostCommentService = require("./PostCommentService");
+const PostLikeService = require("./PostLikeService");
 
 // Define the UserPostService class
 class UserPostService {
@@ -22,36 +22,39 @@ class UserPostService {
         return null;
       }
 
-      // Extract post_ids from the user's posts
-      const postIds = userPosts.map((post) => post.id);
+      // Get all images, tags, like counts, and comment counts for the user's posts
+      const postsWithDetails = [];
 
-      // Get all images for these posts
-      const userPostImages = await UserPostImageRepository.findByPostIds(postIds);
+      for (const post of userPosts) {
+        // Get images for the current post
+        const postImages = await PostImageRepository.findByPostId(post.id);
 
-      // Get all tags for these posts
-      const userPostTags = await UserPostTagsRepository.findByPostIds(postIds);
+        // Get tag id for the current post
+        const postTags = await PostTagRepository.findByPostId(post.id);
 
-      // Get all like counts for these posts
-      const userPostLikeCounts = await PostLikeService.countByPostIds(postIds);
+        // Get tag name based on tag id
+        for (const tag of postTags) {
+          const tagDetails = await TagRepository.findById(tag.tag_id);
+          tag.name = tagDetails.name;
+        }
 
-      // Get all comment counts for these posts
-      const postCommentsCounts = await PostCommentService.countByPostIds(postIds);
+        // Get like counts for the current post
+        const postLikeCount = await PostLikeService.countByPostId(post.id);
 
-      // Get the user information
-      const user = await UserRepository.findById(userId);
+        // Get comment counts for the current post
+        const postCommentCount = await PostCommentService.countByPostId(post.id);
 
-      // Get the user profile information
-      const userProfile = await UserProfileRepository.findById(userId);
+        // Get user information
+        const user = await UserRepository.findById(userId);
 
-      // Get the user experience information
-      const userExp = await UserExpRepository.findByUserId(userId);
+        // Get user profile information
+        const userProfile = await UserProfileRepository.findByUserId(userId);
 
-      // Assemble the data to return
-      const postsWithDetails = userPosts.map((post) => {
-        const postImages = userPostImages.filter((image) => image.post_id === post.id);
-        const postTags = userPostTags.filter((tag) => tag.post_id === post.id);
+        // Get user experience information
+        const userExp = await UserExpRepository.findByUserId(userId);
 
-        return {
+        // Assemble the data for the current post
+        postsWithDetails.push({
           id: post.id,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -59,14 +62,15 @@ class UserPostService {
           avatar: userProfile.avatar,
           level: userExp.level,
           createdAt: post.createdAt,
+          type: post.type,
           title: post.title,
           description: post.description,
           images: postImages.map((image) => image.image_url),
           tags: postTags.map((tag) => tag.name),
-          likeCount: userPostLikeCounts.find((count) => count.post_id === post.id)?.count || 0,
-          commentCount: postCommentsCounts.find((count) => count.post_id === post.id)?.count || 0,
-        };
-      });
+          likeCount: postLikeCount || 0,
+          commentCount: postCommentCount || 0,
+        });
+      }
 
       return postsWithDetails;
     } catch (error) {
@@ -78,47 +82,44 @@ class UserPostService {
   static async getAllPosts() {
     try {
       // Get all posts
-      const userPosts = await UserPostRepository.findAll();
-      if (!userPosts || userPosts.length === 0) {
+      const posts = await UserPostRepository.findAll();
+      if (!posts || posts.length === 0) {
         return null;
       }
 
-      // Extract post_ids from the user's posts
-      const postIds = userPosts.map((post) => post.id);
+      // Get all images, tags, like counts, and comment counts for all posts
+      const postsWithDetails = [];
 
-      // Get all images for these posts
-      const userPostImages = await UserPostImageRepository.findByPostIds(postIds);
+      for (const post of posts) {
+        // Get images for the current post
+        const postImages = await PostImageRepository.findByPostId(post.id);
 
-      // Get all tags for these posts
-      const userPostTags = await UserPostTagsRepository.findByPostIds(postIds);
+        // Get tag id for the current post
+        const postTags = await PostTagRepository.findByPostId(post.id);
 
-      // Get all like counts for these posts
-      const postLikeCounts = await UserPostLikesRepository.countByPostIds(postIds);
+        // Get tag name based on tag id
+        for (const tag of postTags) {
+          const tagDetails = await TagRepository.findById(tag.tag_id);
+          tag.name = tagDetails.name;
+        }
 
-      // Get all comment counts for these posts
-      const postCommentsCounts = await UserPostCommentsRepository.countByPostIds(postIds);
+        // Get like counts for the current post
+        const postLikeCount = await PostLikeService.countByPostId(post.id);
 
-      // Get the user information
-      const userIds = userPosts.map((post) => post.user_id);
-      const users = await UserRepository.findByIds(userIds);
+        // Get comment counts for the current post
+        const postCommentCount = await PostCommentService.countByPostId(post.id);
 
-      // Get the user profile information
-      const userProfileIds = userPosts.map((post) => post.user_id);
-      const userProfiles = await UserProfileRepository.findByIds(userProfileIds);
+        // Get user information
+        const user = await UserRepository.findById(post.user_id);
 
-      // Get the user experience information
-      const userExpIds = userPosts.map((post) => post.user_id);
-      const userExps = await UserExpRepository.findByIds(userExpIds);
+        // Get user profile information
+        const userProfile = await UserProfileRepository.findByUserId(post.user_id);
 
-      // Assemble the data to return
-      const postsWithDetails = userPosts.map((post) => {
-        const postImages = userPostImages.filter((image) => image.post_id === post.id);
-        const postTags = userPostTags.filter((tag) => tag.post_id === post.id);
-        const user = users.find((user) => user.id === post.user_id);
-        const userProfile = userProfiles.find((profile) => profile.user_id === post.user_id);
-        const userExp = userExps.find((exp) => exp.user_id === post.user_id);
+        // Get user experience information
+        const userExp = await UserExpRepository.findByUserId(post.user_id);
 
-        return {
+        // Assemble the data for the current post
+        postsWithDetails.push({
           id: post.id,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -126,14 +127,15 @@ class UserPostService {
           avatar: userProfile.avatar,
           level: userExp.level,
           createdAt: post.createdAt,
+          type: post.type,
           title: post.title,
           description: post.description,
           images: postImages.map((image) => image.image_url),
           tags: postTags.map((tag) => tag.name),
-          likeCount: postLikeCounts.find((count) => count.post_id === post.id)?.count || 0,
-          commentCount: postCommentsCounts.find((count) => count.post_id === post.id)?.count || 0,
-        };
-      });
+          likeCount: postLikeCount || 0,
+          commentCount: postCommentCount || 0,
+        });
+      }
 
       return postsWithDetails;
     } catch (error) {
@@ -142,19 +144,19 @@ class UserPostService {
   }
 
   // Static method to create a new post
-  static async createPost(userId, title, description, tags, images) {
+  static async createPost(userId, title, description, tags, images, type) {
     try {
       // Create a new post
-      const post = await UserPostRepository.create(userId, title, description);
+      const post = await UserPostRepository.create(userId, title, description, type);
 
       // If tag does not exist, create a new tag
-      tags = tags.map((tag) => TagRepository.findOrCreate(tag));
+      const createdTags = await Promise.all(tags.map((tag) => TagRepository.findOrCreate(tag)));
 
       // Create post tags
-      const postTags = tags.map((tag) => UserPostTagsRepository.create(post.id, tag));
+      const postTags = await Promise.all(createdTags.map((tag) => PostTagRepository.create(post.id, tag.id)));
 
       // Create post images
-      const postImages = images.map((image) => UserPostImageRepository.create(post.id, image));
+      const postImages = await Promise.all(images.map((image) => PostImageRepository.create(post.id, image)));
 
       return { post, postTags, postImages };
     } catch (error) {
@@ -163,25 +165,25 @@ class UserPostService {
   }
 
   // Static method to update a post
-  static async updatePost(postId, title, description, tags, images) {
+  static async updatePost(postId, title, description, tags, images, type) {
     try {
       // Update the post
-      const post = await UserPostRepository.update(postId, title, description);
-
-      // If tag does not exist, create a new tag
-      tags = tags.map((tag) => TagRepository.findOrCreate(tag));
+      const post = await UserPostRepository.update(postId, title, description, type);
 
       // Delete post tags
-      const postTags = await UserPostTagsRepository.deleteByPostId(postId);
+      const postTags = await PostTagRepository.deleteByPostId(postId);
+
+      // If tag does not exist, create a new tag
+      const createdTags = await Promise.all(tags.map((tag) => TagRepository.findOrCreate(tag)));
 
       // Create post tags
-      const newPostTags = tags.map((tag) => UserPostTagsRepository.create(postId, tag));
+      const newPostTags = await Promise.all(createdTags.map((tag) => PostTagRepository.create(postId, tag.id)));
 
       // Delete post images
-      const postImages = await UserPostImageRepository.deleteByPostId(postId);
+      const postImages = await PostImageRepository.deleteByPostId(postId);
 
       // Create post images
-      const newPostImages = images.map((image) => UserPostImageRepository.create(postId, image));
+      const newPostImages = await Promise.all(images.map((image) => PostImageRepository.create(postId, image)));
 
       return { post, postTags, newPostTags, postImages, newPostImages };
     } catch (error) {
@@ -196,10 +198,10 @@ class UserPostService {
       const post = await UserPostRepository.delete(postId);
 
       // Delete post tags
-      const postTags = await UserPostTagsRepository.deleteByPostId(postId);
+      const postTags = await PostTagRepository.deleteByPostId(postId);
 
       // Delete post images
-      const postImages = await UserPostImageRepository.deleteByPostId(postId);
+      const postImages = await PostImageRepository.deleteByPostId(postId);
 
       return { post, postTags, postImages };
     } catch (error) {
@@ -209,4 +211,4 @@ class UserPostService {
 }
 
 // Export the UserPostService class
-export default UserPostService;
+module.exports = UserPostService;

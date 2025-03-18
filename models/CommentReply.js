@@ -1,5 +1,5 @@
 const { Model } = require("objection");
-const knex = require("../config/database"); // Adjust the path as necessary
+const knex = require("../config/db"); // Adjust the path as necessary
 
 Model.knex(knex);
 

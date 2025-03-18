@@ -87,14 +87,33 @@ class PostCommentService {
     return commentReply;
   }
 
-  // Count all comments and replies by post id\
   static async countByPostId(post_id) {
-    const postComments = await PostCommentRepository.countByPostId(post_id);
-    const commentReplies = await CommentReplyRepository.countByPostId(post_id);
+    // Count all post comments
+    const postCommentsCountResult = await PostCommentRepository.countByPostId(post_id);
 
-    // Add both counts
-    const count = postComments + commentReplies;
-    return count;
+    // Make it a number
+    let postCommentsCount = postCommentsCountResult[0]["count(`post_id`)"];
+
+    // Get all post comments by post id
+    const postComments = await PostCommentRepository.findByPostId(post_id);
+
+    // Get ids from post comments
+    const commentIds = postComments.map((comment) => comment.id);
+
+    // Initialize the reply count variable
+    let commentRepliesCount = 0;
+
+    // Get replies for each comment and count them
+    for (const id of commentIds) {
+      const commentReplies = await CommentReplyRepository.findByCommentId(id);
+      commentRepliesCount += commentReplies.length; // Add the number of replies to the count
+    }
+
+    // Total count (comments + replies)
+    const totalCount = postCommentsCount + commentRepliesCount;
+
+    // Return the total count (as a number)
+    return totalCount;
   }
 }
 

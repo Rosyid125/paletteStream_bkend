@@ -43,3 +43,5 @@ class CommentReplyRepository {
     return count;
   }
 }
+
+module.exports = CommentReplyRepository;

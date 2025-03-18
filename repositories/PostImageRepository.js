@@ -22,19 +22,19 @@ class PostImageRepository {
   }
 
   // Create a new post image
-  static async create(post_id, url) {
-    const postImage = await PostImage.query().insert({ post_id, url });
+  static async create(post_id, image_url) {
+    const postImage = await PostImage.query().insert({ post_id, image_url });
     return postImage;
   }
 
   // Delete a post image
-  static async delete(id) {
-    const postImage = await PostImage.query().findOne({ id });
-    if (!postImage) {
+  static async deleteByPostId(post_id) {
+    const postImages = await PostImage.query().where({ post_id });
+    if (!postImages.length) {
       return null;
     }
-    await PostImage.query().findOne({ id }).delete();
-    return postImage;
+    await PostImage.query().where({ post_id }).delete();
+    return postImages;
   }
 }
 

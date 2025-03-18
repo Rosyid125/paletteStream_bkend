@@ -2,7 +2,7 @@ const { Model } = require("objection");
 
 class Tag extends Model {
   static get tableName() {
-    return "post_tags";
+    return "tags";
   }
 
   static get jsonSchema() {
@@ -14,21 +14,6 @@ class Tag extends Model {
         name: { type: "string", minLength: 1, maxLength: 255 },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
-      },
-    };
-  }
-
-  static get relationMappings() {
-    const GroupPost = require("./GroupPost");
-
-    return {
-      group_posts: {
-        relation: Model.HasManyRelation,
-        modelClass: GroupPost,
-        join: {
-          from: "post_tags.id",
-          to: "group_posts.tag_id",
-        },
       },
     };
   }
