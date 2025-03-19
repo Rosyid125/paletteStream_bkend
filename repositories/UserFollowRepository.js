@@ -9,43 +9,43 @@ class UserFollowRepository {
     return userFollows;
   }
 
-  // Get user follow by follower id
-  static async findByFollowerId(followerId) {
-    const userFollow = await UserFollow.query().findOne({ follower_id: followerId });
-    return userFollow;
+  // Get user followers by user id
+  static async findByFollowerId(user_id) {
+    const userFollows = await UserFollow.query().where({ follower_id: user_id });
+    return userFollows;
   }
 
-  // Get user follow by followed id
-  static async findByFollowedId(followedId) {
-    const userFollow = await UserFollow.query().findOne({ followed_id: followedId });
-    return userFollow;
+  // Get user followings by user id
+  static async findByFollowedId(user_id) {
+    const userFollows = await UserFollow.query().where({ followed_id: user_id });
+    return userFollows;
   }
 
   // Create a new user follow
-  static async create(followerId, followedId) {
-    const userFollow = await UserFollow.query().insert({ followerId, followedId });
+  static async create(follower_id, followed_id) {
+    const userFollow = await UserFollow.query().insert({ follower_id, followed_id });
     return userFollow;
   }
 
   // Delete a user follow
-  static async delete(followerId, followedId) {
-    const userFollow = await UserFollow.query().findOne({ follower_id: followerId, followed_id: followedId });
+  static async delete(follower_id, followed_id) {
+    const userFollow = await UserFollow.query().findOne({ follower_id, followed_id });
     if (!userFollow) {
       return null;
     }
-    await UserFollow.query().findOne({ follower_id: followerId, followed_id: followedId }).delete();
+    await UserFollow.query().findOne({ follower_id, followed_id }).delete();
     return userFollow;
   }
 
   // Count user followings by user id
-  static async countFollowingsByUserId(followerId) {
-    const count = await UserFollow.query().count("follower_id").where({ follower_id: followerId });
+  static async countFollowingsByUserId(follower_id) {
+    const count = await UserFollow.query().count("follower_id").where({ follower_id });
     return count;
   }
 
   // Count followers by user id
-  static async countFollowersByUserId(followedId) {
-    const count = await UserFollow.query().count("followed_id").where({ followed_id: followedId });
+  static async countFollowersByUserId(followed_id) {
+    const count = await UserFollow.query().count("followed_id").where({ followed_id });
     return count;
   }
 }

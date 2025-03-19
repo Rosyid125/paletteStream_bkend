@@ -22,12 +22,12 @@ class UserProfileRepository {
   }
 
   // Update user profile
-  static async update(userId, username, avatar, bio, location) {
-    const userProfile = await UserProfile.query().findOne({ userId });
+  static async update(user_id, username, avatar, bio, location) {
+    const userProfile = await UserProfile.query().findOne({ user_id });
     if (!userProfile) {
       return null;
     }
-    await UserProfile.query().findOne({ userId }).patch({ username, avatar, bio, location });
+    await UserProfile.query().findOne({ user_id }).patch({ username, avatar, bio, location });
     return userProfile;
   }
 }

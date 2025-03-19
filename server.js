@@ -1,4 +1,3 @@
-// This is a file for server setup and running the server
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -7,8 +6,14 @@ const cookieParser = require("cookie-parser");
 
 const app = express(); // Create an express app
 
+// CORS configuration
+const corsOptions = {
+  origin: "http://localhost:5174", // Allow only this origin (your frontend)
+  credentials: true, // Allow cookies/credentials (important for login)
+};
+
 app.use(express.json()); // Use the express.json() middleware
-app.use(cors()); // Use the cors middleware
+app.use(cors(corsOptions)); // Apply CORS with the configured options
 app.use(cookieParser()); // Use the cookieParser middleware
 
 app.get("/", (req, res) => {

@@ -1,24 +1,24 @@
 const UserFollowRepository = require("../repositories/UserFollowRepository");
 
 class UserFollowService {
-  // Get all user follows by follower id
-  static async findByFollowerId(follower_id) {
-    return UserFollowRepository.findByFollowerId(follower_id);
+  // Get all user followers by user id
+  static async findByFollowedId(userId) {
+    return UserFollowRepository.findByFollowedId(userId);
   }
 
-  // Get all user follows by followed id
-  static async findByFollowedId(followed_id) {
-    return UserFollowRepository.findByFollowedId(followed_id);
+  // Get all user followings by user id
+  static async findByFollowerId(userId) {
+    return UserFollowRepository.findByFollowerId(userId);
   }
 
   // Create a new user follow
   static async create(follower_id, followed_id) {
     // Create a new user follow
+
     const userFollow = await UserFollowRepository.create(follower_id, followed_id);
     if (!userFollow) {
       throw new Error("User follow not found");
     }
-
     // Return user follow
     return userFollow;
   }
@@ -45,3 +45,5 @@ class UserFollowService {
     return UserFollowRepository.countFollowersByUserId(followed_id);
   }
 }
+
+module.exports = UserFollowService;

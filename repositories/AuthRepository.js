@@ -1,4 +1,5 @@
 const Token = require("../models/Token");
+const User = require("../models/User");
 
 class AuthRepository {
   // Repo khusus auth tidak berbasis CRUD biasa jadi langung sesuai kebutuhan aplikasi, karena memang tidak punya table khusus pada database
@@ -10,7 +11,8 @@ class AuthRepository {
     return await Token.query().insert({ user_id, refresh_token, expires_at });
   }
 
-  async getUserById(user_id) {
+  static async getUserById(user_id) {
+    //  Return test data
     return await User.query().findById(user_id).select("id", "email", "first_name", "last_name", "role", "is_active");
   }
 
