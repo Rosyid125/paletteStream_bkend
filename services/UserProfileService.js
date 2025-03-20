@@ -19,8 +19,8 @@ class UserProfileService {
       const userAchievements = await UserAchievementRepository.findByUserId(userId);
       const userBadges = await UserBadgeRepository.findByUserId(userId);
       const userExp = await UserExpRepository.findByUserId(userId);
-      const userFollowingsCount = await UserFollowService.getUserFollowingsCount(userId);
-      const userFollowersCount = await UserFollowService.getUserFollowersCount(userId);
+      const userFollowingsCount = await UserFollowService.countFollowingsByUserId(userId);
+      const userFollowersCount = await UserFollowService.countFollowersByUserId(userId);
 
       // Return user profile
       if (!user) {
@@ -41,6 +41,22 @@ class UserProfileService {
         followings: userFollowingsCount,
         followers: userFollowersCount,
       };
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  // Static method to create a default user profile
+  static async createDefaultUserProfile(userId) {
+    try {
+      // Create a default user profile
+      const userProfile = await UserProfileRepository.createDefault(userId);
+      if (!userProfile) {
+        throw new Error("User profile not found");
+      }
+
+      // Return default user profile
+      return userProfile;
     } catch (error) {
       throw new Error(error.message);
     }

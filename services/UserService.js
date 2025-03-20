@@ -22,3 +22,5 @@ class UserService {
     return await UserRepository.unBan(id);
   }
 }
+
+module.exports = UserService;

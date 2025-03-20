@@ -15,6 +15,12 @@ class UserRepository {
     return user;
   }
 
+  // Get user by email
+  static async getUserByEmail(email) {
+    const user = await User.query().where("email", email).first();
+    return user;
+  }
+
   // Create a new user
   static async create(email, password, first_name, last_name, role) {
     const user = await User.query().insert({ email, password, first_name, last_name, role });

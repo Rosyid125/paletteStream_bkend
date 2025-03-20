@@ -11,74 +11,96 @@ const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 
 class AuthService {
   static async register(userData) {
-    const { email, password, firstName, lastName } = userData;
+    try {
+      const { email, password, firstName, lastName } = userData;
 
-    const existingUser = await User.query().findOne({ email });
-    if (existingUser) {
-      throw new Error("Email already registered.");
+      const existingUser = await User.query().findOne({ email });
+      if (existingUser) {
+        throw { message: "Email already registered.", details: "User with this email already exists." };
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await UserRepository.create(email, hashedPassword, firstName, lastName, "default");
+
+      return user;
+    } catch (error) {
+      throw { message: "Registration failed", details: error.message };
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await UserRepository.create(email, hashedPassword, firstName, lastName, "default");
-
-    return user;
   }
 
   static async login(email, password) {
-    const user = await User.query().findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new Error("Invalid email or password.");
+    try {
+      const user = await UserRepository.getUserByEmail(email);
+      if (!user || !(await bcrypt.compare(password, user.password))) {
+        throw { message: "Invalid email or password.", details: "Email or password is incorrect." };
+      }
+
+      const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_SECRET, {
+        expiresIn: ACCESS_TOKEN_EXPIRY,
+      });
+
+      const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, {
+        expiresIn: REFRESH_TOKEN_EXPIRY,
+      });
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+      await AuthRepository.saveRefreshToken(user.id, refreshToken, expiresAt.toISOString());
+
+      return { accessToken, refreshToken, user };
+    } catch (error) {
+      throw { message: "Login failed", details: error.message };
     }
-
-    const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_SECRET, {
-      expiresIn: ACCESS_TOKEN_EXPIRY,
-    });
-
-    const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, {
-      expiresIn: REFRESH_TOKEN_EXPIRY,
-    });
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 hari
-
-    await AuthRepository.saveRefreshToken(user.id, refreshToken, expiresAt.toISOString());
-
-    return { accessToken, refreshToken };
   }
 
   static async getUserData(accessToken) {
     try {
       const decoded = jwt.verify(accessToken, ACCESS_SECRET);
-      const user = await AuthRepository.getUserById(decoded.id);
-      if (!user) throw new Error("User not found");
+      const user = await UserRepository.findById(decoded.id);
+      if (!user) throw { message: "User not found", details: "No user found with the given ID." };
       return user;
     } catch (error) {
-      throw new Error("Invalid or expired token");
+      throw { message: "Invalid or expired token", details: error.message };
     }
   }
 
   static async refreshToken(oldRefreshToken) {
-    const storedToken = await AuthRepository.getRefreshToken(oldRefreshToken);
-    if (!storedToken) {
-      throw new Error("Invalid refresh token.");
+    try {
+      const storedToken = await AuthRepository.getRefreshToken(oldRefreshToken);
+      if (!storedToken) {
+        throw { message: "Invalid refresh token.", details: "Refresh token is not valid." };
+      }
+
+      const decoded = jwt.verify(oldRefreshToken, REFRESH_SECRET);
+      const newAccessToken = jwt.sign({ id: decoded.id }, ACCESS_SECRET, {
+        expiresIn: ACCESS_TOKEN_EXPIRY,
+      });
+
+      const newRefreshToken = jwt.sign({ id: decoded.id }, REFRESH_SECRET, {
+        expiresIn: REFRESH_TOKEN_EXPIRY,
+      });
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+      console.log("Old refresh token", oldRefreshToken);
+      console.log("New refresh token", newRefreshToken);
+
+      await AuthRepository.saveRefreshToken(decoded.id, newRefreshToken, expiresAt.toISOString());
+
+      return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+    } catch (error) {
+      throw { message: "Token refresh failed", details: error.message };
     }
-
-    const decoded = jwt.verify(oldRefreshToken, REFRESH_SECRET);
-    const newAccessToken = jwt.sign({ id: decoded.id }, ACCESS_SECRET, {
-      expiresIn: ACCESS_TOKEN_EXPIRY,
-    });
-
-    const newRefreshToken = jwt.sign({ id: decoded.id }, REFRESH_SECRET, {
-      expiresIn: REFRESH_TOKEN_EXPIRY,
-    });
-
-    await AuthRepository.saveRefreshToken(decoded.id, newRefreshToken, new Date().toISOString());
-
-    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 
   static async logout(refreshToken) {
-    await AuthRepository.deleteRefreshToken(refreshToken);
+    try {
+      await AuthRepository.deleteRefreshToken(refreshToken);
+    } catch (error) {
+      throw { message: "Logout failed", details: error.message };
+    }
   }
 }
 

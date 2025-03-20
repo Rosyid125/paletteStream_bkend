@@ -1,11 +1,27 @@
 const AuthService = require("../services/AuthService");
+const UserProfileService = require("../services/UserProfileService");
+const UserExpService = require("../services/UserExpService");
+const logger = require("../utils/winstonLogger");
 
 class AuthController {
   static async register(req, res) {
     try {
       const user = await AuthService.register(req.body);
+
+      // Membuat profil pengguna default
+      await UserProfileService.createDefaultUserProfile(user.id);
+      // Membuat userExp default
+      await UserExpService.create(user.id, 0, 1);
+
       res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error occurred in registerController: ${error.details}`, {
+        stack: error.stack,
+        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(400).json({ error: error.message });
     }
   }
@@ -13,7 +29,7 @@ class AuthController {
   static async login(req, res) {
     try {
       const { email, password } = req.body;
-      const { accessToken, refreshToken } = await AuthService.login(email, password);
+      const { accessToken, refreshToken, user } = await AuthService.login(email, password);
 
       // Simpan token dalam HTTP-only cookies
       res.cookie("accessToken", accessToken, {
@@ -30,8 +46,15 @@ class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
       });
 
-      res.status(200).json({ message: "Login successful" });
+      res.status(200).json({ message: "Login successful", user });
     } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error occurred in registerController: ${error.details}`, {
+        stack: error.stack,
+        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(400).json({ error: error.message });
     }
   }
@@ -46,18 +69,25 @@ class AuthController {
       const user = await AuthService.getUserData(token);
       res.status(200).json(user);
     } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error occurred in registerController: ${error.details}`, {
+        stack: error.stack,
+        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(401).json({ error: error.message });
     }
   }
 
   static async refreshToken(req, res) {
     try {
-      const refreshToken = req.cookies.refreshToken;
-      if (!refreshToken) {
+      const oldRefreshToken = req.cookies.refreshToken;
+      if (!oldRefreshToken) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
-      const { accessToken, newRefreshToken } = await AuthService.refreshToken(refreshToken);
+      const { accessToken, refreshToken } = await AuthService.refreshToken(oldRefreshToken);
 
       // Perbarui cookie dengan token baru
       res.cookie("accessToken", accessToken, {
@@ -67,7 +97,7 @@ class AuthController {
         maxAge: 15 * 60 * 1000,
       });
 
-      res.cookie("refreshToken", newRefreshToken, {
+      res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
@@ -76,6 +106,13 @@ class AuthController {
 
       res.status(200).json({ message: "Token refreshed" });
     } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error occurred in registerController: ${error.details}`, {
+        stack: error.stack,
+        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(400).json({ error: error.message });
     }
   }
@@ -93,6 +130,13 @@ class AuthController {
 
       res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error occurred in registerController: ${error.details}`, {
+        stack: error.stack,
+        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(400).json({ error: error.message });
     }
   }

@@ -11,11 +11,6 @@ class AuthRepository {
     return await Token.query().insert({ user_id, refresh_token, expires_at });
   }
 
-  static async getUserById(user_id) {
-    //  Return test data
-    return await User.query().findById(user_id).select("id", "email", "first_name", "last_name", "role", "is_active");
-  }
-
   static async getRefreshToken(refresh_token) {
     return await Token.query().findOne({ refresh_token });
   }

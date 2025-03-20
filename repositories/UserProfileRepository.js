@@ -15,6 +15,17 @@ class UserProfileRepository {
     return userProfile;
   }
 
+  // Create a default user profile
+  static async createDefault(user_id) {
+    // Default data
+    const username = `player${user_id}`;
+    const avatar = "/avatars/noimage.png";
+    const bio = "Hello, I'm new here!";
+    const location = "Earth";
+    const userProfile = await UserProfile.query().insert({ user_id, username, avatar, bio, location });
+    return userProfile;
+  }
+
   // Create a new user profile
   static async create(user_id, username, avatar, bio, location) {
     const userProfile = await UserProfile.query().insert({ user_id, username, avatar, bio, location });
