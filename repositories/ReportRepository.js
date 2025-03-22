@@ -1,6 +1,5 @@
 // Import model
 const Report = require("../models/Report");
-const db = require("../config/db");
 
 class ReportRepository {
   // Get all reports

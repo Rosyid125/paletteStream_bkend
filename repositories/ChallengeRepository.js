@@ -1,17 +1,5 @@
 // Import model
 const Challenge = require("../models/Challenge");
-const db = require("../config/db");
-
-// return knex.schema.createTable("challenges", (table) => {
-//     table.increments("id").primary();
-//     table.string("title").notNullable();
-//     table.string("description").notNullable();
-//     table.string("images").nullable();
-//     table.string("start_date").notNullable();
-//     table.string("end_date").notNullable();
-//     table.enu("status", ["open", "closed"]).notNullable();
-//     table.timestamps(true, true);
-//   });
 
 class ChallengeRepository {
   // Get all challenges

@@ -1,7 +1,4 @@
 const { Model } = require("objection");
-const knex = require("../config/db"); // Adjust the path as necessary
-
-Model.knex(knex);
 
 class CommentReply extends Model {
   static get tableName() {

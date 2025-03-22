@@ -1,6 +1,5 @@
 // Import model
 const UserAchievement = require("../models/UserAchievement");
-const db = require("../config/db");
 
 class UserAchievementRepository {
   // Get all user achievements

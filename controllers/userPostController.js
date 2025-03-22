@@ -18,7 +18,7 @@ class UserPostController {
       res.json({ success: true, data: userPosts });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.details}`, {
+      logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -34,7 +34,7 @@ class UserPostController {
       res.json({ success: true, data: userPosts });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.details}`, {
+      logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -110,7 +110,7 @@ class UserPostController {
       res.json({ success: true, data: userPost });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.details}`, {
+      logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -132,11 +132,11 @@ class UserPostController {
       res.json({ success: true, message: "Post deleted successfully" });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.details}`, {
+      logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
-      ("");
+
       res.status(500).json({ success: false, message: error.message });
     }
   }

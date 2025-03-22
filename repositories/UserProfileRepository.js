@@ -1,6 +1,5 @@
 // Import model
 const UserProfile = require("../models/UserProfile");
-const db = require("../config/db");
 
 class UserProfileRepository {
   // Get all user profiles

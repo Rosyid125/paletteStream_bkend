@@ -1,6 +1,5 @@
 // Import all model
 const UserFollow = require("../models/UserFollow");
-const db = require("../config/db");
 
 class UserFollowRepository {
   // Get all user follows

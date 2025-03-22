@@ -1,5 +1,4 @@
 const Token = require("../models/Token");
-const User = require("../models/User");
 
 class AuthRepository {
   // Repo khusus auth tidak berbasis CRUD biasa jadi langung sesuai kebutuhan aplikasi, karena memang tidak punya table khusus pada database

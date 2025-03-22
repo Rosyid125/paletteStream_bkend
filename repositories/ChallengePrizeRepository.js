@@ -1,6 +1,5 @@
 // Import model
 const ChallengePrize = require("../models/ChallengePrize");
-const db = require("../config/db");
 
 class ChallengePrizeRepository {
   // Get challenge prize by challenge id

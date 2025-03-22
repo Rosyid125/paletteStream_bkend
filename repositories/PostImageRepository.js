@@ -1,6 +1,5 @@
 // Import model
 const PostImage = require("../models/PostImage");
-const db = require("../config/db");
 
 class PostImageRepository {
   // Get all post images

@@ -1,6 +1,5 @@
 // Import model
 const ChallengePost = require("../models/ChallengePost");
-const db = require("../config/db");
 
 class ChallengePostRepository {
   // Get all challenge posts id by challenge id

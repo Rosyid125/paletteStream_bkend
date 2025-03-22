@@ -1,6 +1,5 @@
 // Import model
 const UserExp = require("../models/UserExp");
-const db = require("../config/db");
 
 class UserExpRepository {
   // Get all user exps

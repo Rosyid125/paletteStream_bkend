@@ -3,9 +3,9 @@ const express = require("express");
 const cors = require("cors");
 const apiRoutes = require("./routes/api");
 const cookieParser = require("cookie-parser");
-const upload = require("./utils/multerUtil"); // Import multerUtil.js
 const path = require("path"); // Pastikan path diimpor di sini!
 const bodyParser = require("body-parser");
+require("./db");
 
 const app = express(); // Create an express app
 
@@ -18,22 +18,6 @@ const corsOptions = {
 // Middleware untuk melayani file statis di folder 'uploads' dan 'avatar'
 app.use("/storage/uploads", express.static(path.join(__dirname, "storage/uploads")));
 app.use("/storage/avatar", express.static(path.join(__dirname, "storage/avatars")));
-
-// // Endpoint untuk upload gambar umum
-// app.post('/upload', upload.single('image'), (req, res) => {
-//   if (!req.file) {
-//     return res.status(400).send('No file uploaded.');
-//   }
-//   res.send(`File uploaded successfully: /storage/uploads/${req.file.filename}`);
-// });
-
-// // Endpoint untuk upload avatar
-// app.post('/upload-avatar', upload.single('avatar'), (req, res) => {
-//   if (!req.file) {
-//     return res.status(400).send('No avatar uploaded.');
-//   }
-//   res.send(`Avatar uploaded successfully: /storage/avatars/${req.file.filename}`);
-// });
 
 // Increase the limit for JSON and URL-encoded payloads
 app.use(bodyParser.json({ limit: "10mb" })); // Increase the size limit as necessary

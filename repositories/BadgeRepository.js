@@ -1,6 +1,5 @@
 // import model
 const Badge = require("../models/Badge");
-const db = require("../config/db");
 
 class BadgeRepository {
   // Get all badges

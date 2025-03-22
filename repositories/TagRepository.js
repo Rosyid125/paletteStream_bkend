@@ -1,6 +1,5 @@
 // Import model
 const Tag = require("../models/Tag");
-const db = require("../config/db");
 
 class TagRepository {
   // Get all tags

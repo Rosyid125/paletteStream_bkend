@@ -1,6 +1,5 @@
 // Import users model
 const User = require("../models/User");
-const db = require("../config/db");
 
 class UserRepository {
   // Get all users

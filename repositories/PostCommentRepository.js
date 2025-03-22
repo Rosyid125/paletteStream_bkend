@@ -1,6 +1,5 @@
 // Import model
 const PostComment = require("../models/PostComment");
-const db = require("../config/db");
 
 class PostCommentRepository {
   // Get all post comments

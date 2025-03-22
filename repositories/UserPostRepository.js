@@ -1,6 +1,5 @@
 // Import model
 const UserPost = require("../models/UserPost");
-const db = require("../config/db");
 
 class UserPostRepository {
   // Get all user posts

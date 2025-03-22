@@ -1,6 +1,5 @@
 // Import model
 const UserBadge = require("../models/UserBadge");
-const db = require("../config/db");
 
 class UserBadgeRepository {
   // Get all user badges

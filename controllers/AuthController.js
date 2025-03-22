@@ -6,17 +6,19 @@ const logger = require("../utils/winstonLogger");
 class AuthController {
   static async register(req, res) {
     try {
+      // Panggil AuthService untuk mendaftarkan pengguna
       const user = await AuthService.register(req.body);
 
       // Membuat profil pengguna default
       await UserProfileService.createDefaultUserProfile(user.id);
+
       // Membuat userExp default
       await UserExpService.create(user.id, 0, 1);
 
       res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.details}`, {
+      logger.error(`Error: ${error.messege}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -46,7 +48,7 @@ class AuthController {
       res.status(200).json({ message: "Login successful", user });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.details}`, {
+      logger.error(`Error: ${error.messege}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -57,6 +59,7 @@ class AuthController {
 
   static async getMe(req, res) {
     try {
+      // Ambil token dari cookie
       const token = req.cookies.accessToken;
       if (!token) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -66,7 +69,7 @@ class AuthController {
       res.status(200).json(user);
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.details}`, {
+      logger.error(`Error: ${error.messege}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -77,6 +80,7 @@ class AuthController {
 
   static async refreshToken(req, res) {
     try {
+      // Ambil refresh token dari cookie
       const oldRefreshToken = req.cookies.refreshToken;
       if (!oldRefreshToken) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -100,7 +104,7 @@ class AuthController {
       res.status(200).json({ message: "Token refreshed" });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.details}`, {
+      logger.error(`Error: ${error.messege}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -111,6 +115,7 @@ class AuthController {
 
   static async logout(req, res) {
     try {
+      // Ambil refresh token dari cookie
       const refreshToken = req.cookies.refreshToken;
       if (refreshToken) {
         await AuthService.logout(refreshToken);
@@ -123,7 +128,7 @@ class AuthController {
       res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.details}`, {
+      logger.error(`Error: ${error.messege}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });

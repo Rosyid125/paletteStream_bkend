@@ -1,6 +1,5 @@
 // Import model
 const PostLike = require("../models/PostLike");
-const db = require("../config/db");
 
 class PostLikeRepository {
   // Get all post likes

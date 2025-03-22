@@ -1,6 +1,5 @@
 // Import model
 const CommentReply = require("../models/CommentReply");
-const db = require("../config/db");
 
 class CommentReplyRepository {
   // Get all comment replies
