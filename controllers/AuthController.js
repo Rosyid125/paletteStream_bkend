@@ -16,9 +16,8 @@ class AuthController {
       res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error occurred in registerController: ${error.details}`, {
+      logger.error(`Error: ${error.details}`, {
         stack: error.stack,
-        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
         timestamp: new Date().toISOString(),
       });
 
@@ -36,22 +35,19 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // Aktifkan secure di produksi
         sameSite: "Strict",
-        maxAge: 15 * 60 * 1000, // 15 menit
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
       });
 
       res.status(200).json({ message: "Login successful", user });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error occurred in registerController: ${error.details}`, {
+      logger.error(`Error: ${error.details}`, {
         stack: error.stack,
-        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
         timestamp: new Date().toISOString(),
       });
 
@@ -70,9 +66,8 @@ class AuthController {
       res.status(200).json(user);
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error occurred in registerController: ${error.details}`, {
+      logger.error(`Error: ${error.details}`, {
         stack: error.stack,
-        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
         timestamp: new Date().toISOString(),
       });
 
@@ -94,22 +89,19 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
-        maxAge: 15 * 60 * 1000,
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       res.status(200).json({ message: "Token refreshed" });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error occurred in registerController: ${error.details}`, {
+      logger.error(`Error: ${error.details}`, {
         stack: error.stack,
-        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
         timestamp: new Date().toISOString(),
       });
 
@@ -131,9 +123,8 @@ class AuthController {
       res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error occurred in registerController: ${error.details}`, {
+      logger.error(`Error: ${error.details}`, {
         stack: error.stack,
-        email: req.body.email, // Bisa menambahkan data terkait dari request jika perlu
         timestamp: new Date().toISOString(),
       });
 

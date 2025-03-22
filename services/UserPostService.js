@@ -74,7 +74,7 @@ class UserPostService {
 
       return postsWithDetails;
     } catch (error) {
-      throw new Error(error.message);
+      throw { message: "Failed get all user's posts", details: error.message };
     }
   }
 
@@ -139,28 +139,27 @@ class UserPostService {
 
       return postsWithDetails;
     } catch (error) {
-      throw new Error(error.message);
+      throw { message: "Failed get all posts", details: error.message };
     }
   }
 
-  // Static method to create a new post
-  static async createPost(userId, title, description, tags, images, type) {
+  static async createPost(userId, title, description, tags, imagePaths, type) {
     try {
-      // Create a new post
+      // Simpan post baru
       const post = await UserPostRepository.create(userId, title, description, type);
 
-      // If tag does not exist, create a new tag
+      // Cari atau buat tags
       const createdTags = await Promise.all(tags.map((tag) => TagRepository.findOrCreate(tag)));
 
-      // Create post tags
+      // Hubungkan tags dengan post
       const postTags = await Promise.all(createdTags.map((tag) => PostTagRepository.create(post.id, tag.id)));
 
-      // Create post images
-      const postImages = await Promise.all(images.map((image) => PostImageRepository.create(post.id, image)));
+      // Simpan path gambar ke database
+      const postImages = await Promise.all(imagePaths.map((imagePath) => PostImageRepository.create(post.id, imagePath)));
 
       return { post, postTags, postImages };
     } catch (error) {
-      throw new Error(error.message);
+      throw { message: "Failed to create a new post", details: error.message };
     }
   }
 
@@ -187,7 +186,7 @@ class UserPostService {
 
       return { post, postTags, newPostTags, postImages, newPostImages };
     } catch (error) {
-      throw new Error(error.message);
+      throw { message: "Failed update a post", details: error.message };
     }
   }
 
@@ -205,7 +204,7 @@ class UserPostService {
 
       return { post, postTags, postImages };
     } catch (error) {
-      throw new Error(error.message);
+      throw { message: "Failed delete a post", details: error.message };
     }
   }
 }

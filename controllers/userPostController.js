@@ -1,4 +1,7 @@
 const UserPostService = require("../services/UserPostService");
+const upload = require("../utils/multerUtil");
+// import logger
+const logger = require("../utils/winstonLogger");
 
 class UserPostController {
   // Get all current user posts
@@ -14,6 +17,12 @@ class UserPostController {
 
       res.json({ success: true, data: userPosts });
     } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.details}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(500).json({ success: false, message: error.message });
     }
   }
@@ -24,25 +33,65 @@ class UserPostController {
 
       res.json({ success: true, data: userPosts });
     } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.details}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
   // Create a user post
   static async createPost(req, res) {
     try {
-      let { userId } = req.params;
-      const { title, description, tags, images, type } = req.body;
+      // Gunakan multer untuk menangani upload sebelum memanggil service
+      upload.array("images", 10)(req, res, async (err) => {
+        if (err) {
+          return res.status(400).json({ error: "File upload failed", details: err.message });
+        }
 
-      // Convert userId to an integer
-      userId = parseInt(userId); // Reassign userId to integer after destructuring
+        try {
+          // Ambil data dari request parameter
+          let { userId } = req.params;
+          userId = parseInt(userId); // Pastikan userId berupa integer
 
-      const userPost = await UserPostService.createPost(userId, title, description, tags, images, type);
+          // Destructure data dari request body
+          const { title, description, tags, type } = req.body;
 
-      res.json({ success: true, data: userPost });
+          // Pastikan title & description ada agar tidak error
+          if (!title || !description) {
+            return res.status(400).json({ error: "Title and description are required" });
+          }
+
+          // Ambil path dari file yang diupload
+          const imagePaths = req.files ? req.files.map((file) => file.path) : [];
+
+          // Panggil service dengan data yang sudah diproses
+          const newPost = await UserPostService.createPost(userId, title, description, tags, imagePaths, type);
+
+          // Kirim response ke client
+          res.json({ success: true, data: newPost });
+        } catch (error) {
+          logger.error(`Error: ${error.details}`, {
+            stack: error.stack,
+            timestamp: new Date().toISOString(),
+          });
+
+          res.status(500).json({ success: false, message: error.message });
+        }
+      });
     } catch (error) {
+      logger.error(`Unexpected Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
   // Edit a user post
   static async updatePost(req, res) {
     try {
@@ -60,6 +109,12 @@ class UserPostController {
 
       res.json({ success: true, data: userPost });
     } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.details}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(500).json({ success: false, message: error.message });
     }
   }
@@ -76,6 +131,12 @@ class UserPostController {
 
       res.json({ success: true, message: "Post deleted successfully" });
     } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.details}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+      ("");
       res.status(500).json({ success: false, message: error.message });
     }
   }

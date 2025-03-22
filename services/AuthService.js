@@ -84,9 +84,6 @@ class AuthService {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
 
-      console.log("Old refresh token", oldRefreshToken);
-      console.log("New refresh token", newRefreshToken);
-
       await AuthRepository.saveRefreshToken(decoded.id, newRefreshToken, expiresAt.toISOString());
 
       return { accessToken: newAccessToken, refreshToken: newRefreshToken };
