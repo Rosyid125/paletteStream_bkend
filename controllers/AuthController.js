@@ -18,7 +18,7 @@ class AuthController {
       res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.messege}`, {
+      logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -48,7 +48,7 @@ class AuthController {
       res.status(200).json({ message: "Login successful", user });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.messege}`, {
+      logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -69,7 +69,7 @@ class AuthController {
       res.status(200).json(user);
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.messege}`, {
+      logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -104,7 +104,7 @@ class AuthController {
       res.status(200).json({ message: "Token refreshed" });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.messege}`, {
+      logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
@@ -128,7 +128,7 @@ class AuthController {
       res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
       // Tangkap error dan log ke file
-      logger.error(`Error: ${error.messege}`, {
+      logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });

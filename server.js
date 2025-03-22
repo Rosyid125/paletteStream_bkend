@@ -5,7 +5,7 @@ const apiRoutes = require("./routes/api");
 const cookieParser = require("cookie-parser");
 const path = require("path"); // Pastikan path diimpor di sini!
 const bodyParser = require("body-parser");
-require("./db");
+require("./config/db");
 
 const app = express(); // Create an express app
 
