@@ -52,6 +52,7 @@ class UserPostController {
           return res.status(400).json({ error: "File upload failed", details: err.message });
         }
 
+        // Karena multer menggunakan callback, kita perlu try-catch di dalam callback.
         try {
           // Ambil data dari request parameter
           let { userId } = req.params;
@@ -74,7 +75,7 @@ class UserPostController {
           // Kirim response ke client
           res.json({ success: true, data: newPost });
         } catch (error) {
-          logger.error(`Error: ${error.details}`, {
+          logger.error(`Error: ${error.message}`, {
             stack: error.stack,
             timestamp: new Date().toISOString(),
           });
