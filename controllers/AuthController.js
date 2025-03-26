@@ -15,6 +15,8 @@ class AuthController {
       // Membuat userExp default
       await UserExpService.create(user.id, 0, 1);
 
+      // Membuat challenge pengguna defauot dkk nantinya
+
       res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
       // Tangkap error dan log ke file

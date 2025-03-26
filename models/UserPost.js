@@ -1,11 +1,4 @@
 const { Model } = require("objection");
-const User = require("./User");
-const ChallengePost = require("./ChallengePost");
-const PostComment = require("./PostComment");
-const PostLike = require("./PostLike");
-const PostImage = require("./PostImage");
-const PostTag = require("./PostTag");
-const UserBookmark = require("./UserBookmark");
 
 class UserPost extends Model {
   static get tableName() {
@@ -29,6 +22,14 @@ class UserPost extends Model {
   }
 
   static get relationMappings() {
+    const User = require("./User");
+    const ChallengePost = require("./ChallengePost");
+    const PostComment = require("./PostComment");
+    const PostLike = require("./PostLike");
+    const PostImage = require("./PostImage");
+    const PostTag = require("./PostTag");
+    const UserBookmark = require("./UserBookmark");
+
     return {
       user: {
         relation: Model.BelongsToOneRelation,

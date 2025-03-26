@@ -1,16 +1,4 @@
 const { Model } = require("objection");
-const ChallengeWinner = require("./ChallengeWinner");
-const CommentReply = require("./CommentReply");
-const PostComment = require("./PostComment");
-const PostLike = require("./PostLike");
-const Token = require("./Token");
-const UserAchievement = require("./UserAchievement");
-const UserBadge = require("./UserBadge");
-const UserBookmarks = require("./UserBookmarks");
-const UserExp = require("./UserExp");
-const UserPost = require("./UserPost");
-const UserProfile = require("./UserProfile");
-const UserSocialLink = require("./UserSocialLink");
 
 class User extends Model {
   static get tableName() {
@@ -36,6 +24,19 @@ class User extends Model {
   }
 
   static get relationMappings() {
+    const ChallengeWinner = require("./ChallengeWinner");
+    const CommentReply = require("./CommentReply");
+    const PostComment = require("./PostComment");
+    const PostLike = require("./PostLike");
+    const Token = require("./Token");
+    const UserAchievement = require("./UserAchievement");
+    const UserBadge = require("./UserBadge");
+    const UserBookmark = require("./UserBookmark");
+    const UserExp = require("./UserExp");
+    const UserPost = require("./UserPost");
+    const UserProfile = require("./UserProfile");
+    const UserSocialLink = require("./UserSocialLink");
+
     return {
       profile: {
         relation: Model.HasOneRelation,
@@ -95,7 +96,7 @@ class User extends Model {
       },
       bookmarks: {
         relation: Model.HasManyRelation,
-        modelClass: UserBookmarks,
+        modelClass: UserBookmark,
         join: {
           from: "users.id",
           to: "user_bookmarks.user_id",
@@ -106,7 +107,7 @@ class User extends Model {
         modelClass: UserExp,
         join: {
           from: "users.id",
-          to: "user_exp.user_id",
+          to: "user_exps.user_id",
         },
       },
       socialLinks: {

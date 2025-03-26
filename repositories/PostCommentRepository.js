@@ -54,6 +54,12 @@ class PostCommentRepository {
     return result?.count || 0;
   }
 
+  // Count post comments by post ids
+  static async countByPostIds(post_ids) {
+    const results = await PostComment.query().select("post_id").count("* as count").whereIn("post_id", post_ids).groupBy("post_id");
+    return results;
+  }
+
   // Count post comments by user id
   static async countByUserId(user_id) {
     // Get all postids by user id

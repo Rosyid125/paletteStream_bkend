@@ -19,16 +19,16 @@ class PostCommentService {
     return PostCommentRepository.findByUserId(user_id);
   }
 
-  // Get post comment by post id
-  static async findByPostId(postId, page, limit) {
-    // Get all post comments by post id
-    const postComments = await PostCommentRepository.findByPostId(postId, page, limit);
+  // // Get post comment by post id
+  // static async findByPostId(postId, page, limit) {
+  //   // Get all post comments by post id
+  //   const postComments = await PostCommentRepository.findByPostId(postId, page, limit);
 
-    // Get all user info for each post comment
-    const postCommentsIds = postComments.map((comment) => comment.id);
+  //   // Get all user info for each post comment
+  //   const postCommentsIds = postComments.map((comment) => comment.id);
 
-    // Fetch all related data in batches
-  }
+  //   // Fetch all related data in batches
+  // }
 
   // Create a new post comment
   static async create(post_id, user_id, content) {

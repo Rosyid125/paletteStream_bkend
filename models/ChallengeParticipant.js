@@ -2,7 +2,7 @@ const { Model } = require("objection");
 const Challenge = require("./Challenge");
 const User = require("./User");
 
-class Challenge extends Model {
+class ChallengeParticipant extends Model {
   static get tableName() {
     return "challenge_participants";
   }
@@ -47,4 +47,4 @@ class Challenge extends Model {
   }
 }
 
-module.exports = Challenge;
+module.exports = ChallengeParticipant;

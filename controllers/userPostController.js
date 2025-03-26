@@ -7,12 +7,24 @@ class UserPostController {
   // Get all current user posts
   static async getUserPost(req, res) {
     try {
-      const { userId } = req.params;
+      // Get user id from request
+      let { userId } = req.params;
 
-      const userPosts = await UserPostService.getUserPosts(userId);
+      // Mke user id integer
+      userId = parseInt(userId);
 
+      console.log("Query Params:", req.query); // Debug query params
+
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      // Panggil service untuk mendapatkan post user
+      const userPosts = await UserPostService.getUserPosts(userId, page, limit);
+
+      // Jika tidak ada post
       if (!userPosts) {
-        return res.status(404).json({ success: false, message: "User not found" });
+        return res.status(404).json({ success: false, message: "Posts not found" });
       }
 
       res.json({ success: true, data: userPosts });
@@ -29,7 +41,17 @@ class UserPostController {
   // Get all posts
   static async getAllPost(req, res) {
     try {
-      const userPosts = await UserPostService.getAllPosts();
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      // Panggil service untuk mendapatkan semua post
+      const userPosts = await UserPostService.getAllPosts(page, limit);
+
+      // Jika tidak ada post
+      if (!userPosts) {
+        return res.status(404).json({ success: false, message: "Posts not found" });
+      }
 
       res.json({ success: true, data: userPosts });
     } catch (error) {

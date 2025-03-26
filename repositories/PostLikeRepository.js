@@ -27,6 +27,12 @@ class PostLikeRepository {
   }
 
   // Get post like status by post id and user id
+  static async getStatus(post_id, user_id) {
+    const result = await PostLike.query().findOne({ post_id, user_id });
+    return result;
+  }
+
+  // Get post like status by post ids and user id
   static async getStatuses(user_id, post_ids) {
     const results = await PostLike.query().select("post_id").where("user_id", user_id).whereIn("post_id", post_ids);
     return results;
