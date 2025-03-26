@@ -20,8 +20,14 @@ class PostCommentService {
   }
 
   // Get post comment by post id
-  static async findByPostId(post_id) {
-    return PostCommentRepository.findByPostId(post_id);
+  static async findByPostId(postId, page, limit) {
+    // Get all post comments by post id
+    const postComments = await PostCommentRepository.findByPostId(postId, page, limit);
+
+    // Get all user info for each post comment
+    const postCommentsIds = postComments.map((comment) => comment.id);
+
+    // Fetch all related data in batches
   }
 
   // Create a new post comment

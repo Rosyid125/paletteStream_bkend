@@ -2,13 +2,18 @@ const PostCommentService = require("../services/PostCommentService");
 
 class PostCommentController {
   // Get all post comments by post id
-  static async getAll(req, res) {
+  static async getComments(req, res) {
     try {
       // Get post id from request
-      const post_id = req.params.post_id;
+      const postId = req.params.postId;
+
+      // Get pagination infos
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
 
       // Get all post comments by post id
-      const postComments = await PostCommentService.findByPostId(post_id);
+      const postComments = await PostCommentService.findByPostId(postId, page, limit);
+
       res.json(postComments);
     } catch (error) {
       res.status(500).json({ error: error.message });

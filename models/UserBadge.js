@@ -1,4 +1,6 @@
 const { Model } = require("objection");
+const User = require("./User");
+const Badge = require("./Badge");
 
 class UserBadge extends Model {
   static get tableName() {
@@ -20,9 +22,6 @@ class UserBadge extends Model {
   }
 
   static get relationMappings() {
-    const User = require("./User");
-    const Badge = require("./Badge");
-
     return {
       user: {
         relation: Model.BelongsToOneRelation,

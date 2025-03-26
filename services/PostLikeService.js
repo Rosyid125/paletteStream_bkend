@@ -29,13 +29,6 @@ class PostLikeService {
     // Return deleted post like
     return postLike;
   }
-
-  // Count post likes by post id
-  static async countByPostId(post_id) {
-    let count = await PostLikeRepository.countByPostId(post_id);
-    count = count[0]["count(`post_id`)"];
-    return count;
-  }
 }
 
 module.exports = PostLikeService;

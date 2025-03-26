@@ -1,4 +1,16 @@
 const { Model } = require("objection");
+const ChallengeWinner = require("./ChallengeWinner");
+const CommentReply = require("./CommentReply");
+const PostComment = require("./PostComment");
+const PostLike = require("./PostLike");
+const Token = require("./Token");
+const UserAchievement = require("./UserAchievement");
+const UserBadge = require("./UserBadge");
+const UserBookmarks = require("./UserBookmarks");
+const UserExp = require("./UserExp");
+const UserPost = require("./UserPost");
+const UserProfile = require("./UserProfile");
+const UserSocialLink = require("./UserSocialLink");
 
 class User extends Model {
   static get tableName() {
@@ -19,6 +31,107 @@ class User extends Model {
         is_active: { type: "boolean" },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
+      },
+    };
+  }
+
+  static get relationMappings() {
+    return {
+      profile: {
+        relation: Model.HasOneRelation,
+        modelClass: UserProfile,
+        join: {
+          from: "users.id",
+          to: "user_profiles.user_id",
+        },
+      },
+      posts: {
+        relation: Model.HasManyRelation,
+        modelClass: UserPost,
+        join: {
+          from: "users.id",
+          to: "user_posts.user_id",
+        },
+      },
+      comments: {
+        relation: Model.HasManyRelation,
+        modelClass: PostComment,
+        join: {
+          from: "users.id",
+          to: "post_comments.user_id",
+        },
+      },
+      likes: {
+        relation: Model.HasManyRelation,
+        modelClass: PostLike,
+        join: {
+          from: "users.id",
+          to: "post_likes.user_id",
+        },
+      },
+      tokens: {
+        relation: Model.HasOneRelation,
+        modelClass: Token,
+        join: {
+          from: "users.id",
+          to: "tokens.user_id",
+        },
+      },
+      achievements: {
+        relation: Model.HasManyRelation,
+        modelClass: UserAchievement,
+        join: {
+          from: "users.id",
+          to: "user_achievements.user_id",
+        },
+      },
+      badges: {
+        relation: Model.HasManyRelation,
+        modelClass: UserBadge,
+        join: {
+          from: "users.id",
+          to: "user_badges.user_id",
+        },
+      },
+      bookmarks: {
+        relation: Model.HasManyRelation,
+        modelClass: UserBookmarks,
+        join: {
+          from: "users.id",
+          to: "user_bookmarks.user_id",
+        },
+      },
+      experience: {
+        relation: Model.HasOneRelation,
+        modelClass: UserExp,
+        join: {
+          from: "users.id",
+          to: "user_exp.user_id",
+        },
+      },
+      socialLinks: {
+        relation: Model.HasManyRelation,
+        modelClass: UserSocialLink,
+        join: {
+          from: "users.id",
+          to: "user_social_links.user_id",
+        },
+      },
+      challengeWinners: {
+        relation: Model.HasManyRelation,
+        modelClass: ChallengeWinner,
+        join: {
+          from: "users.id",
+          to: "challenge_winners.user_id",
+        },
+      },
+      commentReplies: {
+        relation: Model.HasManyRelation,
+        modelClass: CommentReply,
+        join: {
+          from: "users.id",
+          to: "comment_replies.user_id",
+        },
       },
     };
   }

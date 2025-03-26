@@ -1,19 +1,24 @@
 const { Model } = require("objection");
+const Challenge = require("./Challenge");
+const User = require("./User");
 
 class Challenge extends Model {
   static get tableName() {
-    return "challenges";
+    return "challenge_participants";
+  }
+
+  static get idColumn() {
+    return "id";
   }
 
   static get jsonSchema() {
     return {
       type: "object",
-      required: ["title", "description"],
+      required: ["challenge_id", "user_id"],
       properties: {
         id: { type: "integer" },
-        title: { type: "string", minLength: 1, maxLength: 255 },
-        description: { type: "string", minLength: 1, maxLength: 1000 },
-        images: { type: ["string", "null"], maxLength: 255 },
+        challenge_id: { type: "integer" },
+        user_id: { type: "integer" },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
       },
@@ -21,15 +26,21 @@ class Challenge extends Model {
   }
 
   static get relationMappings() {
-    const ChallengeParticipant = require("./ChallengeParticipant");
-
     return {
-      participants: {
-        relation: Model.HasManyRelation,
-        modelClass: ChallengeParticipant,
+      challenge: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: Challenge,
         join: {
-          from: "challenges.id",
-          to: "challenge_participants.challenge_id",
+          from: "challenge_participants.challenge_id",
+          to: "challenges.id",
+        },
+      },
+      user: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: User,
+        join: {
+          from: "challenge_participants.user_id",
+          to: "users.id",
         },
       },
     };

@@ -26,6 +26,12 @@ class PostCommentRepository {
     return postComments;
   }
 
+  // Get post comments by post ids
+  static async countByPostIds(post_ids) {
+    const results = await PostComment.query().select("post_id").count("* as count").whereIn("post_id", post_ids).groupBy("post_id");
+    return results;
+  }
+
   // Create a new post comment
   static async create(post_id, user_id, content) {
     const postComment = await PostComment.query().insert({ post_id, user_id, content });
@@ -44,8 +50,17 @@ class PostCommentRepository {
 
   // Count post comments by post id
   static async countByPostId(post_id) {
-    const count = await PostComment.query().count("post_id").where({ post_id });
-    return count;
+    const result = await PostComment.query().count("post_id").where({ post_id });
+    return result?.count || 0;
+  }
+
+  // Count post comments by user id
+  static async countByUserId(user_id) {
+    // Get all postids by user id
+    const postids = await PostComment.query().select("post_id").where({ user_id });
+    // Count all post comments from all postids
+    const result = await PostComment.query().count("post_id").whereIn("post_id", postids);
+    return result?.count || 0;
   }
 }
 

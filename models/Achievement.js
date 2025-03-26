@@ -1,4 +1,5 @@
 const { Model } = require("objection");
+const UserAchievement = require("./UserAchievement");
 
 class Achievement extends Model {
   static get tableName() {
@@ -17,6 +18,19 @@ class Achievement extends Model {
         goal: { type: "integer" },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
+      },
+    };
+  }
+
+  static get relationMappings() {
+    return {
+      userAchievements: {
+        relation: Model.HasManyRelation,
+        modelClass: UserAchievement,
+        join: {
+          from: "achievements.id",
+          to: "user_achievements.achievement_id",
+        },
       },
     };
   }

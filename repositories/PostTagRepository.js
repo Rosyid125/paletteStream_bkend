@@ -4,8 +4,8 @@ const PostTag = require("../models/PostTag");
 class PostTagRepository {
   // Get all post tags
   static async findAll() {
-    const PostTag = await PostTag.query();
-    return postTags;
+    const PostTags = await PostTag.query();
+    return PostTags;
   }
 
   // Get post tag by id
@@ -18,6 +18,12 @@ class PostTagRepository {
   static async findByPostId(post_id) {
     const postTags = await PostTag.query().where({ post_id });
     return postTags;
+  }
+
+  // Get post tags by post ids
+  static async findByPostIds(post_ids) {
+    const results = await PostTag.query().join("tags", "tags.id", "post_tags.tag_id").select("post_tags.post_id", "tags.name").whereIn("post_tags.post_id", post_ids);
+    return results;
   }
 
   // Create a new post tag

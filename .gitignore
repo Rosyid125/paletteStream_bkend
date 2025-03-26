@@ -44,3 +44,7 @@ build/
 .cache/
 .nyc_output/
 coverage/
+
+# Storage folders
+storage/avatars/
+storage/uploads/

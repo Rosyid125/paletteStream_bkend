@@ -1,4 +1,5 @@
 const { Model } = require("objection");
+const UserBadge = require("./UserBadge");
 
 class Badge extends Model {
   static get tableName() {
@@ -16,6 +17,19 @@ class Badge extends Model {
         description: { type: "string", minLength: 1, maxLength: 255 },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
+      },
+    };
+  }
+
+  static get relationMappings() {
+    return {
+      userBadges: {
+        relation: Model.HasManyRelation,
+        modelClass: UserBadge,
+        join: {
+          from: "badges.id",
+          to: "user_badges.badge_id",
+        },
       },
     };
   }

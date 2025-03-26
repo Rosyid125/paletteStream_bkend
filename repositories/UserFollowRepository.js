@@ -8,15 +8,15 @@ class UserFollowRepository {
     return userFollows;
   }
 
-  // Get user followers by user id
+  // Get user followings ids by user id
   static async findByFollowerId(user_id) {
-    const userFollows = await UserFollow.query().where({ follower_id: user_id });
+    const userFollows = await UserFollow.query().where({ follower_id: user_id }).select("followed_id");
     return userFollows;
   }
 
-  // Get user followings by user id
+  // Get user followers ids by user id
   static async findByFollowedId(user_id) {
-    const userFollows = await UserFollow.query().where({ followed_id: user_id });
+    const userFollows = await UserFollow.query().where({ followed_id: user_id }).select("follower_id");
     return userFollows;
   }
 
@@ -38,14 +38,14 @@ class UserFollowRepository {
 
   // Count user followings by user id
   static async countFollowingsByUserId(follower_id) {
-    const count = await UserFollow.query().count("follower_id").where({ follower_id });
-    return count;
+    const result = await UserFollow.query().where({ follower_id }).count("follower_id as count").first();
+    return result?.count || 0;
   }
 
   // Count followers by user id
   static async countFollowersByUserId(followed_id) {
-    const count = await UserFollow.query().count("followed_id").where({ followed_id });
-    return count;
+    const result = await UserFollow.query().where({ followed_id }).count("followed_id as count").first();
+    return result?.count || 0;
   }
 }
 

@@ -20,6 +20,11 @@ class TagRepository {
     return tag;
   }
 
+  // Get tags by ids
+  static async findTagsByIds(tagIds) {
+    return await Tag.query().whereIn("id", tagIds);
+  }
+
   // Create a new tag
   static async create(name) {
     const tag = await Tag.query().insert({ name });

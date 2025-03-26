@@ -34,16 +34,6 @@ class UserFollowService {
     // Return deleted user follow
     return userFollow;
   }
-
-  // Count user followings by user id
-  static async countFollowingsByUserId(follower_id) {
-    return UserFollowRepository.countFollowingsByUserId(follower_id);
-  }
-
-  // Count followers by user id
-  static async countFollowersByUserId(followed_id) {
-    return UserFollowRepository.countFollowersByUserId(followed_id);
-  }
 }
 
 module.exports = UserFollowService;

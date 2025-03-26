@@ -20,6 +20,12 @@ class PostImageRepository {
     return postImages;
   }
 
+  // Get post images by post ids
+  static async findByPostIds(post_ids) {
+    const results = await PostImage.query().select("post_id", "image_url").whereIn("post_id", post_ids);
+    return results;
+  }
+
   // Create a new post image
   static async create(post_id, image_url) {
     const postImage = await PostImage.query().insert({ post_id, image_url });

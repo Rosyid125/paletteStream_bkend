@@ -6,10 +6,10 @@ const UserRepository = require("../repositories/UserRepository");
 const UserProfileRepository = require("../repositories/UserProfileRepository");
 const UserExpRepository = require("../repositories/UserExpRepository");
 const TagRepository = require("../repositories/TagRepository");
+const PostLikeRepostory = require("./PostLikeService");
 
-// Import needed services
+// Import needed services (for more complicated services (tidak cukup dengan repository))
 const PostCommentService = require("./PostCommentService");
-const PostLikeService = require("./PostLikeService");
 
 // Define the UserPostService class
 class UserPostService {
@@ -55,6 +55,7 @@ class UserPostService {
       // Assemble the data for the current post
       postsWithDetails.push({
         id: post.id,
+        userId: userId,
         firstName: user.firstName,
         lastName: user.lastName,
         username: userProfile.username,
@@ -74,67 +75,203 @@ class UserPostService {
     return postsWithDetails;
   }
 
-  // Static method to get all posts
-  static async getAllPosts() {
-    // Get all posts
-    const posts = await UserPostRepository.findAll();
-    if (!posts || posts.length === 0) {
+  // Static method to get all posts for admin
+  static async getAllPosts(page, limit) {
+    // Pagination setup
+    const offset = (page - 1) * limit;
+
+    // Get all posts with pagination
+    const posts = await UserPostRepository.findAll(offset, limit);
+
+    if (posts.length === 0) return [];
+
+    // Get all post IDs
+    const postIds = posts.map((post) => post.id);
+
+    // Fetch all related data in batches
+    const [postImages, postTags, postLikeCounts, postCommentCounts] = await Promise.all([
+      PostImageRepository.findByPostIds(postIds),
+      PostTagRepository.findByPostIds(postIds),
+      PostLikeRepository.countByPostIds(postIds),
+      PostCommentRepository.countByPostIds(postIds),
+    ]);
+
+    // Convert arrays into maps for quick lookup
+    const imagesMap = postImages.reduce((acc, img) => {
+      acc[img.post_id] = acc[img.post_id] || [];
+      acc[img.post_id].push(img.image_url);
+      return acc;
+    }, {});
+
+    const tagsMap = postTags.reduce((acc, tag) => {
+      acc[tag.post_id] = acc[tag.post_id] || [];
+      acc[tag.post_id].push(tag.name);
+      return acc;
+    }, {});
+
+    const likeCountMap = postLikeCounts.reduce((acc, like) => {
+      acc[like.post_id] = like.count;
+      return acc;
+    }, {});
+
+    const commentCountMap = postCommentCounts.reduce((acc, comment) => {
+      acc[comment.post_id] = comment.count;
+      return acc;
+    }, {});
+
+    const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+      acc[status.post_id] = status.is_liked;
+      return acc;
+    }, {});
+
+    // Assemble final post data
+    return relatedPosts.map((post) => ({
+      id: post.id,
+      userId: post.user_id,
+      firstName: post.user.firstName,
+      lastName: post.user.lastName,
+      username: post.profile.username,
+      avatar: post.profile.avatar,
+      level: post.exp.level,
+      createdAt: post.createdAt,
+      type: post.type,
+      title: post.title,
+      description: post.description,
+      images: imagesMap[post.id] || [],
+      tags: tagsMap[post.id] || [],
+      postLikeStatus: likeStatusMap[post.id] || false,
+      likeCount: likeCountMap[post.id] || 0,
+      commentCount: commentCountMap[post.id] || 0,
+    }));
+  }
+
+  // Static method to get all posts for the home feed
+  static async getHomePosts(userId, page, limit) {
+    // Get all following user IDs
+    const relatedUsers = await UserFollowRepository.findByFollowerId(userId);
+    const followingIds = relatedUsers.map((user) => user.following_id);
+    followingIds.push(userId); // Include the current user
+
+    if (followingIds.length === 0) return [];
+
+    // Pagination setup
+    const offset = (page - 1) * limit;
+
+    // Get posts from related users with pagination
+    const relatedPosts = await UserPostRepository.findByUserIdsPaginated(followingIds, offset, limit);
+    if (relatedPosts.length === 0) return [];
+
+    // Get all post IDs
+    const postIds = relatedPosts.map((post) => post.id);
+
+    // Fetch all related data in batches
+    const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses] = await Promise.all([
+      PostImageRepository.findByPostIds(postIds),
+      PostTagRepository.findByPostIds(postIds),
+      PostLikeRepository.countByPostIds(postIds),
+      PostCommentRepository.countByPostIds(postIds),
+      PostLikeRepository.getStatuses(userid, postIds),
+    ]);
+
+    // Convert arrays into maps for quick lookup
+    const imagesMap = postImages.reduce((acc, img) => {
+      acc[img.post_id] = acc[img.post_id] || [];
+      acc[img.post_id].push(img.image_url);
+      return acc;
+    }, {});
+
+    const tagsMap = postTags.reduce((acc, tag) => {
+      acc[tag.post_id] = acc[tag.post_id] || [];
+      acc[tag.post_id].push(tag.name);
+      return acc;
+    }, {});
+
+    const likeCountMap = postLikeCounts.reduce((acc, like) => {
+      acc[like.post_id] = like.count;
+      return acc;
+    }, {});
+
+    const commentCountMap = postCommentCounts.reduce((acc, comment) => {
+      acc[comment.post_id] = comment.count;
+      return acc;
+    }, {});
+
+    const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+      acc[status.post_id] = status.is_liked;
+      return acc;
+    }, {});
+
+    // Assemble final post data
+    return relatedPosts.map((post) => ({
+      id: post.id,
+      userId: post.user_id,
+      firstName: post.user.firstName,
+      lastName: post.user.lastName,
+      username: post.profile.username,
+      avatar: post.profile.avatar,
+      level: post.exp.level,
+      createdAt: post.createdAt,
+      type: post.type,
+      title: post.title,
+      description: post.description,
+      images: imagesMap[post.id] || [],
+      tags: tagsMap[post.id] || [],
+      postLikeStatus: likeStatusMap[post.id] || false,
+      likeCount: likeCountMap[post.id] || 0,
+      commentCount: commentCountMap[post.id] || 0,
+    }));
+  }
+
+  // Static method to get a single post with all details
+  static async getPostDetails(postId) {
+    // Get post by postId
+    const post = await UserPostRepository.findById(postId);
+    if (!post) {
       return null;
     }
 
-    // Get all images, tags, like counts, and comment counts for all posts
-    const postsWithDetails = [];
+    // Get all necessary post data in one go
+    const [postImages, postTags, postLikeCount, postCommentCount, user, userProfile, userExp] = await Promise.all([
+      PostImageRepository.findByPostId(post.id),
+      PostTagRepository.findByPostId(post.id),
+      PostLikeRepository.countByPostId(post.id),
+      PostCommentRepository.countByPostId(post.id),
+      UserRepository.findById(post.user_id),
+      UserProfileRepository.findByUserId(post.user_id),
+      UserExpRepository.findByUserId(post.user_id),
+    ]);
 
-    for (const post of posts) {
-      // Get images for the current post
-      const postImages = await PostImageRepository.findByPostId(post.id);
+    // Ambil semua tag ID dari `postTags`
+    const tagIds = postTags.map((tag) => tag.tag_id);
 
-      // Get tag id for the current post
-      const postTags = await PostTagRepository.findByPostId(post.id);
+    // Fetch semua tag dalam satu query
+    const tags = tagIds.length > 0 ? await TagRepository.findTagsByIds(tagIds) : [];
 
-      // Get tag name based on tag id
-      for (const tag of postTags) {
-        const tagDetails = await TagRepository.findById(tag.tag_id);
-        tag.name = tagDetails.name;
-      }
+    // Mapping tag ID ke nama
+    const tagMap = tags.reduce((acc, tag) => {
+      acc[tag.id] = tag.name;
+      return acc;
+    }, {});
 
-      // Get like counts for the current post
-      const postLikeCount = await PostLikeService.countByPostId(post.id);
-
-      // Get comment counts for the current post
-      const postCommentCount = await PostCommentService.countByPostId(post.id);
-
-      // Get user information
-      const user = await UserRepository.findById(post.user_id);
-
-      // Get user profile information
-      const userProfile = await UserProfileRepository.findByUserId(post.user_id);
-
-      // Get user experience information
-      const userExp = await UserExpRepository.findByUserId(post.user_id);
-
-      // Assemble the data for the current post
-      postsWithDetails.push({
-        id: post.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: userProfile.username,
-        avatar: userProfile.avatar,
-        level: userExp.level,
-        createdAt: post.createdAt,
-        type: post.type,
-        title: post.title,
-        description: post.description,
-        images: postImages.map((image) => image.image_url),
-        tags: postTags.map((tag) => tag.name),
-        likeCount: postLikeCount || 0,
-        commentCount: postCommentCount || 0,
-      });
-    }
-
-    return postsWithDetails;
+    return {
+      id: post.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: userProfile.username,
+      avatar: userProfile.avatar,
+      level: userExp.level,
+      createdAt: post.createdAt,
+      type: post.type,
+      title: post.title,
+      description: post.description,
+      images: postImages.map((image) => image.image_url),
+      tags: postTags.map((tag) => tagMap[tag.tag_id] || "Unknown"),
+      likeCount: postLikeCount || 0,
+      commentCount: postCommentCount || 0,
+    };
   }
 
+  // Static method to create a new post
   static async createPost(userId, title, description, tags, imagePaths, type) {
     // Simpan post baru
     const post = await UserPostRepository.create(userId, title, description, type);

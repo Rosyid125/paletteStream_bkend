@@ -43,6 +43,62 @@ class UserPostController {
     }
   }
 
+  // Get home posts
+  static async getHomePosts(req, res) {
+    try {
+      const { userId } = req.params;
+
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      // Panggil service untuk mendapatkan home posts
+      const homePosts = await UserPostService.getHomePosts(userId, page, limit);
+
+      // Jika tidak ada home posts
+      if (!homePosts) {
+        return res.status(404).json({ success: false, message: "Posts not found" });
+      }
+
+      // Kirim response ke client
+      res.json({ success: true, data: homePosts });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // Get a post detail
+  static async getPostDetails(req, res) {
+    try {
+      const { postId } = req.params;
+
+      // Panggil service untuk ini
+      const post = await UserPostService.getPostDetails(postId);
+
+      // Jika post tidak di temukan
+      if (!post) {
+        return res.status(404).json({ success: false, message: "Post not found" });
+      }
+
+      // Kirim response ke client
+      res.json({ success: true, data: post });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   // Create a user post
   static async createPost(req, res) {
     try {

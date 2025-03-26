@@ -1,4 +1,5 @@
 const { Model } = require("objection");
+const User = require("./User");
 
 class Token extends Model {
   static get tableName() {
@@ -25,8 +26,6 @@ class Token extends Model {
   }
 
   static get relationMappings() {
-    const User = require("./User");
-
     return {
       user: {
         relation: Model.BelongsToOneRelation,

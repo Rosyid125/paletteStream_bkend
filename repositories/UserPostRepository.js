@@ -20,6 +20,12 @@ class UserPostRepository {
     return userPosts;
   }
 
+  // Get user posts by users ids (with pagination, order by created_at desc)
+  static async findByUsersIds(user_ids, offset, limit) {
+    const userPosts = await UserPost.query().whereIn("user_id", user_ids).orderBy("created_at", "desc").offset(offset).limit(limit);
+    return userPosts;
+  }
+
   // Create a new user post
   static async create(user_id, title, description, type) {
     const userPost = await UserPost.query().insert({
@@ -29,6 +35,12 @@ class UserPostRepository {
       type,
     });
     return userPost;
+  }
+
+  // Count user posts by user id
+  static async countByUserId(user_id) {
+    const result = await UserPost.query().where({ user_id }).count("user_id as count").first();
+    return result?.count || 0;
   }
 
   // Update user post
