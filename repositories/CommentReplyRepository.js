@@ -1,6 +1,7 @@
 // Import model
 const CommentReply = require("../models/CommentReply");
 const PostComment = require("../models/PostComment");
+// For error handling
 const currentRepo = "CommentReplyRepository";
 
 class CommentReplyRepository {

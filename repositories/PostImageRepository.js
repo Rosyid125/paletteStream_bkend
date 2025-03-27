@@ -1,5 +1,6 @@
 // Import model
 const PostImage = require("../models/PostImage");
+// For error handling
 const currentRepo = "PostImageRepository";
 
 class PostImageRepository {

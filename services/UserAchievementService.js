@@ -1,5 +1,9 @@
 const AchievementRepository = require("../repositories/AchievementRepository");
 const UserAchievementRepository = require("../repositories/UserAchievementRepository");
+const UserRepository = require("../repositories/UserRepository"); // Ensure UserRepository is imported
+
+// For error handling
+const currentService = "UserAchievementService";
 
 class UserAchievementService {
   // Static method to get user achievements
@@ -24,7 +28,7 @@ class UserAchievementService {
 
       return userAchievementData;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(`${currentService} Error: ${error.message}`);
     }
   }
 
@@ -33,12 +37,12 @@ class UserAchievementService {
     try {
       const userAchievement = await UserAchievementRepository.update(userId, achievementId, progress, status);
       if (!userAchievement) {
-        throw new Error("User achievement not found");
+        throw new Error(`${currentService} Error: User achievement not found`);
       }
 
       return userAchievement;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(`${currentService} Error: ${error.message}`);
     }
   }
 
@@ -56,7 +60,7 @@ class UserAchievementService {
 
       return achievement;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(`${currentService} Error: ${error.message}`);
     }
   }
 
@@ -65,12 +69,12 @@ class UserAchievementService {
     try {
       const achievement = await AchievementRepository.update(achievementId, title, icon, description, goal);
       if (!achievement) {
-        throw new Error("Achievement not found");
+        throw new Error(`${currentService} Error: Achievement not found`);
       }
 
       return achievement;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(`${currentService} Error: ${error.message}`);
     }
   }
 
@@ -79,12 +83,12 @@ class UserAchievementService {
     try {
       const achievement = await AchievementRepository.delete(achievementId);
       if (!achievement) {
-        throw new Error("Achievement not found");
+        throw new Error(`${currentService} Error: Achievement not found`);
       }
 
       return achievement;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(`${currentService} Error: ${error.message}`);
     }
   }
 }

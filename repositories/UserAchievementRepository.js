@@ -1,5 +1,6 @@
 // Import model
 const UserAchievement = require("../models/UserAchievement");
+// For error handling
 const currentRepo = "UserAchievementRepository";
 
 class UserAchievementRepository {

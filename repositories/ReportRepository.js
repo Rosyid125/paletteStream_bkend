@@ -1,5 +1,6 @@
 // Import model
 const Report = require("../models/Report");
+// For error handling
 const currentRepo = "ReportRepository";
 
 class ReportRepository {

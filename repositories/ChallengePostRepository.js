@@ -1,5 +1,6 @@
 // Import model
 const ChallengePost = require("../models/ChallengePost");
+// For error handling
 const currentRepo = "ChallengePostRepository";
 
 class ChallengePostRepository {

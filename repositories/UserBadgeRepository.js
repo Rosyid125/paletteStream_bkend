@@ -1,5 +1,6 @@
 // Import model
 const UserBadge = require("../models/UserBadge");
+// For error handling
 const currentRepo = "UserBadgeRepository";
 
 class UserBadgeRepository {

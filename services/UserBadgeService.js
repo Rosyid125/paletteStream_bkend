@@ -1,93 +1,96 @@
-const UserBadgeRepository = require("../repositories/UserBadgeRepository");
-const BadgeRepository = require("../repositories/BadgeRepository");
-const currentService = "UserBadgeService";
+const AchievementRepository = require("../repositories/AchievementRepository");
+const UserAchievementRepository = require("../repositories/UserAchievementRepository");
+const UserRepository = require("../repositories/UserRepository"); // Ensure UserRepository is imported
 
-class UserBadgeService {
-  // Static method to get user badges
-  static async getUserBadges(userId) {
+// For error handling
+const currentService = "UserAchievementService";
+
+class UserAchievementService {
+  // Static method to get user achievements
+  static async getUserAchievements(userId) {
     try {
-      // Get user badges by user id
-      const userBadges = await UserBadgeRepository.findByUserId(userId);
+      // Get user achievements by user id
+      const userAchievements = await UserAchievementRepository.findByUserId(userId);
+      const achievements = await AchievementRepository.findAll();
 
-      if (!userBadges) {
-        throw new Error("User badges not found");
-      }
-
-      // Get badges info by badge id
-      const badges = userBadges.map((userBadge) => userBadge.badge_id);
-      badges = await BadgeRepository.findByIds(badges);
-
-      const userBadgesData = userBadges.map((userBadge) => {
-        const badge = badges.find((badge) => badge.id === userBadge.badge_id);
-
+      const userAchievementData = userAchievements.map((userAchievement) => {
+        const achievement = achievements.find((achievement) => achievement.id === userAchievement.achievementId);
         return {
-          id: userBadge.id,
-          title: badge.title,
-          icon: badge.icon,
-          description: badge.description,
-          created_at: userBadge.created_at,
+          id: userAchievement.id,
+          title: achievement.title,
+          icon: achievement.icon,
+          description: achievement.description,
+          goal: achievement.goal,
+          progress: userAchievement.progress,
+          status: userAchievement.status,
         };
       });
 
-      return userBadgesData;
+      return userAchievementData;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(`${currentService} Error: ${error.message}`);
     }
   }
 
-  // Static method to add a badge to a user
-  static async addUserBadge(userId, badgeId) {
+  // Static method to update user achievement
+  static async updateUserAchievement(userId, achievementId, progress, status) {
     try {
-      const userBadge = await UserBadgeRepository.create(userId, badgeId);
-      if (!userBadge) {
-        throw new Error("User badge not found");
+      const userAchievement = await UserAchievementRepository.update(userId, achievementId, progress, status);
+      if (!userAchievement) {
+        throw new Error(`${currentService} Error: User achievement not found`);
       }
 
-      return userBadge;
+      return userAchievement;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(`${currentService} Error: ${error.message}`);
     }
   }
 
-  // Static method to create a new badge
-  static async createBadge(title, icon, description) {
+  // Static method to create a new achievement
+  static async createAchievement(title, icon, description, goal) {
     try {
-      // Create a new badge
-      const badge = await BadgeRepository.create(title, icon, description);
+      // Create a new achievement
+      const achievement = await AchievementRepository.create(title, icon, description, goal);
 
-      return badge;
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  }
-
-  // Static method to update badge
-  static async updateBadge(badgeId, title, icon, description) {
-    try {
-      const badge = await BadgeRepository.update(badgeId, title, icon, description);
-      if (!badge) {
-        throw new Error("Badge not found");
+      // Add default entries to userAchievements table for all users
+      const users = await UserRepository.findAll();
+      for (const user of users) {
+        await UserAchievementRepository.create(user.id, achievement.id, 0, "in-progress");
       }
 
-      return badge;
+      return achievement;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(`${currentService} Error: ${error.message}`);
     }
   }
 
-  // Static method to delete badge
-  static async deleteBadge(badgeId) {
+  // Static method to update achievement
+  static async updateAchievement(achievementId, title, icon, description, goal) {
     try {
-      const badge = await BadgeRepository.delete(badgeId);
-      if (!badge) {
-        throw new Error("Badge not found");
+      const achievement = await AchievementRepository.update(achievementId, title, icon, description, goal);
+      if (!achievement) {
+        throw new Error(`${currentService} Error: Achievement not found`);
       }
 
-      return badge;
+      return achievement;
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
+  }
+
+  // Static method to delete achievement
+  static async deleteAchievement(achievementId) {
+    try {
+      const achievement = await AchievementRepository.delete(achievementId);
+      if (!achievement) {
+        throw new Error(`${currentService} Error: Achievement not found`);
+      }
+
+      return achievement;
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
     }
   }
 }
 
-module.exports = UserBadgeService;
+module.exports = UserAchievementService;

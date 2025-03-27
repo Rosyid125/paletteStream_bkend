@@ -1,6 +1,6 @@
 // Import model
 const PostTag = require("../models/PostTag");
-currentRepo = "PostTagRepository";
+const currentRepo = "PostTagRepository";
 
 class PostTagRepository {
   // Get all post tags

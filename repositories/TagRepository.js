@@ -1,5 +1,6 @@
 // Import model
 const Tag = require("../models/Tag");
+// For error handling
 const currentRepo = "TagRepository";
 
 class TagRepository {

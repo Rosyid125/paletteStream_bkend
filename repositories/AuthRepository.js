@@ -1,4 +1,5 @@
 const Token = require("../models/Token");
+// For error handling
 const currentRepo = "AuthRepository";
 
 class AuthRepository {

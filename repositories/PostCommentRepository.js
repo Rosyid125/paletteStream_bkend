@@ -1,5 +1,6 @@
 // Import model
 const PostComment = require("../models/PostComment");
+// For error handling
 const currentRepo = "PostCommentRepository";
 
 class PostCommentRepository {

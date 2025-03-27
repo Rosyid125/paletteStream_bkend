@@ -1,25 +1,48 @@
 const UserRepository = require("../repositories/UserRepository");
 const UserProfileRepository = require("../repositories/UserProfileRepository");
 
+// For error handling
+const currentService = "UserService";
+
 class UserService {
   static async getAllUsers() {
-    return await UserRepository.findAll();
+    try {
+      return await UserRepository.findAll();
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
   }
 
   static async getUserById(id) {
-    return await UserRepository.findById(id);
+    try {
+      return await UserRepository.findById(id);
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
   }
 
   static async deleteUser(id) {
-    return await UserRepository.delete(id);
+    try {
+      return await UserRepository.delete(id);
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
   }
 
   static async banUser(id) {
-    return await UserRepository.ban(id);
+    try {
+      return await UserRepository.ban(id);
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
   }
 
   static async unBanUser(id) {
-    return await UserRepository.unBan(id);
+    try {
+      return await UserRepository.unBan(id);
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
   }
 }
 

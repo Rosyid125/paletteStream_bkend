@@ -1,5 +1,6 @@
 // Import model
 const UserExp = require("../models/UserExp");
+// For error handling
 const currentRepo = "UserExpRepository";
 
 class UserExpRepository {

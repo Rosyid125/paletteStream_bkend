@@ -1,5 +1,6 @@
 // Import model
 const UserPost = require("../models/UserPost");
+// For error handling
 const currentRepo = "UserPostRepository";
 
 class UserPostRepository {

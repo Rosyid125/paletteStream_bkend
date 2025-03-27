@@ -1,5 +1,6 @@
 // Import model
 const PostLike = require("../models/PostLike");
+// For error handling
 const currentRepo = "PostLikeRepository";
 
 class PostLikeRepository {
