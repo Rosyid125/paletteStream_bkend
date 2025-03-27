@@ -71,7 +71,7 @@ class User extends Model {
         },
       },
       tokens: {
-        relation: Model.HasOneRelation,
+        relation: Model.HasManyRelation,
         modelClass: Token,
         join: {
           from: "users.id",

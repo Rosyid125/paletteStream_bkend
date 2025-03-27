@@ -3,6 +3,9 @@ const upload = require("../utils/multerUtil");
 // import logger
 const logger = require("../utils/winstonLogger");
 
+// Import path module
+const path = require("path");
+
 class UserPostController {
   // Get all current user posts
   static async getUserPost(req, res) {
@@ -143,7 +146,7 @@ class UserPostController {
           }
 
           // Ambil path dari file yang diupload
-          const imagePaths = req.files ? req.files.map((file) => file.path) : [];
+          const imagePaths = req.files ? req.files.map((file) => path.posix.join("storage", "uploads", path.basename(file.path))) : [];
 
           // Panggil service dengan data yang sudah diproses
           const newPost = await UserPostService.createPost(userId, title, description, tags, imagePaths, type);
