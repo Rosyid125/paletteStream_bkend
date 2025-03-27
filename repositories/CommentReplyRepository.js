@@ -70,13 +70,14 @@ class CommentReplyRepository {
     }
   }
 
-  // Count comment replies by comment id (Untuk single post fetch)
-  static async countByCommentId(comment_id) {
+  // Count comment replies by post id (Untuk single post fetch)
+  static async countByPostId(postId) {
     try {
-      const count = await CommentReply.query().count("comment_id as count").where({ comment_id });
+      // Count comment replies by post id
+      const result = await CommentReply.query().where({ post_id: postId }).count("post_id as count"); // Alias 'count'
 
-      // Pastikan hasilnya diubah menjadi integer
-      return parseInt(count[0].count, 10);
+      // Return the count
+      return result[0].count;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);
     }

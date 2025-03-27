@@ -70,8 +70,12 @@ class PostCommentRepository {
   // Count post comments by post id
   static async countByPostId(post_id) {
     try {
-      const result = await PostComment.query().count("post_id as count").where({ post_id });
-      return result.map((row) => parseInt(row.count, 10));
+      const result = await PostComment.query()
+        .count("post_id as count") // Alias 'count'
+        .where({ post_id });
+
+      // Return the count
+      return result[0].count;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);
     }

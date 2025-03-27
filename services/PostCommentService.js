@@ -124,18 +124,13 @@ class PostCommentService {
     // Count all post comments
     const postCommentsCountResult = await PostCommentRepository.countByPostId(postId);
 
-    // Get comments ids from post id
-    const postComments = await PostCommentRepository.getPostCommentIdsByPostId(postId);
-
-    // Map all comment ids
-    const commentIds = postComments.map((comment) => comment.id);
-
     // Count all comment replies by comment ids
-    const commentRepliesCountResult = await CommentReplyRepository.countByCommentIds(commentIds);
+    const commentRepliesCountResult = await CommentReplyRepository.countByPostId(postId);
 
-    console.log(commentRepliesCountResult, postCommentsCountResult);
+    console.log(postCommentsCountResult, commentRepliesCountResult);
 
-    const totalCount = (commentRepliesCountResult[0] || 0) + (postCommentsCountResult[0] || 0);
+    // Sum the counts
+    const totalCount = parseInt(postCommentsCountResult) + parseInt(commentRepliesCountResult);
 
     // Return the total count
     return totalCount;

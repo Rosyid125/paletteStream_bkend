@@ -1,5 +1,6 @@
 const UserBadgeRepository = require("../repositories/UserBadgeRepository");
 const BadgeRepository = require("../repositories/BadgeRepository");
+const currentService = "UserBadgeService";
 
 class UserBadgeService {
   // Static method to get user badges
