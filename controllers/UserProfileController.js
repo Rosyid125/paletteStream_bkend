@@ -14,7 +14,7 @@ class UserProfileController {
 
       res.json({ success: true, data: userProfile });
     } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -31,7 +31,7 @@ class UserProfileController {
 
       res.json({ success: true, data: userProfile });
     } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 }

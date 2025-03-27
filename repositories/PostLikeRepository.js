@@ -1,78 +1,123 @@
 // Import model
 const PostLike = require("../models/PostLike");
+const currentRepo = "PostLikeRepository";
 
 class PostLikeRepository {
   // Get all post likes
   static async findAll() {
-    const postLikes = await PostLike.query();
-    return postLikes;
+    try {
+      const postLikes = await PostLike.query();
+      return postLikes;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get post like by id
   static async findById(id) {
-    const postLike = await PostLike.query().findOne({ id });
-    return postLike;
+    try {
+      const postLike = await PostLike.query().findOne({ id });
+      return postLike;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get post like by post id
-  static async findByPostId(post_id) {
-    const postLikes = await PostLike.query().where({ post_id });
-    return postLikes;
+  static async findByPostId(post_id, offset, limit) {
+    try {
+      const postLikes = await PostLike.query().withGraphFetched("user.[profile,experience]").where({ post_id }).offset(offset).limit(limit);
+      return postLikes;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get post like by user id
   static async findByUserId(user_id) {
-    const postLikes = await PostLike.query().where({ user_id });
-    return postLikes;
+    try {
+      const postLikes = await PostLike.query().where({ user_id });
+      return postLikes;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get post like status by post id and user id
   static async getStatus(post_id, user_id) {
-    const result = await PostLike.query().findOne({ post_id, user_id });
-    return result;
+    try {
+      const result = await PostLike.query().findOne({ post_id, user_id });
+      return result;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get post like status by post ids and user id
   static async getStatuses(user_id, post_ids) {
-    const results = await PostLike.query().select("post_id").where("user_id", user_id).whereIn("post_id", post_ids);
-    return results;
+    try {
+      const results = await PostLike.query().select("post_id").where("user_id", user_id).whereIn("post_id", post_ids);
+      return results;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Create a new post like
   static async create(post_id, user_id) {
-    const postLike = await PostLike.query().insert({ post_id, user_id });
-    return postLike;
+    try {
+      const postLike = await PostLike.query().insert({ post_id, user_id });
+      return postLike;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Delete a post like
   static async delete(post_id, user_id) {
-    const postLike = await PostLike.query().findOne({ post_id, user_id });
-    if (!postLike) {
-      return null;
+    try {
+      const postLike = await PostLike.query().findOne({ post_id, user_id });
+      if (!postLike) {
+        return null;
+      }
+      await PostLike.query().findOne({ post_id, user_id }).delete();
+      return postLike;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
     }
-    await PostLike.query().findOne({ post_id, user_id }).delete();
-    return postLike;
   }
 
   // Count post likes by post id
   static async countByPostId(post_id) {
-    const result = await PostLike.query().count("post_id").where({ post_id });
-    return result?.count || 0;
+    try {
+      const result = await PostLike.query().count("post_id").where({ post_id });
+      return result?.count || 0;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Count post likes by post ids
   static async countByPostIds(post_ids) {
-    const results = await PostLike.query().select("post_id").count("* as count").whereIn("post_id", post_ids).groupBy("post_id");
-    return results;
+    try {
+      const results = await PostLike.query().select("post_id").count("* as count").whereIn("post_id", post_ids).groupBy("post_id");
+      return results;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Count post likes by user id
   static async countByUserId(user_id) {
-    // Get all postids by user id
-    const postids = await PostLike.query().select("post_id").where({ user_id });
-    // Count all post likes from all postids
-    const result = await PostLike.query().count("post_id").whereIn("post_id", postids);
-    return result?.count || 0;
+    try {
+      // Get all postids by user id
+      const postids = await PostLike.query().select("post_id").where({ user_id });
+      // Count all post likes from all postids
+      const result = await PostLike.query().count("post_id").whereIn("post_id", postids);
+      return result?.count || 0;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 }
 

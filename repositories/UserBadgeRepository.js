@@ -1,33 +1,50 @@
 // Import model
 const UserBadge = require("../models/UserBadge");
+const currentRepo = "UserBadgeRepository";
 
 class UserBadgeRepository {
   // Get all user badges
   static async findAll() {
-    const userBadges = await UserBadge.query();
-    return userBadges;
+    try {
+      const userBadges = await UserBadge.query();
+      return userBadges;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get user badge by user id
   static async findByUserId(user_id) {
-    const userBadge = await UserBadge.query().findOne({ user_id });
-    return userBadge;
+    try {
+      const userBadge = await UserBadge.query().findOne({ user_id });
+      return userBadge;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Create a new user badge
   static async create(user_id, badge_id) {
-    const userBadge = await UserBadge.query().insert({ user_id, badge_id });
-    return userBadge;
+    try {
+      const userBadge = await UserBadge.query().insert({ user_id, badge_id });
+      return userBadge;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Update user badge
   static async update(user_id, badge_id) {
-    const userBadge = await UserBadge.query().findOne({ user_id });
-    if (!userBadge) {
-      return null;
+    try {
+      const userBadge = await UserBadge.query().findOne({ user_id });
+      if (!userBadge) {
+        return null;
+      }
+      await UserBadge.query().findOne({ user_id }).patch({ badge_id });
+      return userBadge;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
     }
-    await UserBadge.query().findOne({ user_id }).patch({ badge_id });
-    return userBadge;
   }
 }
 

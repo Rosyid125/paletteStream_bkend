@@ -10,10 +10,8 @@ class UserPostController {
       // Get user id from request
       let { userId } = req.params;
 
-      // Mke user id integer
+      // Make user id integer
       userId = parseInt(userId);
-
-      console.log("Query Params:", req.query); // Debug query params
 
       // Get page and limit from query
       const page = parseInt(req.query.page) || 1;
@@ -35,7 +33,7 @@ class UserPostController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
   // Get all posts
@@ -61,7 +59,7 @@ class UserPostController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -91,7 +89,7 @@ class UserPostController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -117,7 +115,7 @@ class UserPostController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -158,7 +156,7 @@ class UserPostController {
             timestamp: new Date().toISOString(),
           });
 
-          res.status(500).json({ success: false, message: error.message });
+          res.status(500).json({ success: false, messege: "An unexpected error occurred." });
         }
       });
     } catch (error) {
@@ -167,7 +165,7 @@ class UserPostController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -194,7 +192,7 @@ class UserPostController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
   // Delete a user post
@@ -216,7 +214,7 @@ class UserPostController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 }

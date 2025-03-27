@@ -17,7 +17,7 @@ class AuthController {
 
       // Membuat challenge pengguna defauot dkk nantinya
 
-      res.status(201).json({ message: "User registered successfully", user });
+      res.json({ success: true, message: "User registered successfully", data: user });
     } catch (error) {
       // Tangkap error dan log ke file
       logger.error(`Error: ${error.message}`, {
@@ -25,7 +25,7 @@ class AuthController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -47,7 +47,7 @@ class AuthController {
         sameSite: "Strict",
       });
 
-      res.status(200).json({ message: "Login successful", user });
+      res.json({ success: true, message: "Login successful", data: user });
     } catch (error) {
       // Tangkap error dan log ke file
       logger.error(`Error: ${error.message}`, {
@@ -55,7 +55,7 @@ class AuthController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -67,8 +67,9 @@ class AuthController {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
+      // Panggil AuthService untuk mendapatkan data pengguna
       const user = await AuthService.getUserData(token);
-      res.status(200).json(user);
+      res.json({ success: true, data: user });
     } catch (error) {
       // Tangkap error dan log ke file
       logger.error(`Error: ${error.message}`, {
@@ -76,7 +77,7 @@ class AuthController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(401).json({ error: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -103,7 +104,7 @@ class AuthController {
         sameSite: "Strict",
       });
 
-      res.status(200).json({ message: "Token refreshed" });
+      res.json({ success: true, message: "Token refreshed successfully" });
     } catch (error) {
       // Tangkap error dan log ke file
       logger.error(`Error: ${error.message}`, {
@@ -111,7 +112,7 @@ class AuthController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -127,7 +128,7 @@ class AuthController {
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");
 
-      res.status(200).json({ message: "Logged out successfully" });
+      res.json({ success: true, message: "Logged out successfully" });
     } catch (error) {
       // Tangkap error dan log ke file
       logger.error(`Error: ${error.message}`, {
@@ -135,7 +136,7 @@ class AuthController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 }

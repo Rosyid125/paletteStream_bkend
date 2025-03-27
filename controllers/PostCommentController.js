@@ -1,11 +1,17 @@
 const PostCommentService = require("../services/PostCommentService");
 
+//import logger
+const logger = require("../utils/winstonLogger");
+
 class PostCommentController {
   // Get all post comments by post id
   static async getComments(req, res) {
     try {
       // Get post id from request
-      const postId = req.params.postId;
+      let postId = req.params.postId;
+
+      // Turn params into integer
+      postId = parseInt(postId);
 
       // Get pagination infos
       const page = parseInt(req.query.page) || 1;
@@ -14,9 +20,15 @@ class PostCommentController {
       // Get all post comments by post id
       const postComments = await PostCommentService.findByPostId(postId, page, limit);
 
-      res.json(postComments);
+      res.json({ success: true, data: postComments });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -28,9 +40,16 @@ class PostCommentController {
 
       // Create a new post comment
       const postComment = await PostCommentService.create(post_id, user_id, content);
-      res.json(postComment);
+
+      res.json({ success: true, data: postComment });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -42,9 +61,16 @@ class PostCommentController {
 
       // Delete a post comment
       const postComment = await PostCommentService.delete(id);
-      res.json(postComment);
+
+      res.json({ success: true, data: postComment });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -52,13 +78,28 @@ class PostCommentController {
   static async getCommentReplies(req, res) {
     try {
       // Get post comment id from request
-      const post_comment_id = req.params.post_comment_id;
+      let postCommentId = req.params.postCommentId;
 
-      // Get all comment replies by post comment id
-      const commentReplies = await PostCommentService.getCommentReplies(post_comment_id);
-      res.json(commentReplies);
+      // Turn post comment id into int
+      postCommentId = parseInt(postCommentId);
+
+      // Get pagination infos
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      // Get all post comment replies based on post comment id
+      const commentReplies = await PostCommentService.getCommentReplies(postCommentId, page, limit);
+
+      // Return comment replies
+      res.json({ success: true, data: commentReplies });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -70,9 +111,16 @@ class PostCommentController {
 
       // Create a new comment reply
       const commentReply = await PostCommentService.createCommentReply(post_comment_id, user_id, content);
-      res.json(commentReply);
+
+      res.json({ success: true, data: commentReply });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -84,9 +132,16 @@ class PostCommentController {
 
       // Delete a comment reply
       const commentReply = await PostCommentService.deleteCommentReply(id);
-      res.json(commentReply);
+
+      res.json({ success: true, data: commentReply });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 }

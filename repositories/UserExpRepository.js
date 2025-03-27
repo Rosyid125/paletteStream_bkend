@@ -1,33 +1,50 @@
 // Import model
 const UserExp = require("../models/UserExp");
+const currentRepo = "UserExpRepository";
 
 class UserExpRepository {
   // Get all user exps
   static async findAll() {
-    const userExps = await UserExp.query();
-    return userExps;
+    try {
+      const userExps = await UserExp.query();
+      return userExps;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get user exp by user id
   static async findByUserId(user_id) {
-    const userExp = await UserExp.query().findOne({ user_id });
-    return userExp;
+    try {
+      const userExp = await UserExp.query().findOne({ user_id });
+      return userExp;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Create a new user exp
   static async create(user_id, exp, level) {
-    const userExp = await UserExp.query().insert({ user_id, exp, level });
-    return userExp;
+    try {
+      const userExp = await UserExp.query().insert({ user_id, exp, level });
+      return userExp;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Update user exp
   static async update(userId, exp, level) {
-    const userExp = await UserExp.query().findOne({ user_id });
-    if (!userExp) {
-      return null;
+    try {
+      const userExp = await UserExp.query().findOne({ user_id: userId });
+      if (!userExp) {
+        return null;
+      }
+      await UserExp.query().findOne({ user_id: userId }).patch({ exp, level });
+      return userExp;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
     }
-    await UserExp.query().findOne({ userId }).patch({ exp, level });
-    return userExp;
   }
 }
 

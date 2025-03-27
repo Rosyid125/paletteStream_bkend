@@ -15,25 +15,34 @@ class PostCommentService {
   }
 
   // Get post comment by user id
-  static async findByUserId(user_id) {
-    return PostCommentRepository.findByUserId(user_id);
+  static async findByUserId(userId) {
+    return PostCommentRepository.findByUserId(userId);
   }
 
-  // // Get post comment by post id
-  // static async findByPostId(postId, page, limit) {
-  //   // Get all post comments by post id
-  //   const postComments = await PostCommentRepository.findByPostId(postId, page, limit);
+  // Get post comment by post id
+  static async findByPostId(postId, page, limit) {
+    // Pagination setup
+    const offset = (page - 1) * limit;
 
-  //   // Get all user info for each post comment
-  //   const postCommentsIds = postComments.map((comment) => comment.id);
+    // Get all post comments by post id
+    const postComments = await PostCommentRepository.findByPostId(postId, offset, limit);
 
-  //   // Fetch all related data in batches
-  // }
+    // Return post comments
+    return postComments.map((comment) => ({
+      id: comment.id,
+      user_id: comment.user_id,
+      username: comment.user.profile.username,
+      avatar: comment.user.profile.avatar,
+      level: comment.user.experience.level,
+      content: comment.content,
+      created_at: comment.created_at,
+    }));
+  }
 
   // Create a new post comment
-  static async create(post_id, user_id, content) {
+  static async create(postId, userId, content) {
     // Create a new post comment
-    const postComment = await PostCommentRepository.create(post_id, user_id, content);
+    const postComment = await PostCommentRepository.create(postId, userId, content);
     if (!postComment) {
       throw new Error("Post comment not found");
     }
@@ -60,19 +69,36 @@ class PostCommentService {
   }
 
   // Get comment replies by user id
-  static async getCommentRepliesByUserId(user_id) {
-    return CommentReplyRepository.findByUserId(user_id);
+  static async getCommentRepliesByUserId(userId) {
+    return CommentReplyRepository.findByUserId(userId);
   }
 
   // Get comment replies by comment id
-  static async getCommentReplies(comment_id) {
-    return CommentReplyRepository.findByCommentId(comment_id);
+  static async getCommentReplies(commentId, page, limit) {
+    // Pagination setup
+    const offset = (page - 1) * limit;
+
+    // Get all comment replies by comment id
+    const commentReplies = await CommentReplyRepository.findByCommentId(commentId, offset, limit);
+
+    // Return comment replies
+    return commentReplies.map((reply) => ({
+      id: reply.id,
+      user_id: reply.user_id,
+      username: reply.user.profile.username,
+      avatar: reply.user.profile.avatar,
+      level: reply.user.experience.level,
+      content: reply.content,
+      created_at: reply.created_at,
+    }));
   }
 
   // Create a new comment reply
-  static async createCommentReply(comment_id, user_id, content) {
+  static async createCommentReply(commentId, userId, content) {
     // Create a new comment reply
-    const commentReply = await CommentReplyRepository.create(comment_id, user_id, content);
+    const commentReply = await CommentReplyRepository.create(commentId, userId, content);
+
+    // Return error if comment reply not found
     if (!commentReply) {
       throw new Error("Comment reply not found");
     }
@@ -93,33 +119,58 @@ class PostCommentService {
     return commentReply;
   }
 
-  static async countByPostId(post_id) {
+  // Count post comments by post id
+  static async countByPostId(postId) {
     // Count all post comments
-    const postCommentsCountResult = await PostCommentRepository.countByPostId(post_id);
+    const postCommentsCountResult = await PostCommentRepository.countByPostId(postId);
 
-    // Make it a number
-    let postCommentsCount = postCommentsCountResult[0]["count(`post_id`)"];
+    // Get comments ids from post id
+    const postComments = await PostCommentRepository.getPostCommentIdsByPostId(postId);
 
-    // Get all post comments by post id
-    const postComments = await PostCommentRepository.findByPostId(post_id);
-
-    // Get ids from post comments
+    // Map all comment ids
     const commentIds = postComments.map((comment) => comment.id);
 
-    // Initialize the reply count variable
-    let commentRepliesCount = 0;
+    // Count all comment replies by comment ids
+    const commentRepliesCountResult = await CommentReplyRepository.countByCommentIds(commentIds);
 
-    // Get replies for each comment and count them
-    for (const id of commentIds) {
-      const commentReplies = await CommentReplyRepository.findByCommentId(id);
-      commentRepliesCount += commentReplies.length; // Add the number of replies to the count
-    }
+    console.log(commentRepliesCountResult, postCommentsCountResult);
 
-    // Total count (comments + replies)
-    const totalCount = postCommentsCount + commentRepliesCount;
+    const totalCount = (commentRepliesCountResult[0] || 0) + (postCommentsCountResult[0] || 0);
 
-    // Return the total count (as a number)
+    // Return the total count
     return totalCount;
+  }
+
+  // count post comments by post ids
+  static async countByPostIds(postIds) {
+    // Count post comments per post_id
+    const postCommentsCountResult = await PostCommentRepository.countByPostIds(postIds);
+
+    // Count comment replies per post_id
+    const postRepliesCountResult = await CommentReplyRepository.countByPostIds(postIds);
+
+    // Convert the results into a map for easy lookup
+    const commentCountMap = postCommentsCountResult.reduce((acc, row) => {
+      acc[row.post_id] = parseInt(row.count) || 0;
+      return acc;
+    }, {});
+
+    const replyCountMap = postRepliesCountResult.reduce((acc, row) => {
+      acc[row.post_id] = parseInt(row.count) || 0;
+      return acc;
+    }, {});
+
+    // Merge both counts and sum them
+    const finalCountMap = {};
+    postIds.forEach((postId) => {
+      const commentCount = commentCountMap[postId] || 0;
+      const replyCount = replyCountMap[postId] || 0;
+      finalCountMap[postId] = commentCount + replyCount;
+    });
+
+    const result = Object.entries(finalCountMap).map(([post_id, count]) => ({ post_id, count }));
+
+    return result;
   }
 }
 

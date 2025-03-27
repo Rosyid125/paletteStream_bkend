@@ -1,45 +1,100 @@
 // Import model
 const CommentReply = require("../models/CommentReply");
+const PostComment = require("../models/PostComment");
+const currentRepo = "CommentReplyRepository";
 
 class CommentReplyRepository {
   // Get all comment replies
   static async findAll() {
-    const commentReplies = await CommentReply.query();
-    return commentReplies;
+    try {
+      const commentReplies = await CommentReply.query();
+      return commentReplies;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get comment reply by id
   static async findById(id) {
-    const commentReply = await CommentReply.query().findById(id);
-    return commentReply;
+    try {
+      const commentReply = await CommentReply.query().findById(id);
+      return commentReply;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get comment replies by comment id
-  static async findByCommentId(comment_id) {
-    const commentReplies = await CommentReply.query().where({ comment_id });
-    return commentReplies;
+  static async findByCommentId(comment_id, offset, limit) {
+    try {
+      const commentReplies = await CommentReply.query().withGraphFetched("user.[profile,experience]").where({ comment_id }).offset(offset).limit(limit);
+      return commentReplies;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Create a new comment reply
   static async create(comment_id, user_id, content) {
-    const commentReply = await CommentReply.query().insert({ comment_id, user_id, content });
-    return commentReply;
+    try {
+      // Get post id by comment id
+      const post = await PostComment.query().findById(comment_id);
+
+      // Spesifically get the post id
+      const postId = post.post_id;
+
+      // Insert new comment reply
+      const commentReply = await CommentReply.query().insert({
+        post_id: postId,
+        comment_id,
+        user_id,
+        content,
+      });
+      return commentReply;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Delete comment reply
   static async delete(id) {
-    const commentReply = await CommentReply.query().findById(id);
-    if (!commentReply) {
-      return null;
+    try {
+      const commentReply = await CommentReply.query().findById(id);
+      if (!commentReply) {
+        return null;
+      }
+      await CommentReply.query().deleteById(id);
+      return commentReply;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
     }
-    await CommentReply.query().deleteById(id);
-    return commentReply;
   }
 
-  // Count comment replies by comment id
+  // Count comment replies by comment id (Untuk single post fetch)
   static async countByCommentId(comment_id) {
-    const count = await CommentReply.query().count("comment_id").where({ comment_id });
-    return count;
+    try {
+      const count = await CommentReply.query().count("comment_id as count").where({ comment_id });
+
+      // Pastikan hasilnya diubah menjadi integer
+      return parseInt(count[0].count, 10);
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
+  }
+
+  // Count comment replies by post ids (Untuk multiple posts fetch)
+  static async countByPostIds(postIds) {
+    try {
+      const result = await CommentReply.query()
+        .select("post_id")
+        .count("* as count") // Alias 'count'
+        .whereIn("post_id", postIds)
+        .groupBy("post_id");
+
+      return result; // Formatnya sama: [{ post_id: 1, count: 2 }, { post_id: 2, count: 4 }]
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 }
 

@@ -4,9 +4,18 @@ class PostLikeController {
   // Get all post likes by post id
   static async getAll(req, res) {
     try {
-      const { postId } = req.params;
+      // Get post id from request
+      let { postId } = req.params;
 
-      const postLikes = await PostLikeService.findByPostId(postId);
+      // Turn params into integer
+      postId = parseInt(postId);
+
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      // Panggil service untuk mendapatkan semua like post
+      const postLikes = await PostLikeService.findByPostId(postId, page, limit);
 
       if (!postLikes) {
         return res.status(404).json({ success: false, message: "Post not found" });
@@ -14,7 +23,13 @@ class PostLikeController {
 
       res.json({ success: true, data: postLikes });
     } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
   // Create a new post like
@@ -26,7 +41,13 @@ class PostLikeController {
 
       res.json({ success: true, data: postLike });
     } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
   // Delete a post like
@@ -42,7 +63,13 @@ class PostLikeController {
 
       res.json({ success: true, message: "Like deleted successfully" });
     } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 }

@@ -10,7 +10,7 @@ class UserFollowController {
 
       res.json(userFollows);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -23,7 +23,7 @@ class UserFollowController {
 
       res.json(userFollows);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -36,7 +36,7 @@ class UserFollowController {
 
       res.json(userFollow);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
@@ -49,7 +49,7 @@ class UserFollowController {
 
       res.json(userFollow);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 }

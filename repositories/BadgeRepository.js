@@ -1,49 +1,74 @@
 // import model
 const Badge = require("../models/Badge");
+const currentRepo = "BadgeRepository";
 
 class BadgeRepository {
   // Get all badges
   static async findAll() {
-    const badges = await Badge.query();
-    return badges;
+    try {
+      const badges = await Badge.query();
+      return badges;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get badge by id
   static async findById(id) {
-    const badge = await Badge.query().findOne({ id });
-    return badge;
+    try {
+      const badge = await Badge.query().findOne({ id });
+      return badge;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get badge by name
   static async findByName(name) {
-    const badge = await Badge.query().findOne({ name });
-    return badge;
+    try {
+      const badge = await Badge.query().findOne({ name });
+      return badge;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Create a new badge
   static async create(name, description, icon) {
-    const badge = await Badge.query().insert({ name, description, icon });
-    return badge;
+    try {
+      const badge = await Badge.query().insert({ name, description, icon });
+      return badge;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Update badge
   static async update(id, name, description, icon) {
-    const badge = await Badge.query().findOne({ id });
-    if (!badge) {
-      return null;
+    try {
+      const badge = await Badge.query().findOne({ id });
+      if (!badge) {
+        return null;
+      }
+      await Badge.query().findOne({ id }).patch({ name, description, icon });
+      return badge;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
     }
-    await Badge.query().findOne({ id }).patch({ name, description, icon });
-    return badge;
   }
 
   // Delete a badge
   static async delete(id) {
-    const badge = await Badge.query().findOne({ id });
-    if (!badge) {
-      return null;
+    try {
+      const badge = await Badge.query().findOne({ id });
+      if (!badge) {
+        return null;
+      }
+      await Badge.query().findOne({ id }).delete();
+      return badge;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
     }
-    await Badge.query().findOne({ id }).delete();
-    return badge;
   }
 }
 

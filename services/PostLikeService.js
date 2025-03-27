@@ -2,14 +2,27 @@ const PostLikeRepository = require("../repositories/PostLikeRepository");
 
 class PostLikeService {
   // Get all post likes by post id
-  static async findByPostId(post_id) {
-    return PostLikeRepository.findByPostId(post_id);
+  static async findByPostId(postId, page, limit) {
+    // Pagination setup
+    const offset = (page - 1) * limit;
+
+    // Get all post likes by post id
+    const postLikes = await PostLikeRepository.findByPostId(postId, offset, limit);
+
+    // Return post likes
+    return postLikes.map((like) => ({
+      id: like.id,
+      user_id: like.user_id,
+      username: like.user.profile.username,
+      avatar: like.user.profile.avatar,
+      level: like.user.experience.level,
+    }));
   }
 
   // Create a new post like
-  static async create(post_id, user_id) {
+  static async create(postId, userId) {
     // Create a new post like
-    const postLike = await PostLikeRepository.create(post_id, user_id);
+    const postLike = await PostLikeRepository.create(postId, userId);
     if (!postLike) {
       throw new Error("Post like not found");
     }

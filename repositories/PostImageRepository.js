@@ -1,45 +1,70 @@
 // Import model
 const PostImage = require("../models/PostImage");
+const currentRepo = "PostImageRepository";
 
 class PostImageRepository {
   // Get all post images
   static async findAll() {
-    const postImages = await PostImage.query();
-    return postImages;
+    try {
+      const postImages = await PostImage.query();
+      return postImages;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get post image by id
   static async findById(id) {
-    const postImage = await PostImage.query().findOne({ id });
-    return postImage;
+    try {
+      const postImage = await PostImage.query().findOne({ id });
+      return postImage;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get post image by post id
   static async findByPostId(post_id) {
-    const postImages = await PostImage.query().where({ post_id });
-    return postImages;
+    try {
+      const postImages = await PostImage.query().where({ post_id });
+      return postImages;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Get post images by post ids
   static async findByPostIds(post_ids) {
-    const results = await PostImage.query().select("post_id", "image_url").whereIn("post_id", post_ids);
-    return results;
+    try {
+      const results = await PostImage.query().select("post_id", "image_url").whereIn("post_id", post_ids);
+      return results;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Create a new post image
   static async create(post_id, image_url) {
-    const postImage = await PostImage.query().insert({ post_id, image_url });
-    return postImage;
+    try {
+      const postImage = await PostImage.query().insert({ post_id, image_url });
+      return postImage;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
   }
 
   // Delete a post image
   static async deleteByPostId(post_id) {
-    const postImages = await PostImage.query().where({ post_id });
-    if (!postImages.length) {
-      return null;
+    try {
+      const postImages = await PostImage.query().where({ post_id });
+      if (!postImages.length) {
+        return null;
+      }
+      await PostImage.query().where({ post_id }).delete();
+      return postImages;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
     }
-    await PostImage.query().where({ post_id }).delete();
-    return postImages;
   }
 }
 

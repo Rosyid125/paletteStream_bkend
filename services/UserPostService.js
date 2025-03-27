@@ -7,9 +7,8 @@ const UserProfileRepository = require("../repositories/UserProfileRepository");
 const UserExpRepository = require("../repositories/UserExpRepository");
 const TagRepository = require("../repositories/TagRepository");
 const PostLikeRepository = require("../repositories/PostLikeRepository");
-const PostCommentRepository = require("../repositories/PostCommentRepository");
 const UserFollowRepository = require("../repositories/UserFollowRepository");
-const PostLike = require("../models/PostLike");
+const PostCommentService = require("../services/PostCommentService");
 
 // Define the UserPostService class
 class UserPostService {
@@ -30,7 +29,7 @@ class UserPostService {
       PostImageRepository.findByPostIds(postIds),
       PostTagRepository.findByPostIds(postIds),
       PostLikeRepository.countByPostIds(postIds),
-      PostCommentRepository.countByPostIds(postIds),
+      PostCommentService.countByPostIds(postIds),
       PostLikeRepository.getStatuses(userId, postIds),
     ]);
 
@@ -96,7 +95,7 @@ class UserPostService {
       PostImageRepository.findByPostIds(postIds),
       PostTagRepository.findByPostIds(postIds),
       PostLikeRepository.countByPostIds(postIds),
-      PostCommentRepository.countByPostIds(postIds),
+      PostCommentService.countByPostIds(postIds),
     ]);
 
     // Convert arrays into maps for quick lookup
@@ -166,7 +165,7 @@ class UserPostService {
       PostImageRepository.findByPostIds(postIds),
       PostTagRepository.findByPostIds(postIds),
       PostLikeRepository.countByPostIds(postIds),
-      PostCommentRepository.countByPostIds(postIds),
+      PostCommentService.countByPostIds(postIds),
       PostLikeRepository.getStatuses(userId, postIds),
     ]);
 
@@ -228,12 +227,12 @@ class UserPostService {
     }
 
     // Get all necessary post data in one go
-    const [postImages, postTags, postLikeCount, postCommentCount, postLikeStatus, user, userProfile, userExp] = await Promise.all([
+    const [postImages, postTags, postLikeCount, postLikeStatus, postCommentCount, user, userProfile, userExp] = await Promise.all([
       PostImageRepository.findByPostId(post.id),
       PostTagRepository.findByPostId(post.id),
       PostLikeRepository.countByPostId(post.id),
       PostLikeRepository.getStatus(post.id, post.user_id),
-      PostCommentRepository.countByPostId(post.id),
+      PostCommentService.countByPostId(post.id),
       UserRepository.findById(post.user_id),
       UserProfileRepository.findByUserId(post.user_id),
       UserExpRepository.findByUserId(post.user_id),

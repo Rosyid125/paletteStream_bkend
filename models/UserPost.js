@@ -29,6 +29,7 @@ class UserPost extends Model {
     const PostImage = require("./PostImage");
     const PostTag = require("./PostTag");
     const UserBookmark = require("./UserBookmark");
+    const CommentReply = require("./CommentReply");
 
     return {
       user: {
@@ -44,7 +45,7 @@ class UserPost extends Model {
         modelClass: ChallengePost,
         join: {
           from: "user_posts.id",
-          to: "challenge_posts.user_post_id",
+          to: "challenge_posts.post_id",
         },
       },
       comments: {
@@ -52,7 +53,7 @@ class UserPost extends Model {
         modelClass: PostComment,
         join: {
           from: "user_posts.id",
-          to: "post_comments.user_post_id",
+          to: "post_comments.post_id",
         },
       },
       likes: {
@@ -60,7 +61,7 @@ class UserPost extends Model {
         modelClass: PostLike,
         join: {
           from: "user_posts.id",
-          to: "post_likes.user_post_id",
+          to: "post_likes.post_id",
         },
       },
       images: {
@@ -68,7 +69,7 @@ class UserPost extends Model {
         modelClass: PostImage,
         join: {
           from: "user_posts.id",
-          to: "post_images.user_post_id",
+          to: "post_images.post_id",
         },
       },
       tags: {
@@ -77,7 +78,7 @@ class UserPost extends Model {
         join: {
           from: "user_posts.id",
           through: {
-            from: "post_tags.user_post_id",
+            from: "post_tags.post_id",
             to: "post_tags.tag_id",
           },
           to: "tags.id",
@@ -88,7 +89,15 @@ class UserPost extends Model {
         modelClass: UserBookmark,
         join: {
           from: "user_posts.id",
-          to: "user_bookmarks.user_post_id",
+          to: "user_bookmarks.post_id",
+        },
+      },
+      replies: {
+        relation: Model.HasManyRelation,
+        modelClass: CommentReply,
+        join: {
+          from: "user_posts.id",
+          to: "comment_replies.post_id",
         },
       },
     };
