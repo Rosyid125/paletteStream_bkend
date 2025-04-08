@@ -98,6 +98,21 @@ class CommentReplyRepository {
       throw new Error(`${currentRepo} Error: ${error.message}`);
     }
   }
+
+  // Count comment replies by comment ids
+  static async countByCommentIds(commentIds) {
+    try {
+      const result = await CommentReply.query()
+        .select("comment_id")
+        .count("* as count") // Alias 'count'
+        .whereIn("comment_id", commentIds)
+        .groupBy("comment_id");
+
+      return result; // Formatnya sama: [{ comment_id: 1, count: 2 }, { comment_id: 2, count: 4 }]
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
+  }
 }
 
 module.exports = CommentReplyRepository;

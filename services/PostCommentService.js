@@ -1,6 +1,9 @@
 const PostCommentRepository = require("../repositories/PostCommentRepository");
 const CommentReplyRepository = require("../repositories/CommentReplyRepository");
 
+// Import utility functions
+const { formatDate } = require("../utils/dateFormatterUtils");
+
 // For error handling
 const currentService = "PostCommentService";
 
@@ -43,6 +46,17 @@ class PostCommentService {
       // Get all post comments by post id
       const postComments = await PostCommentRepository.findByPostId(postId, offset, limit);
 
+      // Map all comment id to get comment replies count
+      const commentIds = postComments.map((comment) => comment.id);
+      const commentRepliesCountResult = await CommentReplyRepository.countByCommentIds(commentIds);
+
+      // Assign comment replies count to each post comment
+      postComments.forEach((comment) => {
+        const commentId = comment.id;
+        const commentRepliesCount = commentRepliesCountResult.find((count) => count.comment_id === commentId);
+        comment.replies_count = commentRepliesCount ? parseInt(commentRepliesCount.count) : 0;
+      });
+
       // Return post comments
       return postComments.map((comment) => ({
         id: comment.id,
@@ -51,7 +65,8 @@ class PostCommentService {
         avatar: comment.user.profile.avatar,
         level: comment.user.experience.level,
         content: comment.content,
-        created_at: comment.created_at,
+        created_at: formatDate(comment.created_at),
+        replies_count: comment.replies_count,
       }));
     } catch (error) {
       throw new Error(`${currentService} Error: ${error.message}`);
@@ -125,7 +140,7 @@ class PostCommentService {
         avatar: reply.user.profile.avatar,
         level: reply.user.experience.level,
         content: reply.content,
-        created_at: reply.created_at,
+        created_at: formatDate(reply.created_at),
       }));
     } catch (error) {
       throw new Error(`${currentService} Error: ${error.message}`);
@@ -174,8 +189,6 @@ class PostCommentService {
 
       // Count all comment replies by comment ids
       const commentRepliesCountResult = await CommentReplyRepository.countByPostId(postId);
-
-      console.log(postCommentsCountResult, commentRepliesCountResult);
 
       // Sum the counts
       const totalCount = parseInt(postCommentsCountResult) + parseInt(commentRepliesCountResult);

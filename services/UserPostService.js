@@ -10,6 +10,9 @@ const PostLikeRepository = require("../repositories/PostLikeRepository");
 const UserFollowRepository = require("../repositories/UserFollowRepository");
 const PostCommentService = require("../services/PostCommentService");
 
+// Import utility functions
+const { formatDate } = require("../utils/dateFormatterUtils");
+
 // For error handling
 const currentService = "UserPostService";
 
@@ -209,7 +212,6 @@ class UserPostService {
         return acc;
       }, {});
 
-      // Assemble final post data
       return relatedPosts.map((post) => ({
         id: post.id,
         userId: post.user_id,
@@ -218,7 +220,7 @@ class UserPostService {
         username: post.user.profile.username,
         avatar: post.user.profile.avatar,
         level: post.user.experience.level,
-        createdAt: post.createdAt,
+        createdAt: formatDate(post.created_at),
         type: post.type,
         title: post.title,
         description: post.description,

@@ -16,8 +16,8 @@ const corsOptions = {
 };
 
 // Middleware untuk melayani file statis di folder 'uploads' dan 'avatar'
-app.use("/storage/uploads", express.static(path.join(__dirname, "storage/uploads")));
-app.use("/storage/avatar", express.static(path.join(__dirname, "storage/avatars")));
+app.use("/api/storage/uploads", express.static(path.join(__dirname, "storage/uploads")));
+app.use("/api/storage/avatar", express.static(path.join(__dirname, "storage/avatars")));
 
 // Increase the limit for JSON and URL-encoded payloads
 app.use(bodyParser.json({ limit: "10mb" })); // Increase the size limit as necessary
