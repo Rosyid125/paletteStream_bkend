@@ -44,6 +44,17 @@ class PostLikeRepository {
     }
   }
 
+  // Get post like by user id and post id
+  static async findByUserIdAndPostId(post_id, user_id) {
+    try {
+      const postLike = await PostLike.query().findOne({ post_id, user_id });
+
+      return postLike;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
+  }
+
   // Get post like status by post id and user id
   static async getStatus(post_id, user_id) {
     try {

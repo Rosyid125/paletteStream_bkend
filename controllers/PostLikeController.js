@@ -1,4 +1,6 @@
 const PostLikeService = require("../services/PostLikeService");
+// import logger
+const logger = require("../utils/winstonLogger");
 
 class PostLikeController {
   // Get all post likes by post id
@@ -33,11 +35,11 @@ class PostLikeController {
     }
   }
   // Create a new post like
-  static async create(req, res) {
+  static async createDelete(req, res) {
     try {
       const { postId, userId } = req.body;
 
-      const postLike = await PostLikeService.create(postId, userId);
+      const postLike = await PostLikeService.createDelete(postId, userId);
 
       res.json({ success: true, data: postLike });
     } catch (error) {
@@ -50,28 +52,28 @@ class PostLikeController {
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
-  // Delete a post like
-  static async delete(req, res) {
-    try {
-      const { postId, userId } = req.body;
+  // // Delete a post like
+  // static async delete(req, res) {
+  //   try {
+  //     const { postId, userId } = req.body;
 
-      const postLike = await PostLikeService.delete(postId, userId);
+  //     const postLike = await PostLikeService.delete(postId, userId);
 
-      if (!postLike) {
-        return res.status(404).json({ success: false, message: "Like not found" });
-      }
+  //     if (!postLike) {
+  //       return res.status(404).json({ success: false, message: "Like not found" });
+  //     }
 
-      res.json({ success: true, message: "Like deleted successfully" });
-    } catch (error) {
-      // Tangkap error dan log ke file
-      logger.error(`Error: ${error.message}`, {
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-      });
+  //     res.json({ success: true, message: "Like deleted successfully" });
+  //   } catch (error) {
+  //     // Tangkap error dan log ke file
+  //     logger.error(`Error: ${error.message}`, {
+  //       stack: error.stack,
+  //       timestamp: new Date().toISOString(),
+  //     });
 
-      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
-    }
-  }
+  //     res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+  //   }
+  // }
 }
 
 module.exports = PostLikeController;

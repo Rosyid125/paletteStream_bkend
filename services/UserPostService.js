@@ -64,7 +64,7 @@ class UserPostService {
       }, {});
 
       const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
-        acc[status.post_id] = status.is_liked;
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
         return acc;
       }, {});
 
@@ -208,7 +208,7 @@ class UserPostService {
       }, {});
 
       const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
-        acc[status.post_id] = status.is_liked;
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
         return acc;
       }, {});
 
