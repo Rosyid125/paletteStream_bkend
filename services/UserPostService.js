@@ -262,6 +262,14 @@ class UserPostService {
 
       if (likedPostIds.length === 0) return [];
 
+      // Ensure post_ids is an array of numbers, not objects
+      const postIds = Array.isArray(likedPostIds) ? likedPostIds.map((item) => (typeof item === "object" ? item.post_id : item)) : [likedPostIds];
+
+      // Get all related posts by liked post IDs
+      const relatedPosts = await UserPostRepository.findByPostIds(postIds);
+
+      if (relatedPosts.length === 0) return [];
+
       // Fetch all related data in batches
       const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
         PostImageRepository.findByPostIds(postIds),
@@ -332,13 +340,18 @@ class UserPostService {
   // Static method to get all bookmarked posts by a user
   static async getBookmarkedPosts(userId, page, limit) {
     try {
-      // Pagination setup
-      const offset = (page - 1) * limit;
-
       // Get all bookmarked post IDs by user
-      const bookmarkedPostIds = await UserBookmarkService.findPostIdsByUserId(userId, offset, limit);
+      const bookmarkedPostIds = await UserBookmarkService.findPostIdsByUserId(userId, page, limit);
 
       if (bookmarkedPostIds.length === 0) return [];
+
+      // Ensure post_ids is an array of numbers, not objects
+      const postIds = Array.isArray(bookmarkedPostIds) ? bookmarkedPostIds.map((item) => (typeof item === "object" ? item.post_id : item)) : [bookmarkedPostIds];
+
+      // Get all related posts by liked post IDs
+      const relatedPosts = await UserPostRepository.findByPostIds(postIds);
+
+      if (relatedPosts.length === 0) return [];
 
       // Fetch all related data in batches
       const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([

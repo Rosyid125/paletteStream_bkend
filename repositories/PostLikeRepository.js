@@ -7,7 +7,7 @@ class PostLikeRepository {
   // Get all postids that are liked by user id
   static async findPostIdsByUserId(user_id, offset, limit) {
     try {
-      const postids = await PostLike.query().select("post_id").where({ user_id }).offset(offset).limit(limit);
+      const postids = await PostLike.query().select("post_id").where({ user_id }).orderBy("created_at", "desc").offset(offset).limit(limit);
       return postids;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);

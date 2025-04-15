@@ -28,7 +28,7 @@ class UserBookmarkRepository {
   // Get all user bookmark status by post ids and user id
   static async getStatuses(post_ids, user_id) {
     try {
-      const result = await UUserBookmark.query().select("post_id").whereIn("post_id", post_ids).where({ user_id });
+      const result = await UserBookmark.query().select("post_id").whereIn("post_id", post_ids).where({ user_id });
       return result;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);

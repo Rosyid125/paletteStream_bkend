@@ -3,13 +3,11 @@ const router = express.Router();
 const userProfileController = require("../controllers/UserProfileController");
 const { verifyAccessToken } = require("../middlewares/authMiddleware");
 
-// // Get user profile by userid with other informations
-// router.get("/profile/:userId", verifyAccessToken, userProfileController.getUserProfile);
-// // Update user profile
-// router.put("/update/:userid", verifyAccessToken, userProfileController.updateUserProfile);
-
-// No middleware
-router.get("/profile/:userId", userProfileController.getUserProfile);
-router.put("/update/:userId", userProfileController.updateUserProfile);
+// Get user mini infos by user id
+router.get("/mini-profile/:userId", verifyAccessToken, userProfileController.getUserMiniInfos);
+// Get user profile by userid with other informations
+router.get("/profile/:userId", verifyAccessToken, userProfileController.getUserProfile);
+// Update user profile
+router.put("/update/:userid", verifyAccessToken, userProfileController.updateUserProfile);
 
 module.exports = router;

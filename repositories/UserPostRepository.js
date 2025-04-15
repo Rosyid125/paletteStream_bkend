@@ -19,11 +19,26 @@ class UserPostRepository {
     }
   }
 
-  // Get user post by id
-  static async findById(id) {
+  // Get user post by post_id
+  static async findByPostId(post_id) {
     try {
-      const userPost = await UserPost.query().findOne({ id });
+      const userPost = await UserPost.query().findOne();
       return userPost;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
+  }
+
+  // Get user post by post_ids
+  static async findByPostIds(post_ids) {
+    try {
+      // Fetch posts with the array of IDs
+      const userPosts = await UserPost.query().withGraphFetched("user.[profile,experience]").whereIn("id", post_ids);
+
+      // Sort results to match the order of input IDs
+      const sortedUserPosts = post_ids.map((id) => userPosts.find((post) => post.id === Number(id))).filter((post) => post !== undefined);
+
+      return sortedUserPosts;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);
     }

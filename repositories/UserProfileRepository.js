@@ -14,10 +14,22 @@ class UserProfileRepository {
     }
   }
 
+  // Get user mini infos by user id
+  static async findMiniInfosByUserId(user_id) {
+    try {
+      const userProfile = await UserProfile.query().findOne({ user_id }).withGraphFetched("profile[user]");
+
+      return userProfile;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
+  }
+
   // Get user profile by user id
   static async findByUserId(user_id) {
     try {
       const userProfile = await UserProfile.query().findOne({ user_id });
+
       return userProfile;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);

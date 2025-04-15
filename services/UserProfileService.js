@@ -14,15 +14,41 @@ const currentService = "UserProfileService";
 
 // Define the UserProfileService class
 class UserProfileService {
+  // Get user mini infos by user id
+  static async findMiniInfosByUserId(userId) {
+    try {
+      // Get user profile by user id
+      const user = await UserRepository.findById(userId);
+      const userProfile = await UserProfileRepository.findByUserId(userId);
+      const userExp = await UserExpRepository.findByUserId(userId);
+
+      if (!user) {
+        throw new Error(`${currentService} Error: User not found`);
+      }
+
+      return {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        username: userProfile.username,
+        avatar: userProfile.avatar,
+        exp: userExp.exp,
+        level: userExp.level,
+      };
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
+  }
+
   // Static method to get user profile for a specific user for a user profile card on user profile page
   static async getUserProfile(userId) {
     try {
       // Get user profile by user id
-      const userProfile = await UserProfileRepository.findByUserId(userId);
       const user = await UserRepository.findById(userId);
+      const userProfile = await UserProfileRepository.findByUserId(userId);
+      const userExp = await UserExpRepository.findByUserId(userId);
       const userAchievements = await UserAchievementRepository.findByUserId(userId);
       const userBadges = await UserBadgeRepository.findByUserId(userId);
-      const userExp = await UserExpRepository.findByUserId(userId);
       // const userPlatformLinks = await UserProfileRepository.findPlatformLinksByUserId(userId);
       const userFollowingsCount = await UserFollowRepository.countFollowingsByUserId(userId);
       const userFollowersCount = await UserFollowRepository.countFollowersByUserId(userId);
@@ -43,6 +69,8 @@ class UserProfileService {
       return {
         id: user.id,
         username: userProfile.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
         avatar: userProfile.avatar,
         bio: userProfile.bio,
         location: userProfile.location,
