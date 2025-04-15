@@ -96,21 +96,47 @@ class UserPostController {
     }
   }
 
-  // Get a post detail
-  static async getPostDetails(req, res) {
+  // Get all liked posts
+  static async getLikedPosts(req, res) {
     try {
-      const { postId } = req.params;
-
-      // Panggil service untuk ini
-      const post = await UserPostService.getPostDetails(postId);
-
-      // Jika post tidak di temukan
-      if (!post) {
-        return res.status(404).json({ success: false, message: "Post not found" });
+      const { userId } = req.params;
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      // Panggil service untuk mendapatkan liked posts
+      const likedPosts = await UserPostService.getLikedPosts(userId, page, limit);
+      // Jika tidak ada liked posts
+      if (!likedPosts) {
+        return res.status(404).json({ success: false, message: "Posts not found" });
       }
-
       // Kirim response ke client
-      res.json({ success: true, data: post });
+      res.json({ success: true, data: likedPosts });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+    }
+  }
+
+  // Get all bookmarked posts
+  static async getBookmarkedPosts(req, res) {
+    try {
+      const { userId } = req.params;
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      // Panggil service untuk mendapatkan bookmarked posts
+      const bookmarkedPosts = await UserPostService.getBookmarkedPosts(userId, page, limit);
+      // Jika tidak ada bookmarked posts
+      if (!bookmarkedPosts) {
+        return res.status(404).json({ success: false, message: "Posts not found" });
+      }
+      // Kirim response ke client
+      res.json({ success: true, data: bookmarkedPosts });
     } catch (error) {
       // Tangkap error dan log ke file
       logger.error(`Error: ${error.message}`, {

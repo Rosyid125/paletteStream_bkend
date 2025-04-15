@@ -9,8 +9,10 @@ router.get("/", verifyAccessToken, userPostController.getAllPost);
 router.get("/:userId", verifyAccessToken, userPostController.getUserPost);
 // Get all home/feed posts
 router.get("/home/:userId", verifyAccessToken, userPostController.getHomePosts);
-// Get a post detail
-router.get("/detail/:postId", verifyAccessToken, userPostController.getPostDetails);
+// Get all liked posts
+router.get("/liked/:userId", verifyAccessToken, userPostController.getLikedPosts);
+// Get all bookmarked posts
+router.get("/bookmarked/:userId", verifyAccessToken, userPostController.getBookmarkedPosts);
 // Create a new post
 router.post("/create/:userId", verifyAccessToken, userPostController.createPost);
 // Update a post

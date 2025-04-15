@@ -34,7 +34,7 @@ class PostLikeController {
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
-  // Create a new post like
+  // Create and delete a post like
   static async createDelete(req, res) {
     try {
       const { postId, userId } = req.body;

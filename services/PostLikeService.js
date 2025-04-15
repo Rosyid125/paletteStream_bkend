@@ -26,7 +26,7 @@ class PostLikeService {
     }
   }
 
-  // Create a new post like
+  // Create and delete a post like
   static async createDelete(postId, userId) {
     try {
       // Check if post like already exists

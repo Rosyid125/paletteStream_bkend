@@ -2,11 +2,9 @@
 const UserPostRepository = require("../repositories/UserPostRepository");
 const PostImageRepository = require("../repositories/PostImageRepository");
 const PostTagRepository = require("../repositories/PostTagRepository");
-const UserRepository = require("../repositories/UserRepository");
-const UserProfileRepository = require("../repositories/UserProfileRepository");
-const UserExpRepository = require("../repositories/UserExpRepository");
 const TagRepository = require("../repositories/TagRepository");
 const PostLikeRepository = require("../repositories/PostLikeRepository");
+const UserBookmarkService = require("./UserBookmarkService");
 const UserFollowRepository = require("../repositories/UserFollowRepository");
 const PostCommentService = require("../services/PostCommentService");
 
@@ -32,12 +30,13 @@ class UserPostService {
       const postIds = relatedPosts.map((post) => post.id);
 
       // Fetch all related data in batches
-      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses] = await Promise.all([
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
         PostImageRepository.findByPostIds(postIds),
         PostTagRepository.findByPostIds(postIds),
         PostLikeRepository.countByPostIds(postIds),
         PostCommentService.countByPostIds(postIds),
         PostLikeRepository.getStatuses(userId, postIds),
+        UserBookmarkService.getStatuses(postIds, userId),
       ]);
 
       // Convert arrays into maps for quick lookup
@@ -68,17 +67,27 @@ class UserPostService {
         return acc;
       }, {});
 
-      // Assemble final post data
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
       return relatedPosts.map((post) => ({
         id: post.id,
         userId: post.user_id,
-        createdAt: post.createdAt,
+        firstName: post.user.firstName,
+        lastName: post.user.lastName,
+        username: post.user.profile.username,
+        avatar: post.user.profile.avatar,
+        level: post.user.experience.level,
+        createdAt: formatDate(post.created_at),
         type: post.type,
         title: post.title,
         description: post.description,
         images: imagesMap[post.id] || [],
         tags: tagsMap[post.id] || [],
         postLikeStatus: likeStatusMap[post.id] || false,
+        bookmarkStatus: bookmarkStatusMap[post.id] || false,
         likeCount: likeCountMap[post.id] || 0,
         commentCount: commentCountMap[post.id] || 0,
       }));
@@ -176,12 +185,13 @@ class UserPostService {
       const postIds = relatedPosts.map((post) => post.id);
 
       // Fetch all related data in batches
-      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses] = await Promise.all([
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
         PostImageRepository.findByPostIds(postIds),
         PostTagRepository.findByPostIds(postIds),
         PostLikeRepository.countByPostIds(postIds),
         PostCommentService.countByPostIds(postIds),
         PostLikeRepository.getStatuses(userId, postIds),
+        UserBookmarkService.getStatuses(postIds, userId),
       ]);
 
       // Convert arrays into maps for quick lookup
@@ -212,6 +222,11 @@ class UserPostService {
         return acc;
       }, {});
 
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
       return relatedPosts.map((post) => ({
         id: post.id,
         userId: post.user_id,
@@ -227,6 +242,7 @@ class UserPostService {
         images: imagesMap[post.id] || [],
         tags: tagsMap[post.id] || [],
         postLikeStatus: likeStatusMap[post.id] || false,
+        bookmarkStatus: bookmarkStatusMap[post.id] || false,
         likeCount: likeCountMap[post.id] || 0,
         commentCount: commentCountMap[post.id] || 0,
       }));
@@ -235,56 +251,157 @@ class UserPostService {
     }
   }
 
-  // Static method to get a single post with all details
-  static async getPostDetails(postId) {
+  // Static method to get all liked posts by a user
+  static async getLikedPosts(userId, page, limit) {
     try {
-      // Get post by postId
-      const post = await UserPostRepository.findById(postId);
-      if (!post) {
-        return null;
-      }
+      // Pagination setup
+      const offset = (page - 1) * limit;
 
-      // Get all necessary post data in one go
-      const [postImages, postTags, postLikeCount, postLikeStatus, postCommentCount, user, userProfile, userExp] = await Promise.all([
-        PostImageRepository.findByPostId(post.id),
-        PostTagRepository.findByPostId(post.id),
-        PostLikeRepository.countByPostId(post.id),
-        PostLikeRepository.getStatus(post.id, post.user_id),
-        PostCommentService.countByPostId(post.id),
-        UserRepository.findById(post.user_id),
-        UserProfileRepository.findByUserId(post.user_id),
-        UserExpRepository.findByUserId(post.user_id),
+      // Get all liked post IDs by user
+      const likedPostIds = await PostLikeRepository.findPostIdsByUserId(userId, offset, limit);
+
+      if (likedPostIds.length === 0) return [];
+
+      // Fetch all related data in batches
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+        PostImageRepository.findByPostIds(postIds),
+        PostTagRepository.findByPostIds(postIds),
+        PostLikeRepository.countByPostIds(postIds),
+        PostCommentService.countByPostIds(postIds),
+        PostLikeRepository.getStatuses(userId, postIds),
+        UserBookmarkService.getStatuses(postIds, userId),
       ]);
 
-      // Ambil semua tag ID dari postTags
-      const tagIds = postTags.map((tag) => tag.tag_id);
-
-      // Fetch semua tag dalam satu query
-      const tags = tagIds.length > 0 ? await TagRepository.findTagsByIds(tagIds) : [];
-
-      // Mapping tag ID ke nama
-      const tagMap = tags.reduce((acc, tag) => {
-        acc[tag.id] = tag.name;
+      // Convert arrays into maps for quick lookup
+      const imagesMap = postImages.reduce((acc, img) => {
+        acc[img.post_id] = acc[img.post_id] || [];
+        acc[img.post_id].push(img.image_url);
         return acc;
       }, {});
 
-      return {
+      const tagsMap = postTags.reduce((acc, tag) => {
+        acc[tag.post_id] = acc[tag.post_id] || [];
+        acc[tag.post_id].push(tag.name);
+        return acc;
+      }, {});
+
+      const likeCountMap = postLikeCounts.reduce((acc, like) => {
+        acc[like.post_id] = like.count;
+        return acc;
+      }, {});
+
+      const commentCountMap = postCommentCounts.reduce((acc, comment) => {
+        acc[comment.post_id] = comment.count;
+        return acc;
+      }, {});
+
+      const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      return relatedPosts.map((post) => ({
         id: post.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: userProfile.username,
-        avatar: userProfile.avatar,
-        level: userExp.level,
-        createdAt: post.createdAt,
+        userId: post.user_id,
+        firstName: post.user.firstName,
+        lastName: post.user.lastName,
+        username: post.user.profile.username,
+        avatar: post.user.profile.avatar,
+        level: post.user.experience.level,
+        createdAt: formatDate(post.created_at),
         type: post.type,
         title: post.title,
         description: post.description,
-        images: postImages.map((image) => image.image_url),
-        tags: postTags.map((tag) => tagMap[tag.tag_id] || "Unknown"),
-        likeCount: postLikeCount || 0,
-        postLikeStatus: postLikeStatus ? true : false,
-        commentCount: postCommentCount || 0,
-      };
+        images: imagesMap[post.id] || [],
+        tags: tagsMap[post.id] || [],
+        postLikeStatus: likeStatusMap[post.id] || false,
+        bookmarkStatus: bookmarkStatusMap[post.id] || false,
+        likeCount: likeCountMap[post.id] || 0,
+        commentCount: commentCountMap[post.id] || 0,
+      }));
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
+  }
+
+  // Static method to get all bookmarked posts by a user
+  static async getBookmarkedPosts(userId, page, limit) {
+    try {
+      // Pagination setup
+      const offset = (page - 1) * limit;
+
+      // Get all bookmarked post IDs by user
+      const bookmarkedPostIds = await UserBookmarkService.findPostIdsByUserId(userId, offset, limit);
+
+      if (bookmarkedPostIds.length === 0) return [];
+
+      // Fetch all related data in batches
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+        PostImageRepository.findByPostIds(postIds),
+        PostTagRepository.findByPostIds(postIds),
+        PostLikeRepository.countByPostIds(postIds),
+        PostCommentService.countByPostIds(postIds),
+        PostLikeRepository.getStatuses(userId, postIds),
+        UserBookmarkService.getStatuses(postIds, userId),
+      ]);
+
+      // Convert arrays into maps for quick lookup
+      const imagesMap = postImages.reduce((acc, img) => {
+        acc[img.post_id] = acc[img.post_id] || [];
+        acc[img.post_id].push(img.image_url);
+        return acc;
+      }, {});
+
+      const tagsMap = postTags.reduce((acc, tag) => {
+        acc[tag.post_id] = acc[tag.post_id] || [];
+        acc[tag.post_id].push(tag.name);
+        return acc;
+      }, {});
+
+      const likeCountMap = postLikeCounts.reduce((acc, like) => {
+        acc[like.post_id] = like.count;
+        return acc;
+      }, {});
+
+      const commentCountMap = postCommentCounts.reduce((acc, comment) => {
+        acc[comment.post_id] = comment.count;
+        return acc;
+      }, {});
+
+      const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      return relatedPosts.map((post) => ({
+        id: post.id,
+        userId: post.user_id,
+        firstName: post.user.firstName,
+        lastName: post.user.lastName,
+        username: post.user.profile.username,
+        avatar: post.user.profile.avatar,
+        level: post.user.experience.level,
+        createdAt: formatDate(post.created_at),
+        type: post.type,
+        title: post.title,
+        description: post.description,
+        images: imagesMap[post.id] || [],
+        tags: tagsMap[post.id] || [],
+        postLikeStatus: likeStatusMap[post.id] || false,
+        bookmarkStatus: bookmarkStatusMap[post.id] || false,
+        likeCount: likeCountMap[post.id] || 0,
+        commentCount: commentCountMap[post.id] || 0,
+      }));
     } catch (error) {
       throw new Error(`${currentService} Error: ${error.message}`);
     }
