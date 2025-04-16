@@ -1,4 +1,6 @@
 const UserFollowService = require("../services/UserFollowService");
+// import logger
+const logger = require("../utils/winstonLogger");
 
 class UserFollowController {
   // Get all user follows by follower id
@@ -10,6 +12,12 @@ class UserFollowController {
 
       res.json(userFollows);
     } catch (error) {
+      // Log the error using logger
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
@@ -23,35 +31,52 @@ class UserFollowController {
 
       res.json(userFollows);
     } catch (error) {
+      // Log the error using logger
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
-  // Create a new user follow
-  static async create(req, res) {
+  // Create and delete a user follow
+  static async createDelete(req, res) {
     try {
-      const { followerId, followedId } = req.body;
+      // Get followerId from token and followedId from params
+      const followerId = req.user.id;
+      let { followedId } = req.params;
 
-      const userFollow = await UserFollowService.create(followerId, followedId);
+      // Turn params into integer
+      followedId = parseInt(followedId);
+
+      const userFollow = await UserFollowService.createDelete(followerId, followedId);
 
       res.json(userFollow);
     } catch (error) {
+      // Log the error using logger
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 
-  // Delete a user follow
-  static async delete(req, res) {
-    try {
-      const { followerId, followedId } = req.body;
+  // // Delete a user follow
+  // static async delete(req, res) {
+  //   try {
+  //     const { followerId, followedId } = req.body;
 
-      const userFollow = await UserFollowService.delete(followerId, followedId);
+  //     const userFollow = await UserFollowService.delete(followerId, followedId);
 
-      res.json(userFollow);
-    } catch (error) {
-      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
-    }
-  }
+  //     res.json(userFollow);
+  //   } catch (error) {
+  //     res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+  //   }
+  // }
 }
 
 module.exports = UserFollowController;

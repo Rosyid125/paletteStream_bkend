@@ -5,10 +5,14 @@ const currentRepo = "UserRepository";
 
 class UserRepository {
   // Get all users
-  static async findAll() {
+  static async findAllUserIds(offset, limit) {
     try {
-      const users = await User.query();
-      return users;
+      const users = await User.query().select("id").offset(offset).limit(limit);
+
+      // Array of user ids
+      const userIds = users.map((user) => user.id);
+
+      return userIds;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);
     }
