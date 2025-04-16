@@ -9,6 +9,9 @@ const UserFollowRepository = require("../repositories/UserFollowRepository");
 const PostLikeRepository = require("../repositories/PostLikeRepository");
 const PostCommentRepository = require("../repositories/PostCommentRepository");
 
+const UserFollowService = require("./UserFollowService");
+const UserSocialLinkService = require("./UserSocialLinkService");
+
 // For error handling
 const currentService = "UserProfileService";
 
@@ -41,7 +44,7 @@ class UserProfileService {
   }
 
   // Static method to get user profile for a specific user for a user profile card on user profile page
-  static async getUserProfile(userId) {
+  static async getUserProfile(currentUserId, userId) {
     try {
       // Get user profile by user id
       const user = await UserRepository.findById(userId);
@@ -49,7 +52,7 @@ class UserProfileService {
       const userExp = await UserExpRepository.findByUserId(userId);
       const userAchievements = await UserAchievementRepository.findByUserId(userId);
       const userBadges = await UserBadgeRepository.findByUserId(userId);
-      // const userPlatformLinks = await UserProfileRepository.findPlatformLinksByUserId(userId);
+      const userPlatformLinks = await UserSocialLinkService.findAllByUserId(userId);
       const userFollowingsCount = await UserFollowRepository.countFollowingsByUserId(userId);
       const userFollowersCount = await UserFollowRepository.countFollowersByUserId(userId);
       const userPostCount = await UserPostRepository.countByUserId(userId);
@@ -59,6 +62,9 @@ class UserProfileService {
       // const userChallangeWinCount = await UserChallangeService.countWinByUserId(userId);
       const userChallangeCount = 0; // Dummy data
       const userChallangeWinCount = 0; // Dummy data
+
+      // get user follow status info
+      const userFollowStatus = await UserFollowService.findByFollowerIdAndFollowedId(currentUserId, userId);
 
       // Return user profile
       if (!user) {
@@ -74,12 +80,14 @@ class UserProfileService {
         avatar: userProfile.avatar,
         bio: userProfile.bio,
         location: userProfile.location,
+        platform_links: userPlatformLinks,
         achievements: userAchievements,
         badges: userBadges,
         exp: userExp.exp,
         level: userExp.level,
         followings: userFollowingsCount,
         followers: userFollowersCount,
+        userFollowStatus: userFollowStatus ? true : false,
         posts: userPostCount,
         likes: userLikeCount,
         comments: userCommentCount,
@@ -108,16 +116,19 @@ class UserProfileService {
   }
 
   // Static method to update user profile
-  static async updateUserProfile(userId, username, avatar, bio, location) {
+  static async updateUserProfile(userId, username, avatar, bio, location, platforms) {
     try {
       // Update user profile
       const userProfile = await UserProfileRepository.update(userId, username, avatar, bio, location);
+
+      // Insert social links into the database
+      const userSocialLinks = UserSocialLinkService.update(userId, platforms);
+
       if (!userProfile) {
         throw new Error(`${currentService} Error: User profile not found`);
       }
 
-      // Return updated user profile
-      return userProfile;
+      // Return updated user profile with social links
     } catch (error) {
       throw new Error(`${currentService} Error: ${error.message}`);
     }

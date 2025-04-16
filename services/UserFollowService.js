@@ -22,6 +22,29 @@ class UserFollowService {
     }
   }
 
+  // Get user follow status by follower id and followed id
+  static async findByFollowerIdAndFollowedId(follower_id, followed_id) {
+    console.log("follower_id", follower_id, "followed_id", followed_id);
+    try {
+      const userFollow = await UserFollowRepository.findByFollowerIdAndFollowedId(follower_id, followed_id);
+
+      return userFollow;
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
+  }
+
+  // Get user follow status by follower id and followed ids
+  static async findByFollowerIdAndFollowedIds(follower_id, followed_ids) {
+    try {
+      const userFollows = await UserFollowRepository.findByFollowerIdAndFollowedIds(follower_id, followed_ids);
+
+      return userFollows;
+    } catch (error) {
+      throw new Error(`${currentService} Error: ${error.message}`);
+    }
+  }
+
   // Create a new user follow
   static async create(follower_id, followed_id) {
     try {

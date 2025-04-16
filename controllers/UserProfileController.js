@@ -35,7 +35,13 @@ class UserProfileController {
     try {
       const { userId } = req.params;
 
-      const userProfile = await UserProfileService.getUserProfile(userId);
+      // Get current user id from token
+      const currentUserId = req.user.id;
+
+      console.log("currentUserId", currentUserId);
+      console.log("userId", userId);
+
+      const userProfile = await UserProfileService.getUserProfile(currentUserId, userId);
 
       if (!userProfile) {
         return res.status(404).json({ success: false, message: "User not found" });
@@ -57,12 +63,12 @@ class UserProfileController {
   static async updateUserProfile(req, res) {
     try {
       let { userId } = req.params;
-      const { name, bio, avatar, location } = req.body;
+      const { name, avatar, bio, location, platforms } = req.body;
 
       // Convert userId to an integer
       userId = parseInt(userId);
 
-      const userProfile = await UserProfileService.updateUserProfile(userId, name, bio, avatar, location);
+      const userProfile = await UserProfileService.updateUserProfile(userId, name, avatar, bio, location, platforms);
 
       res.json({ success: true, data: userProfile });
     } catch (error) {

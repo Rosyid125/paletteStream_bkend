@@ -30,6 +30,8 @@ class UserProfileRepository {
     try {
       const userProfile = await UserProfile.query().findOne({ user_id });
 
+      console.log(userProfile);
+
       return userProfile;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);

@@ -34,6 +34,29 @@ class UserFollowRepository {
     }
   }
 
+  // Get status by follower id and followed id
+  static async findByFollowerIdAndFollowedId(follower_id, followed_id) {
+    try {
+      console.log("follower_id", follower_id, "followed_id", followed_id);
+
+      const userFollow = await UserFollow.query().findOne({ follower_id, followed_id });
+
+      return userFollow;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
+  }
+
+  // Get statuses by follower id and followed ids
+  static async findByFollowerIdAndFollowedIds(follower_id, followed_ids) {
+    try {
+      const userFollows = await UserFollow.query().where({ follower_id }).whereIn("followed_id", followed_ids);
+      return userFollows;
+    } catch (error) {
+      throw new Error(`${currentRepo} Error: ${error.message}`);
+    }
+  }
+
   // Create a new user follow
   static async create(follower_id, followed_id) {
     try {

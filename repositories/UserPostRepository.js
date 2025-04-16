@@ -47,7 +47,12 @@ class UserPostRepository {
   // Get user post by user id
   static async findByUserId(user_id, offset, limit) {
     try {
-      const userPosts = await UserPost.query().where({ user_id }).orderBy("created_at", "desc").offset(offset).limit(limit);
+      const userPosts = await UserPost.query()
+        .withGraphFetched("user.[profile,experience]") // Ambil profile dan exp dari relasi user
+        .where({ user_id })
+        .orderBy("created_at", "desc")
+        .offset(offset)
+        .limit(limit);
       return userPosts;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);

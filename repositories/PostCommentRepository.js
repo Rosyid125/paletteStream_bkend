@@ -1,4 +1,5 @@
 // Import model
+const CommentReply = require("../models/CommentReply");
 const PostComment = require("../models/PostComment");
 // For error handling
 const currentRepo = "PostCommentRepository";
@@ -96,8 +97,19 @@ class PostCommentRepository {
   static async countByUserId(user_id) {
     try {
       const postids = await PostComment.query().select("post_id").where({ user_id });
-      const result = await PostComment.query().count("post_id").whereIn("post_id", postids);
-      return result?.count || 0;
+
+      // map postids to array
+      const postidsArray = postids.map((post) => post.post_id);
+
+      const result = await PostComment.query().count("post_id as total").whereIn("post_id", postidsArray);
+
+      // for comment replies
+      const result2 = await CommentReply.query().count("post_id as total").whereIn("post_id", postidsArray);
+
+      // sum the total of post comments and comment replies
+      const total = Number(result[0]?.total || 0) + Number(result2[0]?.total || 0);
+
+      return total;
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);
     }

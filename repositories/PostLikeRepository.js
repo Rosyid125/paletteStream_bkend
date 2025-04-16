@@ -134,9 +134,12 @@ class PostLikeRepository {
     try {
       // Get all postids by user id
       const postids = await PostLike.query().select("post_id").where({ user_id });
-      // Count all post likes from all postids
-      const result = await PostLike.query().count("post_id").whereIn("post_id", postids);
-      return result?.count || 0;
+      // Pluuk with map
+      const pluckedPostIds = postids.map((post) => post.post_id);
+      // Count total post likes across all post_ids
+      const result = await PostLike.query().whereIn("post_id", pluckedPostIds).count("post_id as total");
+
+      return Number(result[0]?.total || 0);
     } catch (error) {
       throw new Error(`${currentRepo} Error: ${error.message}`);
     }
