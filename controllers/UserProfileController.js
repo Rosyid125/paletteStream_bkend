@@ -38,9 +38,6 @@ class UserProfileController {
       // Get current user id from token
       const currentUserId = req.user.id;
 
-      console.log("currentUserId", currentUserId);
-      console.log("userId", userId);
-
       const userProfile = await UserProfileService.getUserProfile(currentUserId, userId);
 
       if (!userProfile) {

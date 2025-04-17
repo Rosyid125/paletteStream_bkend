@@ -41,8 +41,6 @@ class UserFollowRepository {
   // Get status by follower id and followed id
   static async findByFollowerIdAndFollowedId(follower_id, followed_id) {
     try {
-      console.log("follower_id", follower_id, "followed_id", followed_id);
-
       const userFollow = await UserFollow.query().findOne({ follower_id, followed_id });
 
       return userFollow;

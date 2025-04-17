@@ -168,7 +168,6 @@ class UserPostService {
       const relatedUsers = await UserFollowRepository.findByFollowerId(userId);
 
       const followingIds = relatedUsers.map((user) => user.followed_id); // Extract followed user IDs
-      console.log("followingIds", followingIds);
       followingIds.push(userId); // Include the current user
 
       if (followingIds.length === 0) return [];
