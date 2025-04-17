@@ -2,6 +2,7 @@ const AuthService = require("../services/AuthService");
 const UserProfileService = require("../services/UserProfileService");
 const UserExpService = require("../services/UserExpService");
 const logger = require("../utils/winstonLogger");
+const customError = require("../errors/customError");
 
 class AuthController {
   static async register(req, res) {
@@ -25,7 +26,11 @@ class AuthController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+      if (error instanceof customError) {
+        return res.status(error.statusCode).json({ success: false, message: error.message });
+      } else {
+        res.status(500).json({ success: false, message: "An unexpected error occurred." });
+      }
     }
   }
 
@@ -55,7 +60,11 @@ class AuthController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+      if (error instanceof customError) {
+        return res.status(error.statusCode).json({ success: false, message: error.message });
+      } else {
+        res.status(500).json({ success: false, message: "An unexpected error occurred." });
+      }
     }
   }
 

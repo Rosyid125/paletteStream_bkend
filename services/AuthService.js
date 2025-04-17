@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const AuthRepository = require("../repositories/AuthRepository");
 const UserRepository = require("../repositories/UserRepository");
+const customError = require("../errors/customError");
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
@@ -19,7 +20,7 @@ class AuthService {
 
       const existingUser = await User.query().findOne({ email });
       if (existingUser) {
-        throw new Error(`${currentService} Error: Email already registered. User with this email already exists.`);
+        throw new customError("Email already registered", 409);
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -27,7 +28,7 @@ class AuthService {
 
       return user;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -37,7 +38,7 @@ class AuthService {
       const user = await UserRepository.getUserByEmail(email);
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
-        throw new Error(`${currentService} Error: Invalid email or password.`);
+        throw new customError("Invalid email or password", 401);
       }
 
       const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_SECRET, {
@@ -55,7 +56,7 @@ class AuthService {
 
       return { accessToken, refreshToken, user };
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
