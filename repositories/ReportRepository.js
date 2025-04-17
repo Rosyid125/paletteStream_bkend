@@ -10,7 +10,7 @@ class ReportRepository {
       const reports = await db("reports").select("*");
       return reports;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class ReportRepository {
       const report = await db("reports").where({ id }).first();
       return report;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class ReportRepository {
       const reports = await db("reports").where({ reporter_id });
       return reports;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -40,7 +40,7 @@ class ReportRepository {
       const [report] = await db("reports").insert({ reporter_id, report_picture, note }).returning("*");
       return report;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -54,7 +54,7 @@ class ReportRepository {
       await db("reports").where({ id }).del();
       return report;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

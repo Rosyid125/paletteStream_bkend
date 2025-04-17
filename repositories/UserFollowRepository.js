@@ -10,7 +10,7 @@ class UserFollowRepository {
       const userFollows = await UserFollow.query();
       return userFollows;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class UserFollowRepository {
       const userFollows = await UserFollow.query().where({ follower_id: user_id }).select("followed_id");
       return userFollows;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -34,7 +34,7 @@ class UserFollowRepository {
 
       return userIds;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -47,7 +47,7 @@ class UserFollowRepository {
 
       return userFollow;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -57,7 +57,7 @@ class UserFollowRepository {
       const userFollows = await UserFollow.query().where({ follower_id }).whereIn("followed_id", followed_ids);
       return userFollows;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -67,7 +67,7 @@ class UserFollowRepository {
       const userFollow = await UserFollow.query().insert({ follower_id, followed_id });
       return userFollow;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -81,7 +81,7 @@ class UserFollowRepository {
       await UserFollow.query().findOne({ follower_id, followed_id }).delete();
       return userFollow;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -91,7 +91,7 @@ class UserFollowRepository {
       const result = await UserFollow.query().where({ follower_id }).count("follower_id as count").first();
       return result?.count || 0;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -101,7 +101,7 @@ class UserFollowRepository {
       const result = await UserFollow.query().where({ followed_id }).count("followed_id as count").first();
       return result?.count || 0;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

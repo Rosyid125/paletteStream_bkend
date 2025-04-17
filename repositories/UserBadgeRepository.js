@@ -10,7 +10,7 @@ class UserBadgeRepository {
       const userBadges = await UserBadge.query();
       return userBadges;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class UserBadgeRepository {
       const userBadge = await UserBadge.query().findOne({ user_id });
       return userBadge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class UserBadgeRepository {
       const userBadge = await UserBadge.query().insert({ user_id, badge_id });
       return userBadge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -44,7 +44,7 @@ class UserBadgeRepository {
       await UserBadge.query().findOne({ user_id }).patch({ badge_id });
       return userBadge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

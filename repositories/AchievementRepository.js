@@ -1,5 +1,7 @@
 // Import model
 const Achievement = require("../models/Achievement");
+// Import custom error handler
+const customError = require("../errors/customError");
 // For error handling
 const currentRepo = "AchievementRepository";
 
@@ -10,7 +12,7 @@ class AchievementRepository {
       const achievements = await Achievement.query();
       return achievements;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +22,7 @@ class AchievementRepository {
       const achievement = await Achievement.query().findOne({ id });
       return achievement;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +32,7 @@ class AchievementRepository {
       const achievement = await Achievement.query().findOne({ name });
       return achievement;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -40,7 +42,7 @@ class AchievementRepository {
       const achievement = await Achievement.query().insert({ name, description, icon });
       return achievement;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -54,7 +56,7 @@ class AchievementRepository {
       await Achievement.query().findOne({ id }).patch({ name, description, icon });
       return achievement;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -68,7 +70,7 @@ class AchievementRepository {
       await Achievement.query().findOne({ id }).delete();
       return achievement;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

@@ -11,7 +11,7 @@ class UserBookmarkRepository {
       const postids = await UserBookmark.query().select("post_id").where({ user_id }).offset(offset).limit(limit);
       return postids;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -21,7 +21,7 @@ class UserBookmarkRepository {
       const userBookmark = await UserBookmark.query().findOne({ post_id, user_id });
       return userBookmark;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -31,7 +31,7 @@ class UserBookmarkRepository {
       const result = await UserBookmark.query().select("post_id").whereIn("post_id", post_ids).where({ user_id });
       return result;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -41,7 +41,7 @@ class UserBookmarkRepository {
       const userBookmark = await UserBookmark.query().insert({ user_id, post_id });
       return userBookmark;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -51,7 +51,7 @@ class UserBookmarkRepository {
       const userBookmark = await UserBookmark.query().delete().where({ user_id, post_id });
       return userBookmark;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

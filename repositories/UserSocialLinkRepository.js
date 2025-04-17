@@ -1,6 +1,6 @@
 // Import model
 const UserSocialLink = require("../models/UserSocialLink");
-
+const customError = require("../errors/customError");
 // for error handling
 const currentRepo = "UserSocialLinkRepository";
 
@@ -13,7 +13,7 @@ class UserSocialLinkRepository {
 
       return userSocialLinks;
     } catch (error) {
-      throw new Error(`UserSocialLinkRepository Error: ${error.message}`);
+      throw new customError(`UserSocialLinkRepository Error: ${error.message}`);
     }
   }
 
@@ -33,7 +33,7 @@ class UserSocialLinkRepository {
 
       return createdUserSocialLinks;
     } catch (error) {
-      throw new Error(`UserSocialLinkRepository Error: ${error.message}`);
+      throw new customError(`UserSocialLinkRepository Error: ${error.message}`);
     }
   }
 
@@ -42,7 +42,7 @@ class UserSocialLinkRepository {
     try {
       await UserSocialLink.query().delete().where("user_id", userId);
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

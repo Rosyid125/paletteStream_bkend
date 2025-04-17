@@ -10,7 +10,7 @@ class ChallengeRepository {
       const challenges = await Challenge.query();
       return challenges;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class ChallengeRepository {
       const challenges = await Challenge.query().where("status", "open");
       return challenges;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class ChallengeRepository {
       const challenge = await Challenge.query().findOne({ id });
       return challenge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -40,7 +40,7 @@ class ChallengeRepository {
       const challenge = await Challenge.query().insert({ title, description, images, start_date, end_date, status });
       return challenge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -54,7 +54,7 @@ class ChallengeRepository {
       await Challenge.query().findOne({ id }).patch({ title, description, images, start_date, end_date, status });
       return challenge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -68,7 +68,7 @@ class ChallengeRepository {
       await Challenge.query().findOne({ id }).delete();
       return challenge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

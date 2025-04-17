@@ -10,7 +10,7 @@ class ChallengePrizeRepository {
       const challengePrizes = await ChallengePrize.query().where({ challenge_id });
       return challengePrizes;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class ChallengePrizeRepository {
       const challengePrize = await ChallengePrize.query().insert({ challenge_id, achievement_id, badge_id, exp });
       return challengePrize;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -34,7 +34,7 @@ class ChallengePrizeRepository {
       await ChallengePrize.query().findById(id).patch({ challenge_id, achievement_id, badge_id, exp });
       return challengePrize;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -48,7 +48,7 @@ class ChallengePrizeRepository {
       await ChallengePrize.query().deleteById(id);
       return challengePrize;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

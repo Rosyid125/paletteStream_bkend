@@ -1,6 +1,5 @@
 const UserBookmarkRepository = require("../repositories/UserBookmarkRepository.js");
-// For error handling
-const currentService = "UserBookmarkService";
+const customError = require("../errors/customError");
 
 class UserBookmarkService {
   // Get all post ids that are bookmarked by user id
@@ -12,7 +11,7 @@ class UserBookmarkService {
       const postids = await UserBookmarkRepository.findPostIdsByUserId(userId, offset, limit);
       return postids;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -22,7 +21,7 @@ class UserBookmarkService {
       const result = await UserBookmarkRepository.getStatuses(postIds, userId);
       return result;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -43,7 +42,7 @@ class UserBookmarkService {
 
       // Check if user bookmark was created successfully
       if (!userBookmark) {
-        throw new Error(`UserBookmarkService Error: Post bookmark cannot be created`);
+        throw new customError(`UserBookmarkService Error: Post bookmark cannot be created`);
       } else {
         // If it was created successfully, return the user bookmark
         const userBookmarkData = {
@@ -58,7 +57,7 @@ class UserBookmarkService {
         return { message: "Post bookmark created", data: userBookmarkData };
       }
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 }

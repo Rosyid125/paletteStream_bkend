@@ -11,9 +11,6 @@ const PostCommentService = require("../services/PostCommentService");
 // Import utility functions
 const { formatDate } = require("../utils/dateFormatterUtils");
 
-// For error handling
-const currentService = "UserPostService";
-
 // Define the UserPostService class
 class UserPostService {
   // Static method to get all user posts and related data for a user profile page
@@ -92,7 +89,7 @@ class UserPostService {
         commentCount: commentCountMap[post.id] || 0,
       }));
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -160,7 +157,7 @@ class UserPostService {
         commentCount: commentCountMap[post.id] || 0,
       }));
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -249,7 +246,7 @@ class UserPostService {
         commentCount: commentCountMap[post.id] || 0,
       }));
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -335,7 +332,7 @@ class UserPostService {
         commentCount: commentCountMap[post.id] || 0,
       }));
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -418,7 +415,7 @@ class UserPostService {
         commentCount: commentCountMap[post.id] || 0,
       }));
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -439,7 +436,7 @@ class UserPostService {
 
       return { post, postTags, postImages };
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -466,7 +463,7 @@ class UserPostService {
 
       return { post, postTags, newPostTags, postImages, newPostImages };
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -484,7 +481,7 @@ class UserPostService {
 
       return { post, postTags, postImages };
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 }

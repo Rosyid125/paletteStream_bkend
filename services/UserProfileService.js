@@ -12,8 +12,7 @@ const PostCommentRepository = require("../repositories/PostCommentRepository");
 const UserFollowService = require("./UserFollowService");
 const UserSocialLinkService = require("./UserSocialLinkService");
 
-// For error handling
-const currentService = "UserProfileService";
+const customError = require("../errors/customError");
 
 // Define the UserProfileService class
 class UserProfileService {
@@ -26,7 +25,7 @@ class UserProfileService {
       const userExp = await UserExpRepository.findByUserId(userId);
 
       if (!user) {
-        throw new Error(`${currentService} Error: User not found`);
+        throw new customError("User not found");
       }
 
       return {
@@ -39,7 +38,7 @@ class UserProfileService {
         level: userExp.level,
       };
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -68,7 +67,7 @@ class UserProfileService {
 
       // Return user profile
       if (!user) {
-        throw new Error(`${currentService} Error: User not found`);
+        throw new customError("User not found");
       }
 
       // Merge data to a one object
@@ -95,7 +94,7 @@ class UserProfileService {
         challangeWins: userChallangeWinCount,
       };
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -105,13 +104,13 @@ class UserProfileService {
       // Create a default user profile
       const userProfile = await UserProfileRepository.createDefault(userId);
       if (!userProfile) {
-        throw new Error(`${currentService} Error: User profile not found`);
+        throw new customError("User profile not found");
       }
 
       // Return default user profile
       return userProfile;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -125,12 +124,12 @@ class UserProfileService {
       const userSocialLinks = UserSocialLinkService.update(userId, platforms);
 
       if (!userProfile) {
-        throw new Error(`${currentService} Error: User profile not found`);
+        throw new customError("User profile not found");
       }
 
       // Return updated user profile with social links
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 }

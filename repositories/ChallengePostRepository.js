@@ -9,7 +9,7 @@ class ChallengePostRepository {
     try {
       return await ChallengePost.query().where({ challenge_id });
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -18,7 +18,7 @@ class ChallengePostRepository {
     try {
       return await ChallengePost.query().where({ post_id }).first();
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -27,7 +27,7 @@ class ChallengePostRepository {
     try {
       return await ChallengePost.query().insert({ post_id, challenge_id });
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -36,7 +36,7 @@ class ChallengePostRepository {
     try {
       return await ChallengePost.query().delete().where({ post_id });
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

@@ -8,7 +8,7 @@ class AuthRepository {
       await Token.query().delete().where({ user_id });
       return await Token.query().insert({ user_id, refresh_token, expires_at });
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -16,7 +16,7 @@ class AuthRepository {
     try {
       return await Token.query().findOne({ refresh_token });
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -24,7 +24,7 @@ class AuthRepository {
     try {
       return await Token.query().delete().where({ refresh_token });
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -32,7 +32,7 @@ class AuthRepository {
     try {
       return await Token.query().delete().where({ user_id });
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

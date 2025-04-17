@@ -11,7 +11,7 @@ class CommentReplyRepository {
       const commentReplies = await CommentReply.query();
       return commentReplies;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -21,7 +21,7 @@ class CommentReplyRepository {
       const commentReply = await CommentReply.query().findById(id);
       return commentReply;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -31,7 +31,7 @@ class CommentReplyRepository {
       const commentReplies = await CommentReply.query().withGraphFetched("user.[profile,experience]").where({ comment_id }).offset(offset).limit(limit);
       return commentReplies;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -53,7 +53,7 @@ class CommentReplyRepository {
       });
       return commentReply;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -67,7 +67,7 @@ class CommentReplyRepository {
       await CommentReply.query().deleteById(id);
       return commentReply;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -80,7 +80,7 @@ class CommentReplyRepository {
       // Return the count
       return result[0].count;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -95,7 +95,7 @@ class CommentReplyRepository {
 
       return result; // Formatnya sama: [{ post_id: 1, count: 2 }, { post_id: 2, count: 4 }]
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -110,7 +110,7 @@ class CommentReplyRepository {
 
       return result; // Formatnya sama: [{ comment_id: 1, count: 2 }, { comment_id: 2, count: 4 }]
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

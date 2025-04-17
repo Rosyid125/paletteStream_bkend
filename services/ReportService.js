@@ -1,7 +1,5 @@
 const ReportRepository = require("../repositories/ReportRepository");
-
-// For error handling
-const currentService = "ReportService";
+const customError = require("../errors/customError");
 
 class ReportService {
   // Get all reports
@@ -9,7 +7,7 @@ class ReportService {
     try {
       return await ReportRepository.findAll();
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -18,7 +16,7 @@ class ReportService {
     try {
       return await ReportRepository.findById(id);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -27,7 +25,7 @@ class ReportService {
     try {
       return await ReportRepository.findByReporterId(reporter_id);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -37,13 +35,13 @@ class ReportService {
       // Create a new report
       const report = await ReportRepository.create(reporter_id, report_picture, note);
       if (!report) {
-        throw new Error(`${currentService} Error: Report not found`);
+        throw new customError("Report not found");
       }
 
       // Return report
       return report;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -53,13 +51,13 @@ class ReportService {
       // Delete a report
       const report = await ReportRepository.delete(id);
       if (!report) {
-        throw new Error(`${currentService} Error: Report not found`);
+        throw new customError("Report not found");
       }
 
       // Return deleted report
       return report;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 }

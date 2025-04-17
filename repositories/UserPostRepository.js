@@ -15,7 +15,7 @@ class UserPostRepository {
 
       return userPosts;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -25,7 +25,7 @@ class UserPostRepository {
       const userPost = await UserPost.query().findOne();
       return userPost;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -40,7 +40,7 @@ class UserPostRepository {
 
       return sortedUserPosts;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -55,7 +55,7 @@ class UserPostRepository {
         .limit(limit);
       return userPosts;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -71,7 +71,7 @@ class UserPostRepository {
 
       return userPosts;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -86,7 +86,7 @@ class UserPostRepository {
       });
       return userPost;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -96,7 +96,7 @@ class UserPostRepository {
       const result = await UserPost.query().where({ user_id }).count("user_id as count").first();
       return result?.count || 0;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -106,7 +106,7 @@ class UserPostRepository {
       const userPost = await UserPost.query().findOne({ id }).patch({ title, description, type });
       return userPost;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -120,7 +120,7 @@ class UserPostRepository {
       await UserPost.query().findOne({ id }).delete();
       return userPost;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

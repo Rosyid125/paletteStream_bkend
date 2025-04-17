@@ -10,7 +10,7 @@ class TagRepository {
       const tags = await Tag.query();
       return tags;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class TagRepository {
       const tag = await Tag.query().findOne({ id });
       return tag;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class TagRepository {
       const tag = await Tag.query().findOne({ name });
       return tag;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -39,7 +39,7 @@ class TagRepository {
     try {
       return await Tag.query().whereIn("id", tagIds);
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -49,7 +49,7 @@ class TagRepository {
       const tag = await Tag.query().insert({ name });
       return tag;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -63,7 +63,7 @@ class TagRepository {
       await Tag.query().findOne({ id }).patch({ name });
       return tag;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -77,7 +77,7 @@ class TagRepository {
       await Tag.query().findOne({ id }).delete();
       return tag;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -90,7 +90,7 @@ class TagRepository {
       }
       return tag;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

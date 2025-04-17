@@ -9,7 +9,7 @@ class ChallengeWinnerRepository {
     try {
       return await ChallengeWinner.query().where({ challenge_id });
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -18,7 +18,7 @@ class ChallengeWinnerRepository {
     try {
       return await ChallengeWinner.query().insert({ challenge_id, user_id, rank });
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

@@ -1,7 +1,5 @@
 const UserFollowRepository = require("../repositories/UserFollowRepository");
-
-// For error handling
-const currentService = "UserFollowService";
+const customError = require("../errors/customError");
 
 class UserFollowService {
   // Get all user followers by user id
@@ -9,7 +7,7 @@ class UserFollowService {
     try {
       return await UserFollowRepository.findByFollowedId(userId);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -18,7 +16,7 @@ class UserFollowService {
     try {
       return await UserFollowRepository.findByFollowerId(userId);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -28,7 +26,7 @@ class UserFollowService {
       const userFollow = await UserFollowRepository.findByFollowerIdAndFollowedId(follower_id, followed_id);
       return userFollow;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -39,7 +37,7 @@ class UserFollowService {
 
       return userFollows;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -60,7 +58,7 @@ class UserFollowService {
 
       // Check if user follow was created successfully
       if (!userFollow) {
-        throw new Error(`${currentService} Error: User follow not found`);
+        throw new customError("User follow not found");
       } else {
         // If it was created successfully, return the user follow
         const userFollowData = {
@@ -75,25 +73,9 @@ class UserFollowService {
         return { message: "User follow created", data: userFollowData };
       }
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
-
-  // // Delete a user follow
-  // static async delete(follower_id, followed_id) {
-  //   try {
-  //     // Delete a user follow
-  //     const userFollow = await UserFollowRepository.delete(follower_id, followed_id);
-  //     if (!userFollow) {
-  //       throw new Error(`${currentService} Error: User follow not found`);
-  //     }
-
-  //     // Return deleted user follow
-  //     return userFollow;
-  //   } catch (error) {
-  //     throw new Error(`${currentService} Error: ${error.message}`);
-  //   }
-  // }
 }
 
 module.exports = UserFollowService;

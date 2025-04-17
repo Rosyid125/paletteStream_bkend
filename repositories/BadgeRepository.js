@@ -10,7 +10,7 @@ class BadgeRepository {
       const badges = await Badge.query();
       return badges;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class BadgeRepository {
       const badge = await Badge.query().findOne({ id });
       return badge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class BadgeRepository {
       const badge = await Badge.query().findOne({ name });
       return badge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -40,7 +40,7 @@ class BadgeRepository {
       const badge = await Badge.query().insert({ name, description, icon });
       return badge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -54,7 +54,7 @@ class BadgeRepository {
       await Badge.query().findOne({ id }).patch({ name, description, icon });
       return badge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -68,7 +68,7 @@ class BadgeRepository {
       await Badge.query().findOne({ id }).delete();
       return badge;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

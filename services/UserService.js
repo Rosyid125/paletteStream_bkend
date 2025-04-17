@@ -1,10 +1,7 @@
 const UserRepository = require("../repositories/UserRepository");
+
 const UserFollowService = require("./UserFollowService");
-
 const UserProfileService = require("./UserProfileService");
-
-// For error handling
-const currentService = "UserService";
 
 class UserService {
   // For now it's also for user recommendation because we don't have any other way to get user recommendation (disini masih ada bug dimana kalau fetch user yang tidak punya profile ata exp tidak bisa (error))
@@ -37,7 +34,7 @@ class UserService {
         };
       });
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -81,7 +78,7 @@ class UserService {
         };
       });
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -89,7 +86,7 @@ class UserService {
     try {
       return await UserRepository.delete(id);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -97,7 +94,7 @@ class UserService {
     try {
       return await UserRepository.ban(id);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -105,7 +102,7 @@ class UserService {
     try {
       return await UserRepository.unBan(id);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 }

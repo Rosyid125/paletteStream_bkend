@@ -14,7 +14,7 @@ class UserRepository {
 
       return userIds;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -24,7 +24,7 @@ class UserRepository {
       const user = await User.query().findById(id);
       return user;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -34,7 +34,7 @@ class UserRepository {
       const user = await User.query().where("email", email).first();
       return user;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -44,7 +44,7 @@ class UserRepository {
       const user = await User.query().insert({ email, password, first_name, last_name, role });
       return user;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -58,7 +58,7 @@ class UserRepository {
       await User.query().findById(id).patch({ email, password, first_name, last_name });
       return user;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -72,7 +72,7 @@ class UserRepository {
       await User.query().deleteById(id);
       return user;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -86,7 +86,7 @@ class UserRepository {
       await User.query().findById(id).patch({ is_active: false });
       return user;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -100,7 +100,7 @@ class UserRepository {
       await User.query().findById(id).patch({ is_active: true });
       return user;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -111,7 +111,7 @@ class UserRepository {
       const user = await User.query().insert({ email, password, first_name, last_name, role });
       return user;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

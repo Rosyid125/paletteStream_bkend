@@ -9,7 +9,7 @@ class PostTagRepository {
       const PostTags = await PostTag.query();
       return PostTags;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -19,7 +19,7 @@ class PostTagRepository {
       const postTag = await PostTag.query().findOne({ id });
       return postTag;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -29,7 +29,7 @@ class PostTagRepository {
       const postTags = await PostTag.query().where({ post_id });
       return postTags;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -39,7 +39,7 @@ class PostTagRepository {
       const results = await PostTag.query().join("tags", "tags.id", "post_tags.tag_id").select("post_tags.post_id", "tags.name").whereIn("post_tags.post_id", post_ids);
       return results;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -49,7 +49,7 @@ class PostTagRepository {
       const postTag = await PostTag.query().insert({ post_id, tag_id });
       return postTag;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -63,7 +63,7 @@ class PostTagRepository {
       await PostTag.query().where({ post_id }).delete();
       return postTags;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

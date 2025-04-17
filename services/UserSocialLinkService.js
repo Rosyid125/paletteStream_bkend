@@ -1,7 +1,5 @@
 // Import all necessary repositories
 const UserSocialLinkRepository = require("../repositories/UserSocialLinkRepository");
-// for error handling
-const currentService = "UserSocialLinkService";
 
 // Define the UserSocialLinkService class
 class UserSocialLinkService {
@@ -15,7 +13,7 @@ class UserSocialLinkService {
 
       return plcukedResult;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -28,7 +26,7 @@ class UserSocialLinkService {
       const userSocialLink = await UserSocialLinkRepository.create(userId, platforms);
       return userSocialLink;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 }

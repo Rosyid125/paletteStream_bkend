@@ -11,7 +11,7 @@ class PostCommentRepository {
       const postComments = await PostComment.query();
       return postComments;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -21,7 +21,7 @@ class PostCommentRepository {
       const postComment = await PostComment.query().findOne({ id });
       return postComment;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -31,7 +31,7 @@ class PostCommentRepository {
       const postComments = await PostComment.query().withGraphFetched("user.[profile,experience]").where({ post_id }).offset(offset).limit(limit);
       return postComments;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -41,7 +41,7 @@ class PostCommentRepository {
       const postComments = await PostComment.query().where({ user_id });
       return postComments;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -51,7 +51,7 @@ class PostCommentRepository {
       const postComment = await PostComment.query().insert({ post_id, user_id, content });
       return postComment;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -65,7 +65,7 @@ class PostCommentRepository {
       await PostComment.query().findOne({ id }).delete();
       return postComment;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -79,7 +79,7 @@ class PostCommentRepository {
       // Return the count
       return result[0].count;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -89,7 +89,7 @@ class PostCommentRepository {
       const result = await PostComment.query().select("post_id").count("* as count").whereIn("post_id", post_ids).groupBy("post_id");
       return result;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -111,7 +111,7 @@ class PostCommentRepository {
 
       return total;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -121,7 +121,7 @@ class PostCommentRepository {
       const postComments = await PostComment.query().select("id").where({ post_id });
       return postComments;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -131,7 +131,7 @@ class PostCommentRepository {
       const postComments = await PostComment.query().select("id").whereIn("post_id", post_ids);
       return postComments;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

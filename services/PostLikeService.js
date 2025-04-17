@@ -1,7 +1,5 @@
 const PostLikeRepository = require("../repositories/PostLikeRepository");
-
-// For error handling
-const currentService = "PostLikeService";
+const customError = require("../errors/customError");
 
 class PostLikeService {
   // Get all post likes by post id
@@ -22,7 +20,7 @@ class PostLikeService {
         level: like.user.experience.level,
       }));
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -43,7 +41,7 @@ class PostLikeService {
 
       // Check if post like was created successfully
       if (!postLike) {
-        throw new Error(`${currentService} Error: Post like cannot be created`);
+        throw new customError("Post like cannot be created");
       } else {
         // If it was created successfully, return the post like
         const postLikeData = {
@@ -58,25 +56,9 @@ class PostLikeService {
         return { message: "Post like created", data: postLikeData };
       }
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
-
-  // // Delete a post like
-  // static async delete(postId, userId) {
-  //   try {
-  //     // Delete a post like by post id
-  //     const postLike = await PostLikeRepository.delete(postId, userId);
-  //     if (!postLike) {
-  //       throw new Error(`${currentService} Error: Post ID not found`);
-  //     }
-
-  //     // Return deleted post like
-  //     return postLike;
-  //   } catch (error) {
-  //     throw new Error(`${currentService} Error: ${error.message}`);
-  //   }
-  // }
 }
 
 module.exports = PostLikeService;

@@ -10,7 +10,7 @@ class UserProfileRepository {
       const userProfiles = await UserProfile.query();
       return userProfiles;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -21,7 +21,7 @@ class UserProfileRepository {
 
       return userProfile;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -34,7 +34,7 @@ class UserProfileRepository {
 
       return userProfile;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -49,7 +49,7 @@ class UserProfileRepository {
       const userProfile = await UserProfile.query().insert({ user_id, username, avatar, bio, location });
       return userProfile;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -59,7 +59,7 @@ class UserProfileRepository {
       const userProfile = await UserProfile.query().insert({ user_id, username, avatar, bio, location });
       return userProfile;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -73,7 +73,7 @@ class UserProfileRepository {
       await UserProfile.query().findOne({ user_id }).patch({ username, avatar, bio, location });
       return userProfile;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

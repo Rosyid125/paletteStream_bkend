@@ -10,7 +10,7 @@ class ChallengeParticipantsRepository {
       const challengeParticipants = await db("challenge_participants").where({ challenge_id });
       return challengeParticipants;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class ChallengeParticipantsRepository {
       const challengeParticipants = await db("challenge_participants").where({ user_id });
       return challengeParticipants;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class ChallengeParticipantsRepository {
       const [challengeParticipant] = await db("challenge_participants").insert({ challenge_id, user_id }).returning("*");
       return challengeParticipant;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -44,7 +44,7 @@ class ChallengeParticipantsRepository {
       await db("challenge_participants").where({ user_id, challenge_id }).delete();
       return challengeParticipant;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

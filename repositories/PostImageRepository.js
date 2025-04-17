@@ -10,7 +10,7 @@ class PostImageRepository {
       const postImages = await PostImage.query();
       return postImages;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class PostImageRepository {
       const postImage = await PostImage.query().findOne({ id });
       return postImage;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class PostImageRepository {
       const postImages = await PostImage.query().where({ post_id });
       return postImages;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -40,7 +40,7 @@ class PostImageRepository {
       const results = await PostImage.query().select("post_id", "image_url").whereIn("post_id", post_ids);
       return results;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -50,7 +50,7 @@ class PostImageRepository {
       const postImage = await PostImage.query().insert({ post_id, image_url });
       return postImage;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -64,7 +64,7 @@ class PostImageRepository {
       await PostImage.query().where({ post_id }).delete();
       return postImages;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

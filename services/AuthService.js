@@ -10,9 +10,6 @@ const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || "15m";
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 
-// For error handling
-const currentService = "AuthService";
-
 class AuthService {
   static async register(userData) {
     try {
@@ -64,10 +61,10 @@ class AuthService {
     try {
       const decoded = jwt.verify(accessToken, ACCESS_SECRET);
       const user = await UserRepository.findById(decoded.id);
-      if (!user) throw new Error(`${currentService} Error: User not found.`);
+      if (!user) throw new customError("User not found.");
       return user;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -75,7 +72,7 @@ class AuthService {
     try {
       const storedToken = await AuthRepository.getRefreshToken(oldRefreshToken);
       if (!storedToken) {
-        throw new Error(`${currentService} Error: Invalid or expired token`);
+        throw new customError("Invalid or expired token");
       }
 
       const decoded = jwt.verify(oldRefreshToken, REFRESH_SECRET);
@@ -94,7 +91,7 @@ class AuthService {
 
       return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -102,7 +99,7 @@ class AuthService {
     try {
       await AuthRepository.deleteRefreshToken(refreshToken);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 }

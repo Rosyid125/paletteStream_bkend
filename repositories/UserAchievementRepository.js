@@ -10,7 +10,7 @@ class UserAchievementRepository {
       const userAchievements = await UserAchievement.query();
       return userAchievements;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class UserAchievementRepository {
       const userAchievement = await UserAchievement.query().findOne({ user_id });
       return userAchievement;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class UserAchievementRepository {
       const userAchievement = await UserAchievement.query().insert({ user_id, achievement_id, progress, status });
       return userAchievement;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -44,7 +44,7 @@ class UserAchievementRepository {
       await UserAchievement.query().findOne({ user_id }).patch({ achievement_id, progress, status });
       return userAchievement;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

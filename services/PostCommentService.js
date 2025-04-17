@@ -1,11 +1,9 @@
 const PostCommentRepository = require("../repositories/PostCommentRepository");
 const CommentReplyRepository = require("../repositories/CommentReplyRepository");
+const customError = require("../errors/customError");
 
 // Import utility functions
 const { formatDate } = require("../utils/dateFormatterUtils");
-
-// For error handling
-const currentService = "PostCommentService";
 
 class PostCommentService {
   // Get all post comments and comment replies
@@ -15,7 +13,7 @@ class PostCommentService {
       const commentReplies = await CommentReplyRepository.findAll();
       return { postComments, commentReplies };
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -24,7 +22,7 @@ class PostCommentService {
     try {
       return await PostCommentRepository.findById(id);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -33,7 +31,7 @@ class PostCommentService {
     try {
       return await PostCommentRepository.findByUserId(userId);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -69,7 +67,7 @@ class PostCommentService {
         replies_count: comment.replies_count,
       }));
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -79,13 +77,13 @@ class PostCommentService {
       // Create a new post comment
       const postComment = await PostCommentRepository.create(postId, userId, content);
       if (!postComment) {
-        throw new Error(`${currentService} Error: Post comment not found`);
+        throw new customError("Post comment not found");
       }
 
       // Return post comment
       return postComment;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -95,13 +93,13 @@ class PostCommentService {
       // Delete a post comment
       const postComment = await PostCommentRepository.delete(id);
       if (!postComment) {
-        throw new Error(`${currentService} Error: Post comment not found`);
+        throw new customError("Post comment not found");
       }
 
       // Return deleted post comment
       return postComment;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -110,7 +108,7 @@ class PostCommentService {
     try {
       return await CommentReplyRepository.findById(id);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -119,7 +117,7 @@ class PostCommentService {
     try {
       return await CommentReplyRepository.findByUserId(userId);
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -143,7 +141,7 @@ class PostCommentService {
         created_at: formatDate(reply.created_at),
       }));
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -155,13 +153,13 @@ class PostCommentService {
 
       // Return error if comment reply not found
       if (!commentReply) {
-        throw new Error(`${currentService} Error: Comment reply not found`);
+        throw new customError("Comment reply not found");
       }
 
       // Return comment reply
       return commentReply;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -171,13 +169,13 @@ class PostCommentService {
       // Delete a comment reply
       const commentReply = await CommentReplyRepository.delete(id);
       if (!commentReply) {
-        throw new Error(`${currentService} Error: Comment reply not found`);
+        throw new customError("Comment reply not found");
       }
 
       // Return deleted comment reply
       return commentReply;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -196,7 +194,7 @@ class PostCommentService {
       // Return the total count
       return totalCount;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -232,7 +230,7 @@ class PostCommentService {
 
       return result;
     } catch (error) {
-      throw new Error(`${currentService} Error: ${error.message}`);
+      throw error;
     }
   }
 }

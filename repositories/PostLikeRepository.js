@@ -10,7 +10,7 @@ class PostLikeRepository {
       const postids = await PostLike.query().select("post_id").where({ user_id }).orderBy("created_at", "desc").offset(offset).limit(limit);
       return postids;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class PostLikeRepository {
       const postLikes = await PostLike.query();
       return postLikes;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class PostLikeRepository {
       const postLike = await PostLike.query().findOne({ id });
       return postLike;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -40,7 +40,7 @@ class PostLikeRepository {
       const postLikes = await PostLike.query().withGraphFetched("user.[profile,experience]").where({ post_id }).offset(offset).limit(limit);
       return postLikes;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -50,7 +50,7 @@ class PostLikeRepository {
       const postLikes = await PostLike.query().where({ user_id });
       return postLikes;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -61,7 +61,7 @@ class PostLikeRepository {
 
       return postLike;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -71,7 +71,7 @@ class PostLikeRepository {
       const result = await PostLike.query().findOne({ post_id, user_id });
       return result;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -81,7 +81,7 @@ class PostLikeRepository {
       const results = await PostLike.query().select("post_id").where("user_id", user_id).whereIn("post_id", post_ids);
       return results;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -91,7 +91,7 @@ class PostLikeRepository {
       const postLike = await PostLike.query().insert({ post_id, user_id });
       return postLike;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -105,7 +105,7 @@ class PostLikeRepository {
       await PostLike.query().findOne({ post_id, user_id }).delete();
       return postLike;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -115,7 +115,7 @@ class PostLikeRepository {
       const result = await PostLike.query().count("post_id").where({ post_id });
       return result?.count || 0;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -125,7 +125,7 @@ class PostLikeRepository {
       const results = await PostLike.query().select("post_id").count("* as count").whereIn("post_id", post_ids).groupBy("post_id");
       return results;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -141,7 +141,7 @@ class PostLikeRepository {
 
       return Number(result[0]?.total || 0);
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }

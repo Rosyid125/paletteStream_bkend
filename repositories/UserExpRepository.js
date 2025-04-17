@@ -10,7 +10,7 @@ class UserExpRepository {
       const userExps = await UserExp.query();
       return userExps;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -20,7 +20,7 @@ class UserExpRepository {
       const userExp = await UserExp.query().findOne({ user_id });
       return userExp;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -30,7 +30,7 @@ class UserExpRepository {
       const userExp = await UserExp.query().insert({ user_id, exp, level });
       return userExp;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 
@@ -44,7 +44,7 @@ class UserExpRepository {
       await UserExp.query().findOne({ user_id: userId }).patch({ exp, level });
       return userExp;
     } catch (error) {
-      throw new Error(`${currentRepo} Error: ${error.message}`);
+      throw error;
     }
   }
 }
