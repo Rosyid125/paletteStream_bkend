@@ -84,6 +84,8 @@ class UserProfileService {
         badges: userBadges,
         exp: userExp.exp,
         level: userExp.level,
+        current_treshold: userExp.current_treshold,
+        next_treshold: userExp.next_treshold,
         followings: userFollowingsCount,
         followers: userFollowersCount,
         userFollowStatus: userFollowStatus ? true : false,

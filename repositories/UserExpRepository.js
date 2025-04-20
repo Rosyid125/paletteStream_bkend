@@ -35,13 +35,13 @@ class UserExpRepository {
   }
 
   // Update user exp
-  static async update(userId, exp, level) {
+  static async update(userId, exp, level, current_treshold, next_treshold) {
     try {
       const userExp = await UserExp.query().findOne({ user_id: userId });
       if (!userExp) {
         return null;
       }
-      await UserExp.query().findOne({ user_id: userId }).patch({ exp, level });
+      await UserExp.query().findOne({ user_id: userId }).patch({ exp, level, current_treshold, next_treshold });
       return userExp;
     } catch (error) {
       throw error;

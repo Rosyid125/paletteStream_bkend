@@ -7,9 +7,11 @@ const PostLikeRepository = require("../repositories/PostLikeRepository");
 const UserBookmarkService = require("./UserBookmarkService");
 const UserFollowRepository = require("../repositories/UserFollowRepository");
 const PostCommentService = require("../services/PostCommentService");
+const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
 // Import utility functions
 const { formatDate } = require("../utils/dateFormatterUtils");
+const deleteFile = require("../utils/deleteFileUtils");
 
 // Define the UserPostService class
 class UserPostService {
@@ -420,65 +422,126 @@ class UserPostService {
 
   // Static method to create a new post
   static async createPost(userId, title, description, tags, imagePaths, type) {
+    let post; // Declare post outside try block for potential cleanup/logging if needed
+
     try {
-      // Simpan post baru
-      const post = await UserPostRepository.create(userId, title, description, type);
+      // 1. Create the main post entry
+      post = await UserPostRepository.create(userId, title, description, type);
+      if (!post || !post.id) {
+        // Handle case where post creation might fail silently
+        throw new Error(`Failed to create post entry for user ${userId}`);
+      }
 
-      // Cari atau buat tags
-      const createdTags = await Promise.all(tags.map((tag) => TagRepository.findOrCreate(tag)));
+      // 2. Process Tags: Ensure 'tags' is an array before mapping.
+      // If tags is undefined, null, or not an array, treat it as an empty array.
+      const tagsToProcess = Array.isArray(tags) ? tags : [];
+      let createdTags = [];
+      if (tagsToProcess.length > 0) {
+        createdTags = await Promise.all(
+          tagsToProcess.map((tag) => TagRepository.findOrCreate(tag.trim())) // Trim whitespace from tags
+        );
+      }
 
-      // Hubungkan tags dengan post
-      const postTags = await Promise.all(createdTags.map((tag) => PostTagRepository.create(post.id, tag.id)));
+      // 3. Link Tags to Post: Only if tags were actually created/found.
+      let postTags = [];
+      // Filter out any potential null/undefined results from findOrCreate before mapping
+      const validTags = createdTags.filter((tag) => tag && tag.id);
+      if (validTags.length > 0) {
+        postTags = await Promise.all(validTags.map((tag) => PostTagRepository.create(post.id, tag.id)));
+      }
 
-      // Simpan path gambar ke database
-      const postImages = await Promise.all(imagePaths.map((imagePath) => PostImageRepository.create(post.id, imagePath)));
+      // 4. Process Images: Ensure 'imagePaths' is an array before mapping (belt-and-suspenders).
+      // The controller should already guarantee this, but it doesn't hurt.
+      const pathsToProcess = Array.isArray(imagePaths) ? imagePaths : [];
+      let postImages = [];
+      if (pathsToProcess.length > 0) {
+        postImages = await Promise.all(pathsToProcess.map((imagePath) => PostImageRepository.create(post.id, imagePath)));
+      }
 
-      return { post, postTags, postImages };
+      // 5. Emit Gamification Event
+      gamificationEmitter.emit("postCreated", userId); // Consider passing post.id too if useful
+
+      // 6. Return the comprehensive result
+      // Ensure all parts are arrays, even if empty
+      return {
+        post,
+        postTags: Array.isArray(postTags) ? postTags : [],
+        postImages: Array.isArray(postImages) ? postImages : [],
+      };
     } catch (error) {
+      // Log the error with context
+      logger.error(`Error in UserPostService.createPost for user ${userId}: ${error.message}`, {
+        stack: error.stack,
+        postIdAttempted: post ? post.id : "N/A", // Log post ID if creation started
+        userId,
+        // Avoid logging potentially large arrays like imagePaths/tags directly unless needed for debug
+      });
+
+      // Re-throw the error to be caught by the controller's error handler
+      // You might want to wrap it in a custom service error type here
       throw error;
     }
   }
 
-  // Static method to update a post
-  static async updatePost(postId, title, description, tags, images, type) {
-    try {
-      // Update the post
-      const post = await UserPostRepository.update(postId, title, description, type);
+  // // Static method to update a post
+  // static async updatePost(postId, title, description, tags, images, type) {
+  //   try {
+  //     // Update the post
+  //     const post = await UserPostRepository.update(postId, title, description, type);
 
-      // Delete post tags
-      const postTags = await PostTagRepository.deleteByPostId(postId);
+  //     // Delete post tags
+  //     const postTags = await PostTagRepository.deleteByPostId(postId);
 
-      // If tag does not exist, create a new tag
-      const createdTags = await Promise.all(tags.map((tag) => TagRepository.findOrCreate(tag)));
+  //     // If tag does not exist, create a new tag
+  //     const createdTags = await Promise.all(tags.map((tag) => TagRepository.findOrCreate(tag)));
 
-      // Create post tags
-      const newPostTags = await Promise.all(createdTags.map((tag) => PostTagRepository.create(postId, tag.id)));
+  //     // Create post tags
+  //     const newPostTags = await Promise.all(createdTags.map((tag) => PostTagRepository.create(postId, tag.id)));
 
-      // Delete post images
-      const postImages = await PostImageRepository.deleteByPostId(postId);
+  //     // Delete post images
+  //     const postImages = await PostImageRepository.deleteByPostId(postId);
 
-      // Create post images
-      const newPostImages = await Promise.all(images.map((image) => PostImageRepository.create(postId, image)));
+  //     // Create post images
+  //     const newPostImages = await Promise.all(images.map((image) => PostImageRepository.create(postId, image)));
 
-      return { post, postTags, newPostTags, postImages, newPostImages };
-    } catch (error) {
-      throw error;
-    }
-  }
+  //     return { post, postTags, newPostTags, postImages, newPostImages };
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   // Static method to delete a post
   static async deletePost(postId) {
     try {
+      // Get all images paths for the post
+      const postImages = await PostImageRepository.findByPostId(postId);
+
+      // Make it array by mapping
+      const imagePaths = postImages.map((image) => image.image_url);
+
+      // Delete images from storage with forEach
+      imagePaths.forEach((imagePath) => {
+        // deleteFileUtils is a utility function to delete files
+        deleteFile(imagePath);
+      });
+
       // Delete the post
       const post = await UserPostRepository.delete(postId);
 
-      // Delete post tags
-      const postTags = await PostTagRepository.deleteByPostId(postId);
+      console.log("Post deleted:", post);
+      // Because db alerady has cascade delete, we don't need to delete post tags and images again (so i commented it out, untested though)
 
-      // Delete post images
-      const postImages = await PostImageRepository.deleteByPostId(postId);
+      // // Delete post tags
+      // const postTags = await PostTagRepository.deleteByPostId(postId);
 
-      return { post, postTags, postImages };
+      // // Delete post images
+      // const postImages = await PostImageRepository.deleteByPostId(postId);
+
+      // Gamification event for post deletion
+      const userId = post.user_id;
+      gamificationEmitter.emit("postDeleted", userId);
+
+      return { post };
     } catch (error) {
       throw error;
     }

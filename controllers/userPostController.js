@@ -198,32 +198,33 @@ class UserPostController {
     }
   }
 
-  // Edit a user post
-  static async updatePost(req, res) {
-    try {
-      let { postId } = req.params;
-      const { title, description, tags, images, type } = req.body;
+  // // Edit a user post
+  // static async updatePost(req, res) {
+  //   try {
+  //     let { postId } = req.params;
+  //     const { title, description, tags, images, type } = req.body;
 
-      // Convert postId to an integer
-      postId = parseInt(postId);
+  //     // Convert postId to an integer
+  //     postId = parseInt(postId);
 
-      const userPost = await UserPostService.updatePost(postId, title, description, tags, images, type);
+  //     const userPost = await UserPostService.updatePost(postId, title, description, tags, images, type);
 
-      if (!userPost) {
-        return res.status(404).json({ success: false, message: "Post not found" });
-      }
+  //     if (!userPost) {
+  //       return res.status(404).json({ success: false, message: "Post not found" });
+  //     }
 
-      res.json({ success: true, data: userPost });
-    } catch (error) {
-      // Tangkap error dan log ke file
-      logger.error(`Error: ${error.message}`, {
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-      });
+  //     res.json({ success: true, data: userPost });
+  //   } catch (error) {
+  //     // Tangkap error dan log ke file
+  //     logger.error(`Error: ${error.message}`, {
+  //       stack: error.stack,
+  //       timestamp: new Date().toISOString(),
+  //     });
 
-      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
-    }
-  }
+  //     res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+  //   }
+  // }
+
   // Delete a user post
   static async deletePost(req, res) {
     try {

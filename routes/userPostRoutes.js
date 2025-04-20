@@ -16,7 +16,7 @@ router.get("/bookmarked/:userId", verifyAccessToken, userPostController.getBookm
 // Create a new post
 router.post("/create/:userId", verifyAccessToken, userPostController.createPost);
 // Update a post
-router.put("/edit/:postId", verifyAccessToken, userPostController.updatePost);
+// router.put("/edit/:postId", verifyAccessToken, userPostController.updatePost);
 // Delete a post
 router.delete("/delete/:postId", verifyAccessToken, userPostController.deletePost);
 

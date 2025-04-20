@@ -27,6 +27,9 @@ app.use(express.json()); // Use the express.json() middleware
 app.use(cors(corsOptions)); // Apply CORS with the configured options
 app.use(cookieParser()); // Use the cookieParser middleware
 
+// Impor GamificationService HANYA untuk memastikan listener terdaftar
+require("./services/GamificationService"); // Sesuaikan path jika perlu
+
 app.get("/", (req, res) => {
   // Create a route for the home page
   res.send("Hello World");

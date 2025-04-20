@@ -1,103 +1,89 @@
-const MyEmitter = require("events");
-const myEmitter = new MyEmitter();
+const UserExpService = require("./UserExpService");
+const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
-// Handler for the "postCreated" event
-myEmitter.on("postCreated", async (userId) => {
-  try {
-    // Consequences for postCreated
-    await GamificationService.updateUserAchievement(userId, "postCreated");
-    await GamificationService.updateUserExp(userId, "postCreated");
-  } catch (error) {
-    throw error;
-  }
-});
+const expGainByEvent = {
+  postCreated: 20,
+  postDeleted: -20,
+  userFollowed: 5,
+  userUnfollowed: -5,
+  userGotFollowed: 20,
+  userGotUnfollowed: -20,
+  commentOnPost: 3,
+  commentOnPostDeleted: -3,
+  likeOnPost: 1,
+  likeOnPostDeleted: -1,
+  postGotBookmarked: 10,
+  postGotUnbookmarked: -10,
+  postGotLiked: 5,
+  postGotUnliked: -5,
+  // challengeJoined: 50,
+  // challengeLeft: -50,
+  // challengeWinner: 1000,
+};
 
-// Handler for the "postDeleted" event
-myEmitter.on("postDeleted", async (userId) => {
-  try {
-    // Consequences for postDeleted
-    await GamificationService.updateUserAchievement(userId, "postDeleted");
-    await GamificationService.updateUserExp(userId, "postDeleted");
-  } catch (error) {
-    throw error;
-  }
-});
+const levelThresholds = {
+  1: 0,
+  2: 100,
+  3: 250,
+  4: 500,
+  5: 1000,
+  6: 2000,
+  7: 4000,
+  8: 8000,
+  9: 16000,
+  10: 32000,
+};
 
-// Handler for the "userFollowed" event
-myEmitter.on("userFollowed", async (userId) => {
-  try {
-    // Consequences for userFollowed
-    await GamificationService.updateUserAchievement(userId, "userFollowed");
-    await GamificationService.updateUserExp(userId, "userFollowed");
-  } catch (error) {
-    throw error;
-  }
-});
-
-// Handler for the "userUnfollowed" event
-myEmitter.on("userUnfollowed", async (userId) => {
-  try {
-    // Consequences for userUnfollowed
-    await GamificationService.updateUserAchievement(userId, "userUnfollowed");
-    await GamificationService.updateUserExp(userId, "userUnfollowed");
-  } catch (error) {
-    throw error;
-  }
-});
-
-// Handler for the "challengeJoined" event
-myEmitter.on("challengeJoined", async (userId) => {
-  try {
-    // Consequences for challengeJoined
-    await GamificationService.updateUserAchievement(userId, "challengeJoined");
-    await GamificationService.updateUserExp(userId, "challengeJoined");
-  } catch (error) {
-    throw error;
-  }
-});
-
-// Handler for the "challengeLeft" event
-myEmitter.on("challengeLeft", async (userId) => {
-  try {
-    // Consequences for challengeLeft
-    await GamificationService.updateUserAchievement(userId, "challengeLeft");
-    await GamificationService.updateUserExp(userId, "challengeLeft");
-  } catch (error) {
-    throw error;
-  }
-});
-
-// Handler for the "challengeWinner" event
-myEmitter.on("challengeWinner", async (userId) => {
-  try {
-    // Consequences for challengeWinner
-    await GamificationService.updateUserAchievement(userId, "challengeWinner");
-    await GamificationService.updateUserExp(userId, "challengeWinner");
-  } catch (error) {
-    throw error;
-  }
+// Daftarkan listener untuk setiap eventType
+Object.keys(expGainByEvent).forEach((eventType) => {
+  gamificationEmitter.on(eventType, async (userId) => {
+    try {
+      await GamificationService.updateUserAchievement(userId, eventType);
+      await GamificationService.updateUserExpAndLevel(userId, eventType);
+    } catch (error) {
+      console.error(`Error handling ${eventType} for user ${userId}:`, error);
+    }
+  });
 });
 
 class GamificationService {
   static async updateUserAchievement(userId, eventType) {
-    try {
-      // Update achievement according to eventType
-      console.log(`Updating achievement for user ${userId} due to ${eventType}`);
-      // Implement logic according to eventType
-    } catch (error) {
-      throw error;
-    }
+    console.log(`Updating achievement for user ${userId} due to ${eventType}`);
+    // TODO: Implement achievement logic here
   }
 
-  static async updateUserExp(userId, eventType) {
-    try {
-      // Update exp according to eventType
-      console.log(`Updating EXP for user ${userId} due to ${eventType}`);
-      // Implement logic according to eventType
-    } catch (error) {
-      throw error;
+  static async updateUserExpAndLevel(userId, eventType) {
+    const deltaExp = expGainByEvent[eventType] || 0;
+
+    const user = await UserExpService.getUserExpByUserId(userId);
+    if (!user) {
+      console.error(`User ${userId} not found`);
+      return;
     }
+
+    let { exp: currentExp, level: currentLevel } = user;
+    currentExp = parseInt(currentExp, 10) || 0; // Konversi ke integer, jika gagal jadi 0
+    currentLevel = parseInt(currentLevel, 10) || 1; // Konversi level, jika gagal jadi 1
+    const newExp = Math.max(0, currentExp + deltaExp);
+    let newLevel = currentLevel;
+
+    Object.entries(levelThresholds)
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .forEach(([lvl, threshold]) => {
+        if (newExp >= threshold) {
+          newLevel = Number(lvl);
+        }
+      });
+
+    // Curent treshold for the current level
+    const currentTreshold = levelThresholds[newLevel] || 0;
+    // Next threshold for the current level
+    const nextTreshold = levelThresholds[newLevel + 1] || Infinity;
+
+    await UserExpService.updateUserExpByUserId(userId, newExp, newLevel, currentTreshold, nextTreshold);
+
+    console.log(`User ${userId}: EXP ${currentExp} -> ${newExp}, Level ${currentLevel} -> ${newLevel} (Treshold: ${nextTreshold})`);
   }
 }
 
-module.exports = GamificationService;
+module.exports = { GamificationService };
