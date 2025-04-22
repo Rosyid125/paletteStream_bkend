@@ -8,8 +8,8 @@ router.get("/mini-profile/:userId", verifyAccessToken, userProfileController.get
 // Get user profile by userid with other informations
 router.get("/profile/:userId", verifyAccessToken, userProfileController.getUserProfile);
 // Get user profile by user id
-router.get("/profile2/:userId", verifyAccessToken, userProfileController.getUserProfile2);
+router.get("/profile2", verifyAccessToken, userProfileController.getUserProfile2);
 // Update user profile
-router.put("/update/:userId", verifyAccessToken, userProfileController.updateUserProfile);
+router.put("/update", verifyAccessToken, userProfileController.updateUserProfile);
 
 module.exports = router;

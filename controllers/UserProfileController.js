@@ -3,7 +3,8 @@ const UserProfileService = require("../services/UserProfileService");
 const customError = require("../errors/customError");
 // logger
 const logger = require("../utils/winstonLogger");
-const { th } = require("@faker-js/faker");
+const jwt = require("jsonwebtoken");
+const upload = require("../utils/multerUtil");
 
 class UserProfileController {
   // get user mini infos by user id
@@ -61,7 +62,15 @@ class UserProfileController {
   // get user profile by user id
   static async getUserProfile2(req, res) {
     try {
-      const { userId } = req.params;
+      // Get userId form token
+      const token = req.cookies.accessToken; // Access the token from the cookies
+      if (!token) {
+        throw new customError("Unauthorized", 401);
+      }
+
+      // Verifikasi token akses
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      const userId = user.id; // Ambil userId dari token
       // Convert userId to an integer
       const parsedUserId = parseInt(userId);
       const userProfile = await UserProfileService.getUserProfileById(parsedUserId);
@@ -99,8 +108,15 @@ class UserProfileController {
 
         // Lanjutkan di dalam callback multer
         try {
-          let { userId } = req.params;
-          userId = parseInt(userId); // Pastikan userId berupa integer
+          // Get userId form token
+          const token = req.cookies.accessToken; // Access the token from the cookies
+          if (!token) {
+            throw new customError("Unauthorized", 401);
+          }
+
+          // Verifikasi token akses
+          const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+          const userId = user.id; // Ambil userId dari token
 
           // Validasi userId dasar
           if (isNaN(userId)) {
