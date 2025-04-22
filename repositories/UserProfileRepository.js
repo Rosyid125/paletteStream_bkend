@@ -41,7 +41,7 @@ class UserProfileRepository {
     try {
       // Default data
       const username = `player${user_id}`;
-      const avatar = "storage/avatars/noimage.png";
+      const avatar = "/storage/avatars/noimage.png";
       const bio = "Hello, I'm new here!";
       const location = "Earth";
       const userProfile = await UserProfile.query().insert({ user_id, username, avatar, bio, location });

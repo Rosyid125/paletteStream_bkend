@@ -2,9 +2,12 @@ const UserPostService = require("../services/UserPostService");
 const upload = require("../utils/multerUtil");
 // import logger
 const logger = require("../utils/winstonLogger");
+const customError = require("../errors/customError");
+const jwt = require("jsonwebtoken");
 
 // Import path module
 const path = require("path");
+const { th } = require("@faker-js/faker");
 
 class UserPostController {
   // Get all current user posts
@@ -48,6 +51,43 @@ class UserPostController {
 
       // Panggil service untuk mendapatkan semua post
       const userPosts = await UserPostService.getAllPosts(page, limit);
+
+      // Jika tidak ada post
+      if (!userPosts) {
+        return res.status(404).json({ success: false, message: "Posts not found" });
+      }
+
+      res.json({ success: true, data: userPosts });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+    }
+  }
+
+  // Get random posts
+  static async getRandomPosts(req, res) {
+    try {
+      // Get userId form token
+      const token = req.cookies.accessToken; // Access the token from the cookies
+      if (!token) {
+        throw new customError("Unauthorized", 401);
+      }
+
+      // Verifikasi token akses
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      const userId = user.id; // Ambil userId dari token
+
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      // Panggil service untuk mendapatkan random post
+      const userPosts = await UserPostService.getRandomPosts(userId, page, limit);
 
       // Jika tidak ada post
       if (!userPosts) {
@@ -145,6 +185,171 @@ class UserPostController {
       });
 
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+    }
+  }
+
+  // Get post Leaderboards
+  static async getPostLeaderboards(req, res) {
+    try {
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      // Get userId form token
+      const token = req.cookies.accessToken; // Access the token from the cookies
+      if (!token) {
+        throw new customError("Unauthorized", 401);
+      }
+
+      // Verifikasi token akses
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      const userId = user.id; // Ambil userId dari token
+
+      // Panggil service untuk mendapatkan post leaderboards
+      const postLeaderboards = await UserPostService.getPostLeaderboards(userId, page, limit);
+      // Jika tidak ada post leaderboards
+      if (!postLeaderboards) {
+        throw new customError("Post leaderboards not found", 404);
+      }
+
+      // Kirim response ke client
+      res.json({ success: true, data: postLeaderboards });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      if (error instanceof customError) {
+        return res.status(404).json({ success: false, message: error.message });
+      } else {
+        return res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+      }
+    }
+  }
+
+  // searchPostsByTags
+  static async getPostByTags(req, res) {
+    try {
+      let { query } = req.query;
+      // Making sure query is an array
+      if (!Array.isArray(query)) {
+        query = [query]; // ubah jadi array kalau dia masih string
+      }
+
+      // Get userId form token
+      const token = req.cookies.accessToken; // Access the token from the cookies
+      if (!token) {
+        throw new customError("Unauthorized", 401);
+      }
+
+      // Verifikasi token akses
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      const userId = user.id; // Ambil userId dari token
+
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      // Panggil service untuk mendapatkan post by tags
+      const postByTags = await UserPostService.searchPostsByTags(userId, query, page, limit);
+      // Jika tidak ada post by tags
+      if (!postByTags) {
+        return res.status(404).json({ success: false, message: "Posts not found" });
+      }
+      // Kirim response ke client
+      res.json({ success: true, data: postByTags });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+      if (error instanceof customError) {
+        return res.status(404).json({ success: false, message: error.message });
+      } else {
+        return res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+      }
+    }
+  }
+
+  // Search post by a type
+  static async getPostByType(req, res) {
+    try {
+      const { query } = req.query;
+
+      // Get userId form token
+      const token = req.cookies.accessToken; // Access the token from the cookies
+      if (!token) {
+        throw new customError("Unauthorized", 401);
+      }
+
+      // Verifikasi token akses
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      const userId = user.id; // Ambil userId dari token
+
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      // Panggil service untuk mendapatkan post by type
+      const postByType = await UserPostService.searchPostsByType(userId, query, page, limit);
+      // Jika tidak ada post by type
+      if (!postByType) {
+        return res.status(404).json({ success: false, message: "Posts not found" });
+      }
+      // Kirim response ke client
+      res.json({ success: true, data: postByType });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+      if (error instanceof customError) {
+        return res.status(404).json({ success: false, message: error.message });
+      } else {
+        return res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+      }
+    }
+  }
+
+  // Search post by a title and description
+  static async getPostByTitleAndDescription(req, res) {
+    try {
+      const { query } = req.query;
+
+      // Get userId form token
+      const token = req.cookies.accessToken; // Access the token from the cookies
+      if (!token) {
+        throw new customError("Unauthorized", 401);
+      }
+
+      // Verifikasi token akses
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      const userId = user.id; // Ambil userId dari token
+
+      // Get page and limit from query
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      // Panggil service untuk mendapatkan post by title and description
+      const postByTitleAndDescription = await UserPostService.searchPostsByTitleAndDescription(userId, query, page, limit);
+      // Jika tidak ada post by title and description
+      if (!postByTitleAndDescription) {
+        return res.status(404).json({ success: false, message: "Posts not found" });
+      }
+      // Kirim response ke client
+      res.json({ success: true, data: postByTitleAndDescription });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+      if (error instanceof customError) {
+        return res.status(404).json({ success: false, message: error.message });
+      } else {
+        return res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+      }
     }
   }
 

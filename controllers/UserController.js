@@ -1,4 +1,5 @@
 const UserService = require("../services/UserService");
+const customError = require("../errors/customError");
 
 //logger
 const logger = require("../utils/winstonLogger");
@@ -40,6 +41,29 @@ class UserController {
       });
 
       return res.status(500).json({ success: false, message: "An unexpected error occurred." });
+    }
+  }
+
+  // Get top leaderboard users with pagination
+  static async getTopLeaderboardUsers(req, res) {
+    try {
+      const { page, limit } = req.query;
+
+      // Convert page and limit to integers
+      const parsedPage = parseInt(page) || 1;
+      const parsedLimit = parseInt(limit) || 10;
+
+      const users = await UserService.getLeaderboardUsers(parsedPage, parsedLimit);
+
+      res.json({ success: true, data: users });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
 }

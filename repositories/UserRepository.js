@@ -4,10 +4,24 @@ const User = require("../models/User");
 const currentRepo = "UserRepository";
 
 class UserRepository {
-  // Get all users
+  // Get all user ids with pagination
   static async findAllUserIds(offset, limit) {
     try {
       const users = await User.query().select("id").offset(offset).limit(limit);
+
+      // Array of user ids
+      const userIds = users.map((user) => user.id);
+
+      return userIds;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get all users ids without pagination
+  static async findAllUserIdsWithoutPagination() {
+    try {
+      const users = await User.query().select("id");
 
       // Array of user ids
       const userIds = users.map((user) => user.id);

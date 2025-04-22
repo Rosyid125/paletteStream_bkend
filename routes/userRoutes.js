@@ -7,5 +7,7 @@ const { verifyAccessToken } = require("../middlewares/authMiddleware");
 router.get("/", verifyAccessToken, userController.getAllUsers);
 // Get recommended users
 router.get("/recommended", verifyAccessToken, userController.getRecommendedUsers);
+// Get top leaderboard users with pagination
+router.get("/leaderboard", verifyAccessToken, userController.getTopLeaderboardUsers);
 
 module.exports = router;

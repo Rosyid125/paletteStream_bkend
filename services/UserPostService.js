@@ -163,6 +163,84 @@ class UserPostService {
     }
   }
 
+  // Get all posts randomized for discovery page
+  static async getRandomPosts(userId, page, limit) {
+    try {
+      // Pagination setup
+      const offset = (page - 1) * limit;
+      // Get all posts with pagination
+      const posts = await UserPostRepository.findAllRandomized(offset, limit);
+      if (posts.length === 0) return [];
+
+      // Get all post IDs
+      const postIds = posts.map((post) => post.id);
+      // Fetch all related data in batches
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+        PostImageRepository.findByPostIds(postIds),
+        PostTagRepository.findByPostIds(postIds),
+        PostLikeRepository.countByPostIds(postIds),
+        PostCommentService.countByPostIds(postIds),
+        PostLikeRepository.getStatuses(userId, postIds),
+        UserBookmarkService.getStatuses(postIds, userId),
+      ]);
+
+      // Convert arrays into maps for quick lookup
+      const imagesMap = postImages.reduce((acc, img) => {
+        acc[img.post_id] = acc[img.post_id] || [];
+        acc[img.post_id].push(img.image_url);
+        return acc;
+      }, {});
+
+      const tagsMap = postTags.reduce((acc, tag) => {
+        acc[tag.post_id] = acc[tag.post_id] || [];
+        acc[tag.post_id].push(tag.name);
+        return acc;
+      }, {});
+
+      const likeCountMap = postLikeCounts.reduce((acc, like) => {
+        acc[like.post_id] = like.count;
+        return acc;
+      }, {});
+
+      const commentCountMap = postCommentCounts.reduce((acc, comment) => {
+        acc[comment.post_id] = comment.count;
+        return acc;
+      }, {});
+
+      const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      return posts.map((post) => ({
+        id: post.id,
+        userId: post.user_id,
+        firstName: post.user.firstName,
+        lastName: post.user.lastName,
+        username: post.user.profile.username,
+        avatar: post.user.profile.avatar,
+        level: post.user.experience.level,
+        createdAt: formatDate(post.created_at),
+        type: post.type,
+        title: post.title,
+        description: post.description,
+        images: imagesMap[post.id] || [],
+        tags: tagsMap[post.id] || [],
+        postLikeStatus: likeStatusMap[post.id] || false,
+        bookmarkStatus: bookmarkStatusMap[post.id] || false,
+        likeCount: likeCountMap[post.id] || 0,
+        commentCount: commentCountMap[post.id] || 0,
+      }));
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Static method to get all posts for the home feed
   static async getHomePosts(userId, page, limit) {
     try {
@@ -420,6 +498,330 @@ class UserPostService {
     }
   }
 
+  // Get post leaderboards, sorted by like and comment count
+  static async getPostLeaderboards(userId, page, limit) {
+    try {
+      const offset = (page - 1) * limit;
+
+      const posts = await UserPostRepository.findSortedByEngagement(offset, limit);
+      if (posts.length === 0) return [];
+
+      // 2. Get all post IDs
+      const postIds = posts.map((post) => post.id);
+
+      // Fetch all related data in batches
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+        PostImageRepository.findByPostIds(postIds),
+        PostTagRepository.findByPostIds(postIds),
+        PostLikeRepository.countByPostIds(postIds),
+        PostCommentService.countByPostIds(postIds),
+        PostLikeRepository.getStatuses(userId, postIds),
+        UserBookmarkService.getStatuses(postIds, userId),
+      ]);
+
+      // Convert arrays into maps for quick lookup
+      const imagesMap = postImages.reduce((acc, img) => {
+        acc[img.post_id] = acc[img.post_id] || [];
+        acc[img.post_id].push(img.image_url);
+        return acc;
+      }, {});
+
+      const tagsMap = postTags.reduce((acc, tag) => {
+        acc[tag.post_id] = acc[tag.post_id] || [];
+        acc[tag.post_id].push(tag.name);
+        return acc;
+      }, {});
+
+      const likeCountMap = postLikeCounts.reduce((acc, like) => {
+        acc[like.post_id] = like.count;
+        return acc;
+      }, {});
+
+      const commentCountMap = postCommentCounts.reduce((acc, comment) => {
+        acc[comment.post_id] = comment.count;
+        return acc;
+      }, {});
+
+      const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      return posts.map((post) => ({
+        id: post.id,
+        userId: post.user_id,
+        firstName: post.user.firstName,
+        lastName: post.user.lastName,
+        username: post.user.profile.username,
+        avatar: post.user.profile.avatar,
+        level: post.user.experience.level,
+        createdAt: formatDate(post.created_at),
+        type: post.type,
+        title: post.title,
+        description: post.description,
+        images: imagesMap[post.id] || [],
+        tags: tagsMap[post.id] || [],
+        postLikeStatus: likeStatusMap[post.id] || false,
+        bookmarkStatus: bookmarkStatusMap[post.id] || false,
+        likeCount: likeCountMap[post.id] || 0,
+        commentCount: commentCountMap[post.id] || 0,
+      }));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Search posts by tags
+  static async searchPostsByTags(userId, tags, page, limit) {
+    try {
+      // get tag IDs from tag names
+      const tagIds = await TagRepository.findTagIdsByNames(tags);
+      if (tagIds.length === 0) return [];
+      // Pagination setup
+      const offset = (page - 1) * limit;
+      // Get all post IDs by tags
+      const postIds = await PostTagRepository.findPostIdsByTagIds(tagIds, offset, limit);
+      if (postIds.length === 0) return [];
+      // Ensure post_ids is an array of numbers, not objects
+      const postIdsArray = Array.isArray(postIds) ? postIds.map((item) => (typeof item === "object" ? item.post_id : item)) : [postIds];
+      // Get all related posts by post IDs
+      const relatedPosts = await UserPostRepository.findByPostIds(postIdsArray);
+      if (relatedPosts.length === 0) return [];
+      // Fetch all related data in batches
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+        PostImageRepository.findByPostIds(postIdsArray),
+        PostTagRepository.findByPostIds(postIdsArray),
+        PostLikeRepository.countByPostIds(postIdsArray),
+        PostCommentService.countByPostIds(postIdsArray),
+        PostLikeRepository.getStatuses(userId, postIdsArray),
+        UserBookmarkService.getStatuses(postIdsArray, userId),
+      ]);
+
+      // Convert arrays into maps for quick lookup
+      const imagesMap = postImages.reduce((acc, img) => {
+        acc[img.post_id] = acc[img.post_id] || [];
+        acc[img.post_id].push(img.image_url);
+        return acc;
+      }, {});
+
+      const tagsMap = postTags.reduce((acc, tag) => {
+        acc[tag.post_id] = acc[tag.post_id] || [];
+        acc[tag.post_id].push(tag.name);
+        return acc;
+      }, {});
+
+      const likeCountMap = postLikeCounts.reduce((acc, like) => {
+        acc[like.post_id] = like.count;
+        return acc;
+      }, {});
+
+      const commentCountMap = postCommentCounts.reduce((acc, comment) => {
+        acc[comment.post_id] = comment.count;
+        return acc;
+      }, {});
+
+      const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      return relatedPosts.map((post) => ({
+        id: post.id,
+        userId: post.user_id,
+        firstName: post.user.firstName,
+        lastName: post.user.lastName,
+        username: post.user.profile.username,
+        avatar: post.user.profile.avatar,
+        level: post.user.experience.level,
+        createdAt: formatDate(post.created_at),
+        type: post.type,
+        title: post.title,
+        description: post.description,
+        images: imagesMap[post.id] || [],
+        tags: tagsMap[post.id] || [],
+        postLikeStatus: likeStatusMap[post.id] || false,
+        bookmarkStatus: bookmarkStatusMap[post.id] || false,
+        likeCount: likeCountMap[post.id] || 0,
+        commentCount: commentCountMap[post.id] || 0,
+      }));
+    } catch (error) {
+      // Re-throw the error to be caught by the controller's error handler
+      throw error;
+    }
+  }
+
+  // Searh post by a type
+  static async searchPostsByType(userId, type, page, limit) {
+    try {
+      // Pagination setup
+      const offset = (page - 1) * limit;
+      // Get all post IDs by type
+      const postIds = await UserPostRepository.findByType(type, offset, limit);
+      if (postIds.length === 0) return [];
+      // Ensure post_ids is an array of numbers, not objects
+      const postIdsArray = Array.isArray(postIds) ? postIds.map((item) => (typeof item === "object" ? item.id : item)) : [postIds];
+      // Get all related posts by post IDs
+      const relatedPosts = await UserPostRepository.findByPostIds(postIdsArray);
+      if (relatedPosts.length === 0) return [];
+      // Fetch all related data in batches
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+        PostImageRepository.findByPostIds(postIdsArray),
+        PostTagRepository.findByPostIds(postIdsArray),
+        PostLikeRepository.countByPostIds(postIdsArray),
+        PostCommentService.countByPostIds(postIdsArray),
+        PostLikeRepository.getStatuses(userId, postIdsArray),
+        UserBookmarkService.getStatuses(postIdsArray, userId),
+      ]);
+
+      // Convert arrays into maps for quick lookup
+      const imagesMap = postImages.reduce((acc, img) => {
+        acc[img.post_id] = acc[img.post_id] || [];
+        acc[img.post_id].push(img.image_url);
+        return acc;
+      }, {});
+
+      const tagsMap = postTags.reduce((acc, tag) => {
+        acc[tag.post_id] = acc[tag.post_id] || [];
+        acc[tag.post_id].push(tag.name);
+        return acc;
+      }, {});
+
+      const likeCountMap = postLikeCounts.reduce((acc, like) => {
+        acc[like.post_id] = like.count;
+        return acc;
+      }, {});
+
+      const commentCountMap = postCommentCounts.reduce((acc, comment) => {
+        acc[comment.post_id] = comment.count;
+        return acc;
+      }, {});
+
+      const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      return relatedPosts.map((post) => ({
+        id: post.id,
+        userId: post.user_id,
+        firstName: post.user.firstName,
+        lastName: post.user.lastName,
+        username: post.user.profile.username,
+        avatar: post.user.profile.avatar,
+        level: post.user.experience.level,
+        createdAt: formatDate(post.created_at),
+        type: post.type,
+        title: post.title,
+        description: post.description,
+        images: imagesMap[post.id] || [],
+        tags: tagsMap[post.id] || [],
+        postLikeStatus: likeStatusMap[post.id] || false,
+        bookmarkStatus: bookmarkStatusMap[post.id] || false,
+        likeCount: likeCountMap[post.id] || 0,
+        commentCount: commentCountMap[post.id] || 0,
+      }));
+    } catch (error) {
+      // Re-throw the error to be caught by the controller's error handler
+      throw error;
+    }
+  }
+
+  // Search post by title and description
+  static async searchPostsByTitleAndDescription(userId, query, page, limit) {
+    try {
+      // Pagination setup
+      const offset = (page - 1) * limit;
+      // Get all post IDs by query
+      const postIds = await UserPostRepository.findByTitleAndDescription(query, offset, limit);
+      if (postIds.length === 0) return [];
+      // Ensure post_ids is an array of numbers, not objects
+      const postIdsArray = Array.isArray(postIds) ? postIds.map((item) => (typeof item === "object" ? item.id : item)) : [postIds];
+      // Get all related posts by post IDs
+      const relatedPosts = await UserPostRepository.findByPostIds(postIdsArray);
+      if (relatedPosts.length === 0) return [];
+      // Fetch all related data in batches
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+        PostImageRepository.findByPostIds(postIdsArray),
+        PostTagRepository.findByPostIds(postIdsArray),
+        PostLikeRepository.countByPostIds(postIdsArray),
+        PostCommentService.countByPostIds(postIdsArray),
+        PostLikeRepository.getStatuses(userId, postIdsArray),
+        UserBookmarkService.getStatuses(postIdsArray, userId),
+      ]);
+
+      // Convert arrays into maps for quick lookup
+      const imagesMap = postImages.reduce((acc, img) => {
+        acc[img.post_id] = acc[img.post_id] || [];
+        acc[img.post_id].push(img.image_url);
+        return acc;
+      }, {});
+
+      const tagsMap = postTags.reduce((acc, tag) => {
+        acc[tag.post_id] = acc[tag.post_id] || [];
+        acc[tag.post_id].push(tag.name);
+        return acc;
+      }, {});
+
+      const likeCountMap = postLikeCounts.reduce((acc, like) => {
+        acc[like.post_id] = like.count;
+        return acc;
+      }, {});
+
+      const commentCountMap = postCommentCounts.reduce((acc, comment) => {
+        acc[comment.post_id] = comment.count;
+        return acc;
+      }, {});
+
+      const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true; // Set true untuk post_id yang ada
+        return acc;
+      }, {});
+
+      return relatedPosts.map((post) => ({
+        id: post.id,
+        userId: post.user_id,
+        firstName: post.user.firstName,
+        lastName: post.user.lastName,
+        username: post.user.profile.username,
+        avatar: post.user.profile.avatar,
+        level: post.user.experience.level,
+        createdAt: formatDate(post.created_at),
+        type: post.type,
+        title: post.title,
+        description: post.description,
+        images: imagesMap[post.id] || [],
+        tags: tagsMap[post.id] || [],
+        postLikeStatus: likeStatusMap[post.id] || false,
+        bookmarkStatus: bookmarkStatusMap[post.id] || false,
+        likeCount: likeCountMap[post.id] || 0,
+        commentCount: commentCountMap[post.id] || 0,
+      }));
+    } catch (error) {
+      // Re-throw the error to be caught by the controller's error handler
+      throw error;
+    }
+  }
+
   // Static method to create a new post
   static async createPost(userId, title, description, tags, imagePaths, type) {
     let post; // Declare post outside try block for potential cleanup/logging if needed
@@ -469,14 +871,6 @@ class UserPostService {
         postImages: Array.isArray(postImages) ? postImages : [],
       };
     } catch (error) {
-      // Log the error with context
-      logger.error(`Error in UserPostService.createPost for user ${userId}: ${error.message}`, {
-        stack: error.stack,
-        postIdAttempted: post ? post.id : "N/A", // Log post ID if creation started
-        userId,
-        // Avoid logging potentially large arrays like imagePaths/tags directly unless needed for debug
-      });
-
       // Re-throw the error to be caught by the controller's error handler
       // You might want to wrap it in a custom service error type here
       throw error;

@@ -19,6 +19,21 @@ class UserPostRepository {
     }
   }
 
+  // findall randomized every time
+  static async findAllRandomized(offset, limit) {
+    try {
+      const userPosts = await UserPost.query()
+        .withGraphJoined("user.[profile,experience]") // Ambil profile dan exp dari relasi user
+        .orderByRaw("RAND()")
+        .offset(offset)
+        .limit(limit);
+
+      return userPosts;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Get user post by post_id
   static async findByPostId(post_id) {
     try {
@@ -65,6 +80,73 @@ class UserPostRepository {
       const userPosts = await UserPost.query()
         .withGraphFetched("user.[profile,experience]") // Ambil profile dan exp dari relasi user
         .whereIn("user_id", user_ids)
+        .orderBy("created_at", "desc")
+        .offset(offset)
+        .limit(limit);
+
+      return userPosts;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async findSortedByEngagement(offset = 0, limit = 10) {
+    try {
+      const userPosts = await UserPost.query()
+        .select("user_posts.*")
+        .select(UserPost.relatedQuery("likes").count().as("likes_count"), UserPost.relatedQuery("comments").count().as("comments_count"), UserPost.relatedQuery("replies").count().as("replies_count"))
+        .withGraphFetched("[user(selectUser).[profile(selectProfile), experience(selectExperience)], likes, comments, replies]")
+        .modifiers({
+          selectUser(builder) {
+            builder.select("*");
+          },
+          selectProfile(builder) {
+            builder.select("*");
+          },
+          selectExperience(builder) {
+            builder.select("*");
+          },
+        })
+        .groupBy("user_posts.id")
+        .orderByRaw("(?? * 5 + ?? + ??) DESC", ["likes_count", "comments_count", "replies_count"]) // Likes dihargai 5x, comments dan replies 1x
+        .offset(offset)
+        .limit(limit);
+
+      return userPosts;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get all posts by tags
+  static async findByTags(tag_ids, offset, limit) {
+    try {
+      const userPosts = await UserPost.query().withGraphFetched("[tags, user.[profile,experience]]").whereExists(UserPost.relatedQuery("tags").whereIn("tags.id", tag_ids)).orderBy("created_at", "desc").offset(offset).limit(limit);
+
+      return userPosts;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get all posts by type
+  static async findByType(type, offset, limit) {
+    try {
+      const userPosts = await UserPost.query().withGraphFetched("[user.[profile,experience]]").where({ type }).orderBy("created_at", "desc").offset(offset).limit(limit);
+      console.log(userPosts);
+      return userPosts;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get all posts by type and tags
+  static async findByTitleAndDescription(titleDesc, offset, limit) {
+    try {
+      const userPosts = await UserPost.query()
+        .withGraphFetched("[user.[profile,experience]]")
+        .whereRaw("LOWER(title) LIKE LOWER(?)", `%${titleDesc}%`)
+        .orWhereRaw("LOWER(description) LIKE LOWER(?)", `%${titleDesc}%`)
         .orderBy("created_at", "desc")
         .offset(offset)
         .limit(limit);

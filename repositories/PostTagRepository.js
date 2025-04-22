@@ -43,6 +43,16 @@ class PostTagRepository {
     }
   }
 
+  // Get post ids by tag ids
+  static async findPostIdsByTagIds(tag_ids, offset, limit) {
+    try {
+      const results = await PostTag.query().select("post_id").whereIn("tag_id", tag_ids).offset(offset).limit(limit);
+      return results.map((result) => result.post_id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Create a new post tag
   static async create(post_id, tag_id) {
     try {

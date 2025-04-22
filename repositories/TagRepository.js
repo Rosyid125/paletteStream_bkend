@@ -34,6 +34,16 @@ class TagRepository {
     }
   }
 
+  // Get tag ids by names
+  static async findTagIdsByNames(tagNames) {
+    try {
+      const tags = await Tag.query().whereIn("name", tagNames);
+      return tags.map((tag) => tag.id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Get tags by ids
   static async findTagsByIds(tagIds) {
     try {
