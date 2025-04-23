@@ -9,5 +9,7 @@ router.get("/", verifyAccessToken, userController.getAllUsers);
 router.get("/recommended", verifyAccessToken, userController.getRecommendedUsers);
 // Get top leaderboard users with pagination
 router.get("/leaderboard", verifyAccessToken, userController.getTopLeaderboardUsers);
+// Search
+router.get("/search", verifyAccessToken, userController.searchUsers);
 
 module.exports = router;

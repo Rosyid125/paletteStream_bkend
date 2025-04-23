@@ -131,6 +131,26 @@ class UserService {
     }
   }
 
+  // Search user by username, first name, last name, or email
+  static async searchByUsernameOrNameOrEmail(query, page, limit) {
+    try {
+      const offset = (page - 1) * limit;
+      const userIds = await UserRepository.searchByUsernameOrNameOrEmail(query, offset, limit);
+
+      // Get all users mini infos by user ids
+      const users = await Promise.all(
+        userIds.map(async (userId) => {
+          const user = await UserProfileService.findMiniInfosByUserId(userId);
+          return user;
+        })
+      );
+
+      return users;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async deleteUser(id) {
     try {
       return await UserRepository.delete(id);

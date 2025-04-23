@@ -66,6 +66,29 @@ class UserController {
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
+
+  // Search users by username, name, or email
+  static async searchUsers(req, res) {
+    try {
+      const { query, page, limit } = req.query;
+
+      // Convert page and limit to integers
+      const parsedPage = parseInt(page) || 1;
+      const parsedLimit = parseInt(limit) || 10;
+
+      const users = await UserService.searchByUsernameOrNameOrEmail(query, parsedPage, parsedLimit);
+
+      res.json({ success: true, data: users });
+    } catch (error) {
+      // Log the error message
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, message: "An unexpected error occurred." });
+    }
+  }
 }
 
 module.exports = UserController;

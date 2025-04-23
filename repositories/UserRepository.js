@@ -52,6 +52,24 @@ class UserRepository {
     }
   }
 
+  static async searchByUsernameOrNameOrEmail(query, offset, limit) {
+    try {
+      const users = await User.query()
+        .joinRelated("profile") // join relasi profile
+        .withGraphFetched("profile") // ambil juga relasi profile
+        .where((builder) => {
+          builder.where("profile.username", "like", `%${query}%`).orWhere("users.first_name", "like", `%${query}%`).orWhere("users.last_name", "like", `%${query}%`).orWhere("users.email", "like", `%${query}%`);
+        })
+        .offset(offset)
+        .limit(limit);
+
+      const userIds = users.map((user) => user.id);
+      return userIds;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Create a new user
   static async create(email, password, first_name, last_name, role) {
     try {
