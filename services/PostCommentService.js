@@ -214,8 +214,7 @@ class PostCommentService {
       gamificationEmitter.emit("replyOnCommentDeleted", commentReply.user_id);
 
       // Get the postId from comment reply
-      const postComment = await PostCommentRepository.find;
-      ById(commentReply.comment_id);
+      const postComment = await PostCommentRepository.findById(commentReply.comment_id);
       if (postComment) {
         // Get the userid from postId
         const post = await UserPostRepository.findByPostId(postComment.post_id);
