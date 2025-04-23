@@ -41,7 +41,7 @@ class UserProfileRepository {
     try {
       // Default data
       const username = `player${user_id}`;
-      const avatar = "/storage/avatars/noimage.png";
+      const avatar = "storage/avatars/noimage.png";
       const bio = "Hello, I'm new here!";
       const location = "Earth";
       const userProfile = await UserProfile.query().insert({ user_id, username, avatar, bio, location });
@@ -61,14 +61,22 @@ class UserProfileRepository {
     }
   }
 
-  // Update user profile
-  static async update(user_id, username, avatar, bio, location) {
+  static async update(user_id, updateData) {
     try {
       const userProfile = await UserProfile.query().findOne({ user_id });
       if (!userProfile) {
         return null;
       }
-      await UserProfile.query().findOne({ user_id }).patch({ username, avatar, bio, location });
+
+      // Buat hanya field yang tidak undefined
+      const safeUpdate = {};
+      if (updateData.name !== undefined) safeUpdate.username = updateData.name;
+      if (updateData.avatar !== undefined) safeUpdate.avatar = updateData.avatar;
+      if (updateData.bio !== undefined) safeUpdate.bio = updateData.bio;
+      if (updateData.location !== undefined) safeUpdate.location = updateData.location;
+
+      await UserProfile.query().findOne({ user_id }).patch(safeUpdate);
+
       return userProfile;
     } catch (error) {
       throw error;

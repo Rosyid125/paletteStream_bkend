@@ -5,6 +5,7 @@ const customError = require("../errors/customError");
 const logger = require("../utils/winstonLogger");
 const jwt = require("jsonwebtoken");
 const upload = require("../utils/multerUtil");
+const path = require("path");
 
 class UserProfileController {
   // get user mini infos by user id
@@ -131,7 +132,7 @@ class UserProfileController {
           if (req.file) {
             // req.file ada jika user mengupload file 'avatar'
             // Gunakan path.posix.join untuk konsistensi path (forward slash)
-            avatarPath = path.posix.join("storage", "uploads", "avatars", path.basename(req.file.path)); // Simpan di subfolder 'avatars' (opsional)
+            avatarPath = path.posix.join("storage", "avatars", path.basename(req.file.path)); // Simpan di subfolder 'avatars' (opsional)
             // Pastikan folder 'storage/uploads/avatars' ada
           }
           // Jika req.file tidak ada, avatarPath akan tetap undefined,

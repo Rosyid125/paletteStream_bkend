@@ -227,13 +227,17 @@ class UserProfileService {
         await UserSocialLinkService.update(userId, socialLinksData); // Asumsi service ini menangani semuanya
       }
 
-      if (profileUpdateSuccess && updateData.avatarPath !== undefined && oldAvatarPath && oldAvatarPath !== updateData.avatarPath) {
+      if (profileUpdateSuccess && updateData.avatarPath !== undefined && oldAvatarPath && oldAvatarPath !== updateData.avatarPath && oldAvatarPath !== "storage/avatars/noimage.png") {
         await deleteFile(oldAvatarPath); // Panggil fungsi utilitas penghapus file
       }
 
-      const finalUpdatedProfile = await UserProfileRepository.findWithDetails(userId); // Ganti nama metode jika perlu
+      // 6. Ambil data profile yang sudah diupdate dari DB (JIKA PERLU)
+      const updatedProfile = await UserProfileRepository.findByUserId(userId); // Ambil data terbaru dari DB
+      if (!updatedProfile) {
+        throw new customError("User profile not found", 404); // Ganti dengan error yang sesuai
+      }
 
-      return finalUpdatedProfile; // Kembalikan profil yang sudah terupdate
+      return updatedProfile; // Kembalikan data profile yang sudah diupdate
     } catch (error) {
       throw error;
     }

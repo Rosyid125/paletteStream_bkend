@@ -18,7 +18,7 @@ if (!fs.existsSync(avatarsFolder)) {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Tentukan folder berdasarkan jenis file (misalnya gambar avatars atau umum)
-    if (file.fieldname === "avatars") {
+    if (file.fieldname === "avatar") {
       cb(null, avatarsFolder); // Menggunakan folder 'avatars' untuk file avatars
     } else {
       cb(null, uploadFolder); // Menggunakan folder 'uploads' untuk file gambar umum
