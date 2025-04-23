@@ -1,5 +1,7 @@
 const PostLikeRepository = require("../repositories/PostLikeRepository");
 const customError = require("../errors/customError");
+const { gamificationEmitter } = require("../emitters/gamificationEmitter");
+const UserPostRepository = require("../repositories/UserPostRepository");
 
 class PostLikeService {
   // Get all post likes by post id
@@ -33,6 +35,17 @@ class PostLikeService {
       if (existingLike) {
         // If it exists, delete the like
         await PostLikeRepository.delete(postId, userId);
+
+        // Emit the gamification event for post like deleted
+        gamificationEmitter.emit("likeOnPostDeleted", userId);
+
+        // Emit the gamification event for post got unliked
+        // get userid from postId
+        const post = await UserPostRepository.findByPostId(postId);
+        if (post) {
+          gamificationEmitter.emit("postGotUnliked", post.user_id);
+        }
+
         return { message: "Post like deleted" };
       }
 
@@ -43,6 +56,16 @@ class PostLikeService {
       if (!postLike) {
         throw new customError("Post like cannot be created");
       } else {
+        // Emit the gamification event for post like created
+        gamificationEmitter.emit("likeOnPost", userId);
+
+        // Emit the gamification event for post got liked
+        // get userid from postId
+        const post = await UserPostRepository.findByPostId(postId);
+        if (post) {
+          gamificationEmitter.emit("postGotLiked", post.user_id);
+        }
+
         // If it was created successfully, return the post like
         const postLikeData = {
           id: postLike.id,

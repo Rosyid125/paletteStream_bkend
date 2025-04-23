@@ -1,9 +1,11 @@
 const PostCommentRepository = require("../repositories/PostCommentRepository");
 const CommentReplyRepository = require("../repositories/CommentReplyRepository");
 const customError = require("../errors/customError");
+const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
 // Import utility functions
 const { formatDate } = require("../utils/dateFormatterUtils");
+const UserPostRepository = require("../repositories/UserPostRepository");
 
 class PostCommentService {
   // Get all post comments and comment replies
@@ -80,6 +82,16 @@ class PostCommentService {
         throw new customError("Post comment not found");
       }
 
+      // Emit the gamification event for post comment
+      gamificationEmitter.emit("commentOnPost", userId);
+
+      // Get the userid from postId
+      const post = await UserPostRepository.findByPostId(postId);
+      if (post) {
+        // Emit the gamification event for post got commented
+        gamificationEmitter.emit("postGotCommented", post.user_id);
+      }
+
       // Return post comment
       return postComment;
     } catch (error) {
@@ -94,6 +106,18 @@ class PostCommentService {
       const postComment = await PostCommentRepository.delete(id);
       if (!postComment) {
         throw new customError("Post comment not found");
+      }
+
+      // Emit the gamification event for post comment deletion
+      gamificationEmitter.emit("commentOnPostDeleted", postComment.user_id);
+
+      // Get the postId from post comment
+      const postId = postComment.post_id;
+      // Get the userid from postId
+      const post = await UserPostRepository.findByPostId(postId);
+      if (post) {
+        // Emit the gamification event for post got commented
+        gamificationEmitter.emit("postGotUncommented", post.user_id);
       }
 
       // Return deleted post comment
@@ -156,6 +180,20 @@ class PostCommentService {
         throw new customError("Comment reply not found");
       }
 
+      // Emit the gamification event for comment reply
+      gamificationEmitter.emit("replyOnComment", userId);
+
+      // Get the postId from commentId
+      const postComment = await PostCommentRepository.findById(commentId);
+      if (postComment) {
+        // Get the userid from postId
+        const post = await UserPostRepository.findByPostId(postComment.post_id);
+        if (post) {
+          // Emit the gamification event for post got commented
+          gamificationEmitter.emit("commentGotReplied", post.user_id);
+        }
+      }
+
       // Return comment reply
       return commentReply;
     } catch (error) {
@@ -170,6 +208,21 @@ class PostCommentService {
       const commentReply = await CommentReplyRepository.delete(id);
       if (!commentReply) {
         throw new customError("Comment reply not found");
+      }
+
+      // Emit the gamification event for comment reply deletion
+      gamificationEmitter.emit("replyOnCommentDeleted", commentReply.user_id);
+
+      // Get the postId from comment reply
+      const postComment = await PostCommentRepository.find;
+      ById(commentReply.comment_id);
+      if (postComment) {
+        // Get the userid from postId
+        const post = await UserPostRepository.findByPostId(postComment.post_id);
+        if (post) {
+          // Emit the gamification event for post got commented
+          gamificationEmitter.emit("commentGotUnreplied", post.user_id);
+        }
       }
 
       // Return deleted comment reply

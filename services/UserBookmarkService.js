@@ -1,5 +1,6 @@
 const UserBookmarkRepository = require("../repositories/UserBookmarkRepository.js");
 const customError = require("../errors/customError");
+const { gamificationEmitter } = require("../emitters/gamificationEmitter.js");
 
 class UserBookmarkService {
   // Get all post ids that are bookmarked by user id
@@ -34,6 +35,14 @@ class UserBookmarkService {
       if (existingBookmark) {
         // If it exists, delete the bookmark
         await UserBookmarkRepository.delete(userId, postId);
+
+        // Get userid from postId
+        const post = await UserBookmarkRepository.findByPostId(postId);
+        if (post) {
+          // Emit the gamification event for post got unbookmarked
+          gamificationEmitter.emit("postGotUnbookmarked", post.user_id);
+        }
+
         return { message: "Post bookmark deleted" };
       }
 
@@ -44,6 +53,11 @@ class UserBookmarkService {
       if (!userBookmark) {
         throw new customError(`UserBookmarkService Error: Post bookmark cannot be created`);
       } else {
+        // Emit the gamification event for post bookmark created
+        const post = await UserBookmarkRepository.findByPostId(postId);
+        if (post) {
+          gamificationEmitter.emit("postGotBookmarked", post.user_id);
+        }
         // If it was created successfully, return the user bookmark
         const userBookmarkData = {
           id: userBookmark.id,

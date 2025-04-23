@@ -1,5 +1,6 @@
 const UserFollowRepository = require("../repositories/UserFollowRepository");
 const customError = require("../errors/customError");
+const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
 class UserFollowService {
   // Get all user followers by user id
@@ -50,6 +51,13 @@ class UserFollowService {
       if (existingFollow) {
         // If it exists, delete the follow
         await UserFollowRepository.delete(follower_id, followed_id);
+
+        // Emit the gamification event for unfollow
+        gamificationEmitter.emit("userUnfollowed", follower_id);
+
+        // Emit the gamification event for user got unfollowed
+        gamificationEmitter.emit("userGotUnfollowed", followed_id);
+
         return { message: "User follow deleted" };
       }
 
@@ -60,6 +68,12 @@ class UserFollowService {
       if (!userFollow) {
         throw new customError("User follow not found");
       } else {
+        // Emit the gamification event for follow
+        gamificationEmitter.emit("userFollowed", follower_id);
+
+        // Emit the gamification event for user got followed
+        gamificationEmitter.emit("userGotFollowed", followed_id);
+
         // If it was created successfully, return the user follow
         const userFollowData = {
           id: userFollow.id,

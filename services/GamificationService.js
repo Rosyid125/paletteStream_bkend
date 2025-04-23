@@ -2,23 +2,29 @@ const UserExpService = require("./UserExpService");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
 const expGainByEvent = {
-  postCreated: 20,
-  postDeleted: -20,
-  userFollowed: 5,
-  userUnfollowed: -5,
-  userGotFollowed: 20,
-  userGotUnfollowed: -20,
-  commentOnPost: 3,
-  commentOnPostDeleted: -3,
-  likeOnPost: 1,
-  likeOnPostDeleted: -1,
-  postGotBookmarked: 10,
-  postGotUnbookmarked: -10,
-  postGotLiked: 5,
-  postGotUnliked: -5,
-  // challengeJoined: 50,
-  // challengeLeft: -50,
-  // challengeWinner: 1000,
+  postCreated: 40, // sudah
+  postDeleted: -40, // sudah
+  userFollowed: 5, // sudah
+  userUnfollowed: -5, // sudah
+  userGotFollowed: 20, // sudah
+  userGotUnfollowed: -20, // sudah
+  commentOnPost: 2, // sudah
+  commentOnPostDeleted: -2, // sudah
+  postGotCommented: 5, // sudah
+  postGotUncommented: -5, // sudah
+  replyOnComment: 1, // sudah
+  replyOnCommentDeleted: -1, // sudah
+  commentGotReplied: 3, // sudah
+  commentGotUnreplied: -3, // sudah
+  likeOnPost: 3, // sudah
+  likeOnPostDeleted: -3, // sudah
+  postGotLiked: 8, // sudah
+  postGotUnliked: -8, // sudah
+  postGotBookmarked: 10, // sudah
+  postGotUnbookmarked: -10, // sudah
+  // challengeJoined: 100,
+  // challengeLeft: -100,
+  // challengeWinner: 5000,
 };
 
 const levelThresholds = {

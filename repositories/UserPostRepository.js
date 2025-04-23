@@ -37,7 +37,11 @@ class UserPostRepository {
   // Get user post by post_id
   static async findByPostId(post_id) {
     try {
-      const userPost = await UserPost.query().findOne();
+      // Fetch post with the given ID and related user, profile, and experience
+      const userPost = await UserPost.query()
+        .withGraphFetched("user.[profile,experience]") // Ambil profile dan exp dari relasi user
+        .where({ id: post_id })
+        .first(); // Get the first result
       return userPost;
     } catch (error) {
       throw error;
