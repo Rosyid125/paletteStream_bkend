@@ -111,6 +111,8 @@ class UserPostController {
     try {
       const { userId } = req.params;
 
+      console.log("userId", userId);
+
       // Get page and limit from query
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;

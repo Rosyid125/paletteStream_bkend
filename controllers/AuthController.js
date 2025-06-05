@@ -9,30 +9,35 @@ const customError = require("../errors/customError");
 class AuthController {
   static async register(req, res) {
     try {
-      // Panggil AuthService untuk mendaftarkan pengguna
+      // Register dengan OTP wajib
       const user = await AuthService.register(req.body);
-
-      // Membuat profil pengguna default
       await UserProfileService.createDefaultUserProfile(user.id);
-
-      // Membuat userExp default
       await UserExpService.create(user.id, 0, 1);
-
-      // Membuat challenge pengguna defauot dkk nantinya
-
       res.json({ success: true, message: "User registered successfully", data: user });
     } catch (error) {
-      // Tangkap error dan log ke file
       logger.error(`Error: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
-
       if (error instanceof customError) {
         return res.status(error.statusCode).json({ success: false, message: error.message });
       } else {
         res.status(500).json({ success: false, message: "An unexpected error occurred." });
       }
+    }
+  }
+
+  // Endpoint untuk request OTP register
+  static async registerRequestOtp(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+      // Kirim OTP register (tanpa user dummy)
+      await AuthOtpService.sendRegisterOtp(email);
+      res.json({ success: true, message: "OTP sent to email", data: { email } });
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 
@@ -167,7 +172,13 @@ class AuthController {
     try {
       const { email, otp } = req.body;
       if (!email || !otp) return res.status(400).json({ success: false, message: "Email and OTP are required" });
-      const { accessToken, user } = await AuthOtpService.verifyOtp(email, otp);
+      // Gunakan verifyLoginOtp untuk login OTP
+      const user = await AuthOtpService.verifyLoginOtp(email, otp);
+      // Generate JWT
+      const jwt = require("jsonwebtoken");
+      const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
+      const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || "15m";
+      const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -184,7 +195,7 @@ class AuthController {
     try {
       const { email } = req.body;
       if (!email) return res.status(400).json({ success: false, message: "Email is required" });
-      await AuthOtpService.resendOtp(email);
+      await AuthOtpService.resendLoginOtp(email);
       res.json({ success: true, message: "OTP resent to email" });
     } catch (error) {
       logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });

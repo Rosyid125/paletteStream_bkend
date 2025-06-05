@@ -13,16 +13,29 @@ const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 class AuthService {
   static async register(userData) {
     try {
-      const { email, password, firstName, lastName } = userData;
-
+      const { email, password, firstName, lastName, otp } = userData;
+      if (!otp) {
+        throw new customError("OTP is required for registration", 400);
+      }
+      // Cari user by email, jika sudah ada dan sudah punya password, tolak
       const existingUser = await User.query().findOne({ email });
-      if (existingUser) {
+      if (existingUser && existingUser.password) {
         throw new customError("Email already registered", 409);
       }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await UserRepository.create(email, hashedPassword, firstName, lastName, "default");
-
+      // Verifikasi OTP
+      const AuthOtpService = require("./AuthOtpService");
+      await AuthOtpService.verifyRegisterOtp(email, otp); // gunakan verifyRegisterOtp, bukan verifyOtp
+      // Jika user belum ada, buat user baru (harusnya sudah ada user dummy dari OTP, update password)
+      let user = await UserRepository.getUserByEmail(email);
+      if (!user) {
+        // Safety fallback, harusnya tidak terjadi
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user = await UserRepository.create(email, hashedPassword, firstName, lastName, "default");
+      } else {
+        // Update password, nama, role jika user dummy
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user = await UserRepository.updateUserAfterOtpRegister(user.id, hashedPassword, firstName, lastName);
+      }
       return user;
     } catch (error) {
       throw error;

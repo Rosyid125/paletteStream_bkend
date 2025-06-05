@@ -73,7 +73,11 @@ class UserRepository {
   // Create a new user
   static async create(email, password, first_name, last_name, role) {
     try {
-      const user = await User.query().insert({ email, password, first_name, last_name, role });
+      // Pastikan tidak ada value null, gunakan string kosong jika tidak ada value
+      const safePassword = password || "";
+      const safeFirstName = first_name || "";
+      const safeLastName = last_name || "";
+      const user = await User.query().insert({ email, password: safePassword, first_name: safeFirstName, last_name: safeLastName, role });
       return user;
     } catch (error) {
       throw error;
@@ -168,6 +172,20 @@ class UserRepository {
       const role = "admin";
       const user = await User.query().insert({ email, password, first_name, last_name, role });
       return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update user after OTP register (set password, nama, role)
+  static async updateUserAfterOtpRegister(id, password, first_name, last_name) {
+    try {
+      return await User.query().patchAndFetchById(id, {
+        password,
+        first_name,
+        last_name,
+        role: "default",
+      });
     } catch (error) {
       throw error;
     }

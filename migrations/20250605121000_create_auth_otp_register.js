@@ -3,11 +3,10 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.schema.createTable("auth_otp", (table) => {
+  return knex.schema.createTable("auth_otp_register", (table) => {
     table.increments("id").primary();
-    table.integer("user_id").unsigned().notNullable().references("id").inTable("users").onDelete("CASCADE");
+    table.string("email").notNullable().index();
     table.string("otp_hash").notNullable();
-    table.timestamp("expiry").notNullable();
     table.integer("resend_count").defaultTo(0);
     table.timestamps(true, true);
   });
@@ -18,5 +17,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable("auth_otp");
+  return knex.schema.dropTable("auth_otp_register");
 };

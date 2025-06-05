@@ -25,7 +25,6 @@ class User extends Model {
   }
 
   static get relationMappings() {
-    const ChallengeWinner = require("./ChallengeWinner");
     const CommentReply = require("./CommentReply");
     const PostComment = require("./PostComment");
     const PostLike = require("./PostLike");
@@ -117,14 +116,6 @@ class User extends Model {
         join: {
           from: "users.id",
           to: "user_social_links.user_id",
-        },
-      },
-      challengeWinners: {
-        relation: Model.HasManyRelation,
-        modelClass: ChallengeWinner,
-        join: {
-          from: "users.id",
-          to: "challenge_winners.user_id",
         },
       },
       commentReplies: {

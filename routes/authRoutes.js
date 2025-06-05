@@ -4,6 +4,7 @@ const AuthController = require("../controllers/AuthController");
 
 // Rute untuk register, login, refresh token, dan logout
 router.post("/register", AuthController.register);
+router.post("/register/otp", AuthController.registerRequestOtp);
 router.post("/login", AuthController.login);
 router.post("/login/email", AuthController.loginEmail);
 router.post("/login/email/verify", AuthController.verifyEmailOtp);
