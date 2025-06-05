@@ -104,6 +104,43 @@ class AuthOtpService {
     await EmailService.sendOtpEmail(email, otp);
     return { user };
   }
+
+  // OTP untuk forgot password: mirip register, berbasis email, tanpa expiry
+  static async sendForgotPasswordOtp(email) {
+    // Pastikan user ada
+    const user = await UserRepository.getUserByEmail(email);
+    if (!user) throw new customError("User not found", 404);
+    const otp = generateOtp();
+    const otp_hash = await bcrypt.hash(otp, 10);
+    await AuthOtpRegisterRepository.createRegisterOtp({ email, otp_hash, resend_count: 0 });
+    await EmailService.sendOtpEmailForgotPassword(email, otp);
+    return { email };
+  }
+
+  static async verifyForgotPasswordOtp(email, otp) {
+    const otpRecord = await AuthOtpRegisterRepository.findRegisterOtpByEmail(email);
+    if (!otpRecord) throw new customError("OTP not found", 404);
+    const valid = await bcrypt.compare(otp, otpRecord.otp_hash);
+    if (!valid) throw new customError("OTP invalid", 400);
+    // Jangan hapus di sini, hapus saat reset password sukses
+    return true;
+  }
+
+  static async resetPasswordWithOtp(email, otp, newPassword) {
+    // Verifikasi OTP
+    const otpRecord = await AuthOtpRegisterRepository.findRegisterOtpByEmail(email);
+    if (!otpRecord) throw new customError("OTP not found", 404);
+    const valid = await bcrypt.compare(otp, otpRecord.otp_hash);
+    if (!valid) throw new customError("OTP invalid", 400);
+    // Update password user
+    const user = await UserRepository.getUserByEmail(email);
+    if (!user) throw new customError("User not found", 404);
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await UserRepository.updatePasswordById(user.id, passwordHash);
+    // Hapus OTP setelah sukses
+    await AuthOtpRegisterRepository.deleteRegisterOtpById(otpRecord.id);
+    return true;
+  }
 }
 
 module.exports = AuthOtpService;

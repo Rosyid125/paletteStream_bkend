@@ -18,6 +18,7 @@ class AuthGoogleService {
       access_type: "offline",
       scope: ["profile", "email"],
       prompt: "select_account",
+      redirect_uri: REDIRECT_URI, // ← ini wajib eksplisit
     });
     return url;
   }
@@ -32,11 +33,27 @@ class AuthGoogleService {
     // Cari user, jika belum ada, buat user baru
     let user = await UserRepository.getUserByEmail(email);
     if (!user) {
-      user = await UserRepository.create(email, null, payload.given_name || "", payload.family_name || "", "default");
+      // Ambil password dan username default dari ENV
+      const defaultPassword = process.env.DEFAULT_USER_PASSWORD || "PSplayer123.";
+      const defaultUsername = process.env.DEFAULT_USER_USERNAME || "player";
+      // Hash password default
+      const bcrypt = require("bcryptjs");
+      const passwordHash = await bcrypt.hash(defaultPassword, 10);
+      user = await UserRepository.create(email, passwordHash, payload.given_name || defaultUsername, payload.family_name || "", "default");
     }
     // Generate JWT
     const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
     return { accessToken, user };
+  }
+
+  static async registerGoogle(googleProfile) {
+    // googleProfile: { email, given_name, family_name }
+    let user = await UserRepository.getUserByEmail(googleProfile.email);
+    if (user) {
+      throw new customError("Email already registered", 409);
+    }
+    user = await UserRepository.create(googleProfile.email, null, googleProfile.given_name || "", googleProfile.family_name || "", "default");
+    return user;
   }
 }
 

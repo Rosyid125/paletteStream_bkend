@@ -13,6 +13,13 @@ router.get("/me", AuthController.getMe);
 router.post("/refresh-token", AuthController.refreshToken);
 router.post("/logout", AuthController.logout);
 router.get("/login/google", AuthController.loginGoogle);
-router.get("/auth/google/callback", AuthController.googleCallback);
+router.get("/google/callback", AuthController.googleCallback);
+
+// Forgot password
+router.post("/forgot-password", AuthController.forgotPasswordRequestOtp);
+router.post("/forgot-password/verify", AuthController.forgotPasswordVerifyOtp);
+router.post("/forgot-password/reset", AuthController.forgotPasswordReset);
+// Register via Google
+router.post("/register/google", AuthController.registerGoogle);
 
 module.exports = router;

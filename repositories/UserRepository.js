@@ -190,6 +190,15 @@ class UserRepository {
       throw error;
     }
   }
+
+  // Update password by user id
+  static async updatePasswordById(id, passwordHash) {
+    try {
+      return await User.query().patchAndFetchById(id, { password: passwordHash });
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = UserRepository;

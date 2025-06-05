@@ -217,6 +217,93 @@
 
 ---
 
+## POST /forgot-password
+
+- **Deskripsi:** Request OTP ke email untuk reset password (lupa password).
+- **Headers:** Content-Type: application/json
+- **Body:**
+  ```json
+  { "email": "user@email.com" }
+  ```
+- **Response sukses:**
+  ```json
+  { "success": true, "message": "OTP sent to email", "data": { "email": "user@email.com" } }
+  ```
+- **Response error:**
+  ```json
+  { "success": false, "message": "Email is required" }
+  { "success": false, "message": "User not found" }
+  ```
+
+---
+
+## POST /forgot-password/verify
+
+- **Deskripsi:** Verifikasi OTP lupa password.
+- **Headers:** Content-Type: application/json
+- **Body:**
+  ```json
+  { "email": "user@email.com", "otp": "123456" }
+  ```
+- **Response sukses:**
+  ```json
+  { "success": true, "message": "OTP verified. You can now reset your password." }
+  ```
+- **Response error:**
+  ```json
+  { "success": false, "message": "OTP not found" }
+  { "success": false, "message": "OTP invalid" }
+  ```
+
+---
+
+## POST /forgot-password/reset
+
+- **Deskripsi:** Reset password menggunakan OTP yang sudah diverifikasi.
+- **Headers:** Content-Type: application/json
+- **Body:**
+  ```json
+  { "email": "user@email.com", "otp": "123456", "newPassword": "newpassword123" }
+  ```
+- **Response sukses:**
+  ```json
+  { "success": true, "message": "Password reset successful. You can now login with your new password." }
+  ```
+- **Response error:**
+  ```json
+  { "success": false, "message": "OTP not found" }
+  { "success": false, "message": "OTP invalid" }
+  { "success": false, "message": "User not found" }
+  ```
+
+---
+
+## POST /register/google
+
+- **Deskripsi:** Register user baru via Google OAuth2 (FE mengirim data profil Google).
+- **Headers:** Content-Type: application/json
+- **Body:**
+  ```json
+  { "email": "user@email.com", "given_name": "NamaDepan", "family_name": "NamaBelakang" }
+  ```
+- **Response sukses:**
+  ```json
+  {
+    "success": true,
+    "message": "User registered via Google successfully",
+    "data": {
+      /* user object */
+    }
+  }
+  ```
+- **Response error:**
+  ```json
+  { "success": false, "message": "Email already registered" }
+  { "success": false, "message": "Email is required" }
+  ```
+
+---
+
 ## Catatan
 
 - Semua endpoint mengembalikan response JSON.

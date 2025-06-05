@@ -6,6 +6,9 @@ const AuthGoogleService = require("../services/AuthGoogleService");
 const logger = require("../utils/winstonLogger");
 const customError = require("../errors/customError");
 
+// Get env for frontend redirect
+const FRONTEND_URL = process.env.CORS_ORIGIN || "http://localhost:5173";
+
 class AuthController {
   static async register(req, res) {
     try {
@@ -223,11 +226,70 @@ class AuthController {
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
       });
-      // Bisa redirect ke FE atau return JSON
-      res.json({ success: true, message: "Login successful", data: user });
+      // Redirect ke halaman frontend setelah login Google sukses
+      res.redirect(`${FRONTEND_URL}/home`);
     } catch (error) {
       logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
       res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  // Forgot password: request OTP
+  static async forgotPasswordRequestOtp(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+      await AuthOtpService.sendForgotPasswordOtp(email);
+      res.json({ success: true, message: "OTP sent to email", data: { email } });
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  // Forgot password: verifikasi OTP
+  static async forgotPasswordVerifyOtp(req, res) {
+    try {
+      const { email, otp } = req.body;
+      if (!email || !otp) return res.status(400).json({ success: false, message: "Email and OTP are required" });
+      await AuthOtpService.verifyForgotPasswordOtp(email, otp);
+      res.json({ success: true, message: "OTP verified. You can now reset your password." });
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  // Forgot password: reset password
+  static async forgotPasswordReset(req, res) {
+    try {
+      const { email, otp, newPassword } = req.body;
+      if (!email || !otp || !newPassword) return res.status(400).json({ success: false, message: "Email, OTP, and newPassword are required" });
+      await AuthOtpService.resetPasswordWithOtp(email, otp, newPassword);
+      res.json({ success: true, message: "Password reset successful. You can now login with your new password." });
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  // Register via Google (FE kirim data profil Google)
+  static async registerGoogle(req, res) {
+    try {
+      const { email, given_name, family_name } = req.body;
+      if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+      const user = await AuthGoogleService.registerGoogle({ email, given_name, family_name });
+      // Buat profil dan exp user baru
+      await UserProfileService.createDefaultUserProfile(user.id);
+      await UserExpService.create(user.id, 0, 1);
+      res.json({ success: true, message: "User registered via Google successfully", data: user });
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      if (error instanceof customError) {
+        return res.status(error.statusCode).json({ success: false, message: error.message });
+      } else {
+        res.status(500).json({ success: false, message: "An unexpected error occurred." });
+      }
     }
   }
 }

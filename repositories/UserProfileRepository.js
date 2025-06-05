@@ -3,6 +3,12 @@ const UserProfile = require("../models/UserProfile");
 // For error handling
 const currentRepo = "UserProfileRepository";
 
+// Get default user data from env
+const DEFAULT_USER_USERNAME = process.env.DEFAULT_USER_USERNAME || "player";
+const DEFAULT_USER_AVATAR = process.env.DEFAULT_USER_AVATAR || "storage/avatars/noimage.png";
+const DEFAULT_USER_BIO = process.env.DEFAULT_USER_BIO || "Hello, I'm new here!";
+const DEFAULT_USER_LOCATION = process.env.DEFAULT_USER_LOCATION || "Earth";
+
 class UserProfileRepository {
   // Get all user profiles
   static async findAll() {
@@ -40,10 +46,10 @@ class UserProfileRepository {
   static async createDefault(user_id) {
     try {
       // Default data
-      const username = `player${user_id}`;
-      const avatar = "storage/avatars/noimage.png";
-      const bio = "Hello, I'm new here!";
-      const location = "Earth";
+      const username = DEFAULT_USER_USERNAME;
+      const avatar = DEFAULT_USER_AVATAR;
+      const bio = DEFAULT_USER_BIO;
+      const location = DEFAULT_USER_LOCATION;
       const userProfile = await UserProfile.query().insert({ user_id, username, avatar, bio, location });
       return userProfile;
     } catch (error) {
