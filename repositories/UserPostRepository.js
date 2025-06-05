@@ -196,15 +196,28 @@ class UserPostRepository {
     }
   }
 
-  // Delete a user post
+  // Search post by title or description
+  static async searchByTitleOrDesc(query, offset, limit) {
+    try {
+      return await UserPost.query().where("title", "like", `%${query}%`).orWhere("description", "like", `%${query}%`).offset(offset).limit(limit);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Delete post
   static async delete(id) {
     try {
-      const userPost = await UserPost.query().findOne({ id });
-      if (!userPost) {
-        return null;
-      }
-      await UserPost.query().findOne({ id }).delete();
-      return userPost;
+      return await UserPost.query().deleteById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Count all posts
+  static async countAll() {
+    try {
+      return await UserPost.query().resultSize();
     } catch (error) {
       throw error;
     }

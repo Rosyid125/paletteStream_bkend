@@ -1,6 +1,8 @@
 const AuthService = require("../services/AuthService");
 const UserProfileService = require("../services/UserProfileService");
 const UserExpService = require("../services/UserExpService");
+const AuthOtpService = require("../services/AuthOtpService");
+const AuthGoogleService = require("../services/AuthGoogleService");
 const logger = require("../utils/winstonLogger");
 const customError = require("../errors/customError");
 
@@ -146,6 +148,75 @@ class AuthController {
       });
 
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+    }
+  }
+
+  static async loginEmail(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+      const { user } = await AuthOtpService.sendOtp(email);
+      res.json({ success: true, message: "OTP sent to email", data: { email: user.email } });
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  static async verifyEmailOtp(req, res) {
+    try {
+      const { email, otp } = req.body;
+      if (!email || !otp) return res.status(400).json({ success: false, message: "Email and OTP are required" });
+      const { accessToken, user } = await AuthOtpService.verifyOtp(email, otp);
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+      });
+      res.json({ success: true, message: "Login successful", data: user });
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  static async resendEmailOtp(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+      await AuthOtpService.resendOtp(email);
+      res.json({ success: true, message: "OTP resent to email" });
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  static async loginGoogle(req, res) {
+    try {
+      const url = AuthGoogleService.getAuthUrl();
+      res.redirect(url);
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  static async googleCallback(req, res) {
+    try {
+      const { code } = req.query;
+      if (!code) return res.status(400).json({ success: false, message: "Missing code" });
+      const { accessToken, user } = await AuthGoogleService.handleCallback(code);
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+      });
+      // Bisa redirect ke FE atau return JSON
+      res.json({ success: true, message: "Login successful", data: user });
+    } catch (error) {
+      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
+      res.status(400).json({ success: false, message: error.message });
     }
   }
 }

@@ -17,6 +17,7 @@ class User extends Model {
         last_name: { type: "string", minLength: 1, maxLength: 255 },
         role: { type: "string", enum: ["default", "admin"] },
         is_active: { type: "boolean" },
+        status: { type: "string", enum: ["active", "banned"] },
         created_at: { type: "string", format: "date-time" },
         updated_at: { type: "string", format: "date-time" },
       },

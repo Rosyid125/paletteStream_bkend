@@ -14,10 +14,20 @@ class UserAchievementRepository {
     }
   }
 
-  // Get user achievement by user id
+  // Get all user achievements by user id
   static async findByUserId(user_id) {
     try {
-      const userAchievement = await UserAchievement.query().findOne({ user_id });
+      const userAchievements = await UserAchievement.query().where({ user_id });
+      return userAchievements;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get user achievement by user id & achievement id
+  static async findByUserAndAchievement(user_id, achievement_id) {
+    try {
+      const userAchievement = await UserAchievement.query().findOne({ user_id, achievement_id });
       return userAchievement;
     } catch (error) {
       throw error;

@@ -80,15 +80,28 @@ class UserRepository {
     }
   }
 
-  // Update user
-  static async update(id, email, password, first_name, last_name) {
+  // Get all users with pagination
+  static async findAll(offset, limit) {
     try {
-      const user = await User.query().findById(id);
-      if (!user) {
-        return null;
-      }
-      await User.query().findById(id).patch({ email, password, first_name, last_name });
-      return user;
+      return await User.query().offset(offset).limit(limit);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update user status (ban)
+  static async updateStatus(id, status) {
+    try {
+      return await User.query().patchAndFetchById(id, { status });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update user data
+  static async update(id, data) {
+    try {
+      return await User.query().patchAndFetchById(id, data);
     } catch (error) {
       throw error;
     }
@@ -97,12 +110,25 @@ class UserRepository {
   // Delete user
   static async delete(id) {
     try {
-      const user = await User.query().findById(id);
-      if (!user) {
-        return null;
-      }
-      await User.query().deleteById(id);
-      return user;
+      return await User.query().deleteById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Count all users
+  static async countAll() {
+    try {
+      return await User.query().resultSize();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Count banned users
+  static async countBanned() {
+    try {
+      return await User.query().where("status", "banned").resultSize();
     } catch (error) {
       throw error;
     }
