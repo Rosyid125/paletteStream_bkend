@@ -11,6 +11,7 @@ router.post("/login/email/verify", AuthController.verifyEmailOtp);
 router.post("/login/email/resend", AuthController.resendEmailOtp);
 router.get("/me", AuthController.getMe);
 router.post("/refresh-token", AuthController.refreshToken);
+router.post("/ws/refresh-token-and-get", AuthController.refreshTokenAndGet);
 router.post("/logout", AuthController.logout);
 router.get("/login/google", AuthController.loginGoogle);
 router.get("/google/callback", AuthController.googleCallback);
@@ -19,7 +20,5 @@ router.get("/google/callback", AuthController.googleCallback);
 router.post("/forgot-password", AuthController.forgotPasswordRequestOtp);
 router.post("/forgot-password/verify", AuthController.forgotPasswordVerifyOtp);
 router.post("/forgot-password/reset", AuthController.forgotPasswordReset);
-// Register via Google
-router.post("/register/google", AuthController.registerGoogle);
 
 module.exports = router;

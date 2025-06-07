@@ -33,7 +33,26 @@ app.get("/", (req, res) => {
 const apiRoutes = require("./routes/api");
 app.use("/api", apiRoutes);
 
+const http = require("http");
+const { Server } = require("socket.io");
+const { authenticateSocket, registerHandlers } = require("./socketHandler");
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const server = http.createServer(app);
+
+// Attach socket.io ke server HTTP
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+  },
+});
+
+io.use(authenticateSocket);
+io.on("connection", (socket) => {
+  registerHandlers(io, socket);
+});
+
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

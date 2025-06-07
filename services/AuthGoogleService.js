@@ -3,6 +3,8 @@ const { OAuth2Client } = require("google-auth-library");
 const UserRepository = require("../repositories/UserRepository");
 const customError = require("../errors/customError");
 const jwt = require("jsonwebtoken");
+const UserProfileService = require("../services/UserProfileService");
+const UserExpService = require("../services/UserExpService");
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -40,20 +42,18 @@ class AuthGoogleService {
       const bcrypt = require("bcryptjs");
       const passwordHash = await bcrypt.hash(defaultPassword, 10);
       user = await UserRepository.create(email, passwordHash, payload.given_name || defaultUsername, payload.family_name || "", "default");
+      await UserProfileService.createDefaultUserProfile(user.id);
+      console.log(`User profile created for ${user.id} dengan email ${user.email} dan dengan profil ${user.firstName} ${user.lastName}`);
+      await UserExpService.create(user.id, 0, 1);
     }
     // Generate JWT
     const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
-    return { accessToken, user };
-  }
-
-  static async registerGoogle(googleProfile) {
-    // googleProfile: { email, given_name, family_name }
-    let user = await UserRepository.getUserByEmail(googleProfile.email);
-    if (user) {
-      throw new customError("Email already registered", 409);
-    }
-    user = await UserRepository.create(googleProfile.email, null, googleProfile.given_name || "", googleProfile.family_name || "", "default");
-    return user;
+    const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY });
+    // Simpan refreshToken ke database
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+    await require("../repositories/AuthRepository").saveRefreshToken(user.id, refreshToken, expiresAt.toISOString());
+    return { accessToken, refreshToken, user };
   }
 }
 

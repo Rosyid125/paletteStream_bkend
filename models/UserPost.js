@@ -23,7 +23,6 @@ class UserPost extends Model {
 
   static get relationMappings() {
     const User = require("./User");
-    const ChallengePost = require("./ChallengePost");
     const PostComment = require("./PostComment");
     const PostLike = require("./PostLike");
     const PostImage = require("./PostImage");
@@ -38,14 +37,6 @@ class UserPost extends Model {
         join: {
           from: "user_posts.user_id",
           to: "users.id",
-        },
-      },
-      challengePost: {
-        relation: Model.HasOneRelation,
-        modelClass: ChallengePost,
-        join: {
-          from: "user_posts.id",
-          to: "challenge_posts.post_id",
         },
       },
       comments: {

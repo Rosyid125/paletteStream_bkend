@@ -278,32 +278,6 @@
 
 ---
 
-## POST /register/google
-
-- **Deskripsi:** Register user baru via Google OAuth2 (FE mengirim data profil Google).
-- **Headers:** Content-Type: application/json
-- **Body:**
-  ```json
-  { "email": "user@email.com", "given_name": "NamaDepan", "family_name": "NamaBelakang" }
-  ```
-- **Response sukses:**
-  ```json
-  {
-    "success": true,
-    "message": "User registered via Google successfully",
-    "data": {
-      /* user object */
-    }
-  }
-  ```
-- **Response error:**
-  ```json
-  { "success": false, "message": "Email already registered" }
-  { "success": false, "message": "Email is required" }
-  ```
-
----
-
 ## Catatan
 
 - Semua endpoint mengembalikan response JSON.

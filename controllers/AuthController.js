@@ -53,13 +53,13 @@ class AuthController {
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // Aktifkan secure di produksi
-        sameSite: "Strict",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       });
 
       res.json({ success: true, message: "Login successful", data: user });
@@ -114,13 +114,13 @@ class AuthController {
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       });
 
       res.json({ success: true, message: "Token refreshed successfully" });
@@ -132,6 +132,49 @@ class AuthController {
       });
 
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+    }
+  }
+
+  // Fungsi untuk mendapatkan refresh tokens dan mengembalikan ke frontend berupa response bukan cookie
+  static async refreshTokenAndGet(req, res) {
+    try {
+      // Ambil refresh token dari cookie
+      const oldRefreshToken = req.cookies.refreshToken;
+      if (!oldRefreshToken) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { accessToken, refreshToken } = await AuthService.refreshToken(oldRefreshToken);
+
+      // Perbarui cookie dengan token baru
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      });
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      });
+
+      res.json({
+        success: true,
+        message: "Token refreshed successfully",
+        data: {
+          accessToken,
+          refreshToken,
+        },
+      });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
   }
 
@@ -181,11 +224,23 @@ class AuthController {
       const jwt = require("jsonwebtoken");
       const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
       const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || "15m";
+      const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+      const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
       const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
+      const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+      // Simpan refreshToken ke database
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+      await require("../repositories/AuthRepository").saveRefreshToken(user.id, refreshToken, expiresAt.toISOString());
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      });
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       });
       res.json({ success: true, message: "Login successful", data: user });
     } catch (error) {
@@ -220,11 +275,16 @@ class AuthController {
     try {
       const { code } = req.query;
       if (!code) return res.status(400).json({ success: false, message: "Missing code" });
-      const { accessToken, user } = await AuthGoogleService.handleCallback(code);
+      const { accessToken, refreshToken, user } = await AuthGoogleService.handleCallback(code);
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      });
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       });
       // Redirect ke halaman frontend setelah login Google sukses
       res.redirect(`${FRONTEND_URL}/home`);
@@ -270,26 +330,6 @@ class AuthController {
     } catch (error) {
       logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
       res.status(400).json({ success: false, message: error.message });
-    }
-  }
-
-  // Register via Google (FE kirim data profil Google)
-  static async registerGoogle(req, res) {
-    try {
-      const { email, given_name, family_name } = req.body;
-      if (!email) return res.status(400).json({ success: false, message: "Email is required" });
-      const user = await AuthGoogleService.registerGoogle({ email, given_name, family_name });
-      // Buat profil dan exp user baru
-      await UserProfileService.createDefaultUserProfile(user.id);
-      await UserExpService.create(user.id, 0, 1);
-      res.json({ success: true, message: "User registered via Google successfully", data: user });
-    } catch (error) {
-      logger.error(`Error: ${error.message}`, { stack: error.stack, timestamp: new Date().toISOString() });
-      if (error instanceof customError) {
-        return res.status(error.statusCode).json({ success: false, message: error.message });
-      } else {
-        res.status(500).json({ success: false, message: "An unexpected error occurred." });
-      }
     }
   }
 }

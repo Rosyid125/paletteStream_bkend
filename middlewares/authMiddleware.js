@@ -31,13 +31,13 @@ const verifyAccessToken = async (req, res, next) => {
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       });
 
       req.user = user;
