@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
 const logger = require("../utils/winstonLogger");
+const UserRepository = require("../repositories/UserRepository");
 
-const verifyAdminRole = (req, res, next) => {
+const verifyAdminRole = async (req, res, next) => {
   const token = req.cookies.accessToken; // Access the token from the cookies
 
   if (!token) {
@@ -12,8 +13,15 @@ const verifyAdminRole = (req, res, next) => {
     // Verifikasi token akses
     const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
+    // Get user role from the database
+    const userFromDb = await UserRepository.findById(user.id);
+    if (!userFromDb) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     // Check if the user has admin role
-    if (user.role !== "admin") {
+    if (userFromDb.role !== "admin") {
+      logger.warn(`Unauthorized access attempt by user: ${user.id}`);
       return res.status(403).json({ message: "Forbidden" });
     }
 
