@@ -57,17 +57,53 @@ class PostCommentService {
         comment.replies_count = commentRepliesCount ? parseInt(commentRepliesCount.count) : 0;
       });
 
-      // Return post comments
-      return postComments.map((comment) => ({
-        id: comment.id,
-        user_id: comment.user_id,
-        username: comment.user.profile.username,
-        avatar: comment.user.profile.avatar,
-        level: comment.user.experience.level,
-        content: comment.content,
-        created_at: formatDate(comment.created_at),
-        replies_count: comment.replies_count,
-      }));
+      // Ambil post utama
+      const post = await UserPostRepository.findByPostId(postId);
+      if (!post) throw new customError("Post not found", 404);
+      // Ambil images dan tags
+      const [postImages, postTags] = await Promise.all([require("../repositories/PostImageRepository").findByPostIds([postId]), require("../repositories/PostTagRepository").findByPostIds([postId])]);
+      const imagesMap = postImages.reduce((acc, img) => {
+        acc[img.post_id] = acc[img.post_id] || [];
+        acc[img.post_id].push(img.image_url);
+        return acc;
+      }, {});
+      const tagsMap = postTags.reduce((acc, tag) => {
+        acc[tag.post_id] = acc[tag.post_id] || [];
+        acc[tag.post_id].push(tag.name);
+        return acc;
+      }, {});
+
+      // Console log all data
+      console.log("Post:", post);
+
+      // Return post comments and post content
+      return {
+        post: {
+          id: post.id,
+          userId: post.user_id,
+          firstName: post.user.firstName,
+          lastName: post.user.lastName,
+          username: post.user.profile.username,
+          avatar: post.user.profile.avatar,
+          level: post.user.experience.level,
+          createdAt: formatDate(post.created_at),
+          type: post.type,
+          title: post.title,
+          description: post.description,
+          images: imagesMap[post.id] || [],
+          tags: tagsMap[post.id] || [],
+        },
+        comments: postComments.map((comment) => ({
+          id: comment.id,
+          user_id: comment.user_id,
+          username: comment.user.profile.username,
+          avatar: comment.user.profile.avatar,
+          level: comment.user.experience.level,
+          content: comment.content,
+          created_at: formatDate(comment.created_at),
+          replies_count: comment.replies_count,
+        })),
+      };
     } catch (error) {
       throw error;
     }
