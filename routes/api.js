@@ -10,6 +10,7 @@ const userBookmarkRoutes = require("./userBookmarkRoutes"); // Import the userBo
 const userRoutes = require("./userRoutes"); // Import the userRoutes
 const chatRoutes = require("./chatRoutes"); // Import the chatRoutes
 const adminRoutes = require("./adminRoutes"); // Import the adminRoutes
+const achievementRoutes = require("./achievementRoutes"); // Import the achievementRoutes
 
 router.use("/profiles", userProfileRoutes); // Use the userProfileRoutes for the /users route
 router.use("/auth", authRoutes); // Use the authRoutes for the /auth route
@@ -21,5 +22,6 @@ router.use("/bookmarks", userBookmarkRoutes); // Use the userBookmarkRoutes for 
 router.use("/users", userRoutes); // Use the userRoutes for the /users route
 router.use("/chats", chatRoutes); // Use the chatRoutes for the /chats route
 router.use("/admin", adminRoutes); // Use the adminRoutes for the /admin route
+router.use("/achievements", achievementRoutes); // Use the achievementRoutes for the /achievements route
 
 module.exports = router; // Export the router

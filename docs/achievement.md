@@ -4,42 +4,7 @@
 
 ### GET /achievements
 
-- **Deskripsi:** Mendapatkan daftar semua achievement (maksimal 20 jenis).
-- **Response sukses:**
-
-```json
-{
-  "success": true,
-  "data": [
-    { "id": 1, "title": "Level 10", "icon": "level10.png", "description": "Capai level 10", "goal": 10, ... }
-  ]
-}
-```
-
-### POST /achievements/progress
-
-- **Deskripsi:** Update progress achievement berdasarkan event trigger (UPLOAD_POST, LEVEL_UP, dll).
-- **Body:**
-
-```json
-{
-  "userId": 1,
-  "trigger": "UPLOAD_POST",
-  "value": 1
-}
-```
-
-- **Response sukses:**
-
-```json
-{ "success": true, "message": "Progress updated" }
-```
-
-### GET /achievements/unlocked
-
-- **Deskripsi:** Mendapatkan daftar achievement yang sudah unlocked oleh user beserta progress.
-- **Query:**
-  - `userId` (wajib)
+- **Deskripsi:** Mendapatkan daftar semua achievement aktif (maksimal 20 jenis).
 - **Response sukses:**
 
 ```json
@@ -48,14 +13,77 @@
   "data": [
     {
       "id": 1,
-      "user_id": 1,
-      "achievement_id": 1,
-      "progress": "3/10",
-      "status": "completed"
+      "title": "Community Favorite",
+      "icon": "heart",
+      "description": "Your post received 10 likes from 10 different users",
+      "goal": 10,
+      "created_at": "2025-06-10T12:00:00.000Z",
+      "updated_at": "2025-06-10T12:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "title": "Rising Star",
+      "icon": "flame",
+      "description": "Your post received 50 likes from 30 different users",
+      "goal": 50,
+      "created_at": "2025-06-10T12:00:00.000Z",
+      "updated_at": "2025-06-10T12:00:00.000Z"
     }
+    // ...dan seterusnya
   ]
 }
 ```
+
+Keterangan field:
+
+- `id`: ID achievement
+- `title`: Judul achievement
+- `icon`: Nama icon (string)
+- `description`: Deskripsi singkat
+- `goal`: Target pencapaian (angka)
+- `created_at`, `updated_at`: Timestamp
+
+### GET /achievements/user/:userId
+
+- **Deskripsi:** Mendapatkan progress & status seluruh achievement milik user tertentu.
+- **Response sukses:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Community Favorite",
+      "icon": "heart",
+      "description": "Your post received 10 likes from 10 different users",
+      "goal": 10,
+      "progress": 3,
+      "status": "in-progress" // atau "completed"
+    },
+    {
+      "id": 2,
+      "title": "Rising Star",
+      "icon": "flame",
+      "description": "Your post received 50 likes from 30 different users",
+      "goal": 50,
+      "progress": 0,
+      "status": "in-progress"
+    }
+    // ...dan seterusnya
+  ]
+}
+```
+
+Keterangan field:
+
+- `id`: ID achievement
+- `title`: Judul achievement
+- `icon`: Nama icon (string)
+- `description`: Deskripsi singkat
+- `goal`: Target pencapaian (angka)
+- `progress`: Progress user saat ini (angka)
+- `status`: Status progress (`in-progress` atau `completed`)
 
 ---
 
@@ -81,10 +109,23 @@
 
 ---
 
-## Trigger Logic
+## Cara Kerja Progress
 
-- Event trigger (UPLOAD_POST, LEVEL_UP, dsb) akan memanggil endpoint `/achievements/progress`.
-- Service akan mapping trigger ke achievement_id, update progress di user_achievements.
-- Jika progress mencapai goal, status menjadi `completed` dan achievement dianggap unlocked.
-- Progress diformat sebagai string "progress/goal" (misal: "3/10").
-- Maksimal 20 jenis achievement didukung.
+- Progress achievement **tidak diupdate lewat endpoint**.
+- Progress di-update otomatis oleh backend saat event terjadi (misal: like, comment, bookmark, dsb) melalui service handler (`AchievementService.handleEvent`).
+- Frontend hanya perlu GET untuk menampilkan daftar dan progress achievement user.
+
+## Arsitektur & Flow
+
+Sistem achievement PaletteStream menggunakan arsitektur MVC-SR (Model-View-Controller-Service-Repository):
+
+- **Controller**: hanya menangani HTTP request/response, memanggil Service.
+- **Service**: seluruh logika bisnis, termasuk perhitungan progress, validasi, dan update status achievement.
+- **Repository**: akses database murni (query, insert, update, delete), tanpa logika bisnis.
+- **Model**: ORM Objection.js, mendefinisikan struktur dan relasi data.
+
+---
+
+## Menambah Event Baru
+
+Untuk menambah event baru, cukup tambahkan case baru di `AchievementService.handleEvent` dan implementasikan perhitungan progress sesuai kebutuhan.

@@ -1,44 +1,29 @@
 const { Model } = require("objection");
-const User = require("./User");
-const Achievement = require("./Achievement");
 
 class UserAchievement extends Model {
   static get tableName() {
     return "user_achievements";
   }
 
-  static get jsonSchema() {
-    return {
-      type: "object",
-      required: ["user_id", "achievement_id", "progress", "status"],
-      properties: {
-        id: { type: "integer" },
-        user_id: { type: "integer" },
-        achievement_id: { type: "integer" },
-        progress: { type: "integer" },
-        status: { type: "string", enum: ["in-progress", "completed"] },
-        created_at: { type: "string", format: "date-time" },
-        updated_at: { type: "string", format: "date-time" },
-      },
-    };
-  }
-
   static get relationMappings() {
+    const Achievement = require("./Achievement");
+    const User = require("./User"); // Asumsikan User model ada
+
     return {
-      user: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: User,
-        join: {
-          from: "user_achievements.user_id",
-          to: "users.id",
-        },
-      },
       achievement: {
         relation: Model.BelongsToOneRelation,
         modelClass: Achievement,
         join: {
           from: "user_achievements.achievement_id",
           to: "achievements.id",
+        },
+      },
+      user: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: User,
+        join: {
+          from: "user_achievements.user_id",
+          to: "users.id",
         },
       },
     };
