@@ -20,15 +20,44 @@
 }
 ```
 
+## POST /admin/users
+
+- **Deskripsi:** Membuat user admin baru
+- **Headers:**
+  - Authorization: Bearer <JWT admin>
+- **Body:**
+
+```json
+{
+  "email": "admin@email.com",
+  "password": "passwordku",
+  "first_name": "Admin",
+  "last_name": "Baru"
+}
+```
+
+- **Response sukses:**
+
+```json
+{
+  "success": true,
+  "data": { "id": 2, "email": "admin@email.com", "role": "admin", ... }
+}
+```
+
 ## PUT /admin/users/:id/ban
 
-- **Deskripsi:** Ban user
+- **Deskripsi:** Toggle ban/unban user. Jika user aktif, maka akan di-ban. Jika user sudah di-ban, maka akan di-unban.
 - **Headers:**
   - Authorization: Bearer <JWT admin>
 - **Response sukses:**
 
 ```json
-{ "success": true }
+{ "success": true, "status": "banned" }
+```
+atau jika user di-unban:
+```json
+{ "success": true, "status": "active" }
 ```
 
 ## PUT /admin/users/:id
@@ -104,6 +133,25 @@
     "totalUsers": 100,
     "totalPosts": 200,
     "bannedUsers": 5
+  }
+}
+```
+
+## GET /admin/dashboard/trends
+
+- **Deskripsi:** Statistik tren user & post (per hari dan per bulan)
+- **Headers:**
+  - Authorization: Bearer <JWT admin>
+- **Response sukses:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "userTrendDay": [ { "date": "2025-06-01", "count": 2 }, ... ],
+    "userTrendMonth": [ { "month": "2025-06", "count": 10 }, ... ],
+    "postTrendDay": [ { "date": "2025-06-01", "count": 5 }, ... ],
+    "postTrendMonth": [ { "month": "2025-06", "count": 30 }, ... ]
   }
 }
 ```

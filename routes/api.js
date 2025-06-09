@@ -9,6 +9,7 @@ const userFollowRoutes = require("./userFollowRoutes"); // Import the userFollow
 const userBookmarkRoutes = require("./userBookmarkRoutes"); // Import the userBookmarkRoutes
 const userRoutes = require("./userRoutes"); // Import the userRoutes
 const chatRoutes = require("./chatRoutes"); // Import the chatRoutes
+const adminRoutes = require("./adminRoutes"); // Import the adminRoutes
 
 router.use("/profiles", userProfileRoutes); // Use the userProfileRoutes for the /users route
 router.use("/auth", authRoutes); // Use the authRoutes for the /auth route
@@ -19,5 +20,6 @@ router.use("/follows", userFollowRoutes); // Use the userFollowRoutes for the /f
 router.use("/bookmarks", userBookmarkRoutes); // Use the userBookmarkRoutes for the /bookmarks route
 router.use("/users", userRoutes); // Use the userRoutes for the /users route
 router.use("/chats", chatRoutes); // Use the chatRoutes for the /chats route
+router.use("/admin", adminRoutes); // Use the adminRoutes for the /admin route
 
 module.exports = router; // Export the router

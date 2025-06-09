@@ -222,6 +222,28 @@ class UserPostRepository {
       throw error;
     }
   }
+
+  // Count new posts by day (trend)
+  static async countNewPostsByDay(days = 7) {
+    const result = await UserPost.query()
+      .select(UserPost.raw("DATE(created_at) as date"))
+      .count("id as count")
+      .where("created_at", ">=", UserPost.raw(`DATE_SUB(CURDATE(), INTERVAL ${days} DAY)`))
+      .groupByRaw("DATE(created_at)")
+      .orderBy("date", "asc");
+    return result;
+  }
+
+  // Count new posts by month (trend)
+  static async countNewPostsByMonth(months = 6) {
+    const result = await UserPost.query()
+      .select(UserPost.raw('DATE_FORMAT(created_at, "%Y-%m") as month'))
+      .count("id as count")
+      .where("created_at", ">=", UserPost.raw(`DATE_SUB(CURDATE(), INTERVAL ${months} MONTH)`))
+      .groupByRaw('DATE_FORMAT(created_at, "%Y-%m")')
+      .orderBy("month", "asc");
+    return result;
+  }
 }
 
 module.exports = UserPostRepository;

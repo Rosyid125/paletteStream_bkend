@@ -199,6 +199,38 @@ class UserRepository {
       throw error;
     }
   }
+
+  // Count new users by day (trend)
+  static async countNewUsersByDay(days = 7) {
+    // Menghitung jumlah user baru per hari selama N hari terakhir
+    const result = await User.query()
+      .select(User.raw("DATE(created_at) as date"))
+      .count("id as count")
+      .where("created_at", ">=", User.raw(`DATE_SUB(CURDATE(), INTERVAL ${days} DAY)`))
+      .groupByRaw("DATE(created_at)")
+      .orderBy("date", "asc");
+    return result;
+  }
+
+  // Count new users by month (trend)
+  static async countNewUsersByMonth(months = 6) {
+    // Menghitung jumlah user baru per bulan selama N bulan terakhir
+    const result = await User.query()
+      .select(User.raw('DATE_FORMAT(created_at, "%Y-%m") as month'))
+      .count("id as count")
+      .where("created_at", ">=", User.raw(`DATE_SUB(CURDATE(), INTERVAL ${months} MONTH)`))
+      .groupByRaw('DATE_FORMAT(created_at, "%Y-%m")')
+      .orderBy("month", "asc");
+    return result;
+  }
+
+  // Create admin with email unique check
+  static async createAdmin({ email, password, first_name, last_name }) {
+    // Cek email sudah terdaftar
+    const existing = await User.query().where("email", email).first();
+    if (existing) throw new Error("Email already registered");
+    return User.query().insert({ email, password, first_name, last_name, role: "admin", status: "active", is_active: true });
+  }
 }
 
 module.exports = UserRepository;
