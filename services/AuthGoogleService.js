@@ -46,6 +46,9 @@ class AuthGoogleService {
       console.log(`User profile created for ${user.id} dengan email ${user.email} dan dengan profil ${user.firstName} ${user.lastName}`);
       await UserExpService.create(user.id, 0, 1);
     }
+    if (user.status === "banned") {
+      throw new customError("Your account is banned. Please contact support.", 403);
+    }
     // Generate JWT
     const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
     const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY });

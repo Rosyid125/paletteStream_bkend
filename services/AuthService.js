@@ -50,6 +50,9 @@ class AuthService {
       if (!user || !(await bcrypt.compare(password, user.password))) {
         throw new customError("Invalid email or password", 401);
       }
+      if (user.status === "banned") {
+        throw new customError("Your account is banned. Please contact support.", 403);
+      }
 
       const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_SECRET, {
         expiresIn: ACCESS_TOKEN_EXPIRY,

@@ -55,7 +55,9 @@
 ```json
 { "success": true, "status": "banned" }
 ```
+
 atau jika user di-unban:
+
 ```json
 { "success": true, "status": "active" }
 ```

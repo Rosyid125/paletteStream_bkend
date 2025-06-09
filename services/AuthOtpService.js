@@ -60,6 +60,7 @@ class AuthOtpService {
   static async sendOtp(email) {
     let user = await UserRepository.getUserByEmail(email);
     if (!user) throw new customError("User not found", 404);
+    if (user.status === "banned") throw new customError("Your account is banned. Please contact support.", 403);
     const otp = generateOtp();
     const otp_hash = await bcrypt.hash(otp, 10);
     const expiry = formatMySQLTimestamp(new Date(Date.now() + OTP_EXPIRE_SECONDS * 1000));
@@ -72,6 +73,7 @@ class AuthOtpService {
   static async verifyLoginOtp(email, otp) {
     const user = await UserRepository.getUserByEmail(email);
     if (!user) throw new customError("User not found", 404);
+    if (user.status === "banned") throw new customError("Your account is banned. Please contact support.", 403);
     const otpRecord = await AuthOtpRepository.findByUserId(user.id);
     if (!otpRecord) throw new customError("OTP not found", 404);
     if (new Date(otpRecord.expiry) < new Date()) throw new customError("OTP expired", 400);
