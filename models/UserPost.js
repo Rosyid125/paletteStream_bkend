@@ -20,13 +20,13 @@ class UserPost extends Model {
       },
     };
   }
-
   static get relationMappings() {
     const User = require("./User");
     const PostComment = require("./PostComment");
     const PostLike = require("./PostLike");
     const PostImage = require("./PostImage");
     const PostTag = require("./PostTag");
+    const Tag = require("./Tag");
     const UserBookmark = require("./UserBookmark");
     const CommentReply = require("./CommentReply");
 
@@ -63,9 +63,17 @@ class UserPost extends Model {
           to: "post_images.post_id",
         },
       },
+      postTags: {
+        relation: Model.HasManyRelation,
+        modelClass: PostTag,
+        join: {
+          from: "user_posts.id",
+          to: "post_tags.post_id",
+        },
+      },
       tags: {
         relation: Model.ManyToManyRelation,
-        modelClass: PostTag,
+        modelClass: Tag,
         join: {
           from: "user_posts.id",
           through: {

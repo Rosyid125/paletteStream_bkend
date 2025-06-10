@@ -23,10 +23,12 @@ router.get("/type", verifyAccessToken, userPostController.getPostByType);
 router.get("/tags", verifyAccessToken, userPostController.getPostByTags);
 // Get all posts by title and description
 router.get("/title-desc", verifyAccessToken, userPostController.getPostByTitleAndDescription);
+// Get single post by ID
+router.get("/single/:postId", verifyAccessToken, userPostController.getSinglePost);
 // Get all user posts
 router.get("/:userId", verifyAccessToken, userPostController.getUserPost);
 // Update a post
-// router.put("/edit/:postId", verifyAccessToken, userPostController.updatePost);
+router.put("/edit/:postId", verifyAccessToken, userPostController.updatePost);
 // Delete a post
 router.delete("/delete/:postId", verifyAccessToken, userPostController.deletePost);
 

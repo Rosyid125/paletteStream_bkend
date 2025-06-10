@@ -407,33 +407,73 @@ class UserPostController {
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
   }
+  // Edit a user post
+  static async updatePost(req, res) {
+    try {
+      // Gunakan multer untuk menangani upload sebelum memanggil service
+      upload.array("images", 10)(req, res, async (err) => {
+        if (err) {
+          return res.status(400).json({ error: "File upload failed", details: err.message });
+        }
 
-  // // Edit a user post
-  // static async updatePost(req, res) {
-  //   try {
-  //     let { postId } = req.params;
-  //     const { title, description, tags, images, type } = req.body;
+        // Karena multer menggunakan callback, kita perlu try-catch di dalam callback
+        try {
+          // Ambil postId dari request params
+          let { postId } = req.params;
+          postId = parseInt(postId);
 
-  //     // Convert postId to an integer
-  //     postId = parseInt(postId);
+          // Destructure data dari request body
+          const { title, description, tags, type } = req.body;
 
-  //     const userPost = await UserPostService.updatePost(postId, title, description, tags, images, type);
+          // Validasi data yang diperlukan
+          if (!title || !description) {
+            return res.status(400).json({ error: "Title and description are required" });
+          }
 
-  //     if (!userPost) {
-  //       return res.status(404).json({ success: false, message: "Post not found" });
-  //     }
+          // Validasi postId
+          if (isNaN(postId)) {
+            return res.status(400).json({ error: "Invalid post ID" });
+          }
 
-  //     res.json({ success: true, data: userPost });
-  //   } catch (error) {
-  //     // Tangkap error dan log ke file
-  //     logger.error(`Error: ${error.message}`, {
-  //       stack: error.stack,
-  //       timestamp: new Date().toISOString(),
-  //     });
+          // Get current userId from token untuk validasi kepemilikan
+          const currentUserId = req.user.id;
 
-  //     res.status(500).json({ success: false, messege: "An unexpected error occurred." });
-  //   }
-  // }
+          // Validasi kepemilikan post
+          const existingPost = await UserPostService.getPostById(postId);
+          if (!existingPost) {
+            return res.status(404).json({ success: false, message: "Post not found" });
+          }
+
+          if (existingPost.user_id !== currentUserId) {
+            return res.status(403).json({ success: false, message: "You are not authorized to edit this post" });
+          }
+
+          // Ambil path dari file yang diupload (jika ada)
+          const imagePaths = req.files ? req.files.map((file) => path.posix.join("storage", "uploads", path.basename(file.path))) : [];
+
+          // Panggil service dengan data yang sudah diproses
+          const updatedPost = await UserPostService.updatePost(postId, title, description, tags, imagePaths, type);
+
+          // Kirim response ke client
+          res.json({ success: true, data: updatedPost, message: "Post updated successfully" });
+        } catch (error) {
+          logger.error(`Error: ${error.message}`, {
+            stack: error.stack,
+            timestamp: new Date().toISOString(),
+          });
+
+          res.status(500).json({ success: false, message: "An unexpected error occurred." });
+        }
+      });
+    } catch (error) {
+      logger.error(`Unexpected Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, message: "An unexpected error occurred." });
+    }
+  }
 
   // Delete a user post
   static async deletePost(req, res) {
@@ -455,6 +495,40 @@ class UserPostController {
       });
 
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+    }
+  }
+
+  // Get single post by ID
+  static async getSinglePost(req, res) {
+    try {
+      let { postId } = req.params;
+      postId = parseInt(postId);
+
+      // Get current userId from token
+      const currentUserId = req.user.id;
+
+      // Validasi postId
+      if (isNaN(postId)) {
+        return res.status(400).json({ error: "Invalid post ID" });
+      }
+
+      // Panggil service untuk mendapatkan single post
+      const post = await UserPostService.getSinglePost(postId, currentUserId);
+
+      // Jika tidak ada post
+      if (!post) {
+        return res.status(404).json({ success: false, message: "Post not found" });
+      }
+
+      res.json({ success: true, data: post });
+    } catch (error) {
+      // Tangkap error dan log ke file
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
   }
 }

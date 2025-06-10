@@ -1,7 +1,7 @@
 // Import all necessary repositories
 const UserAchievementRepository = require("../repositories/UserAchievementRepository");
 const UserBadgeRepository = require("../repositories/UserBadgeRepository");
-const ChallengePostRepository = require("../repositories/ChallengePostRepository");
+const ChallengePostService = require("./ChallengePostService");
 const UserExpRepository = require("../repositories/UserExpRepository");
 const UserRepository = require("../repositories/UserRepository");
 const UserProfileRepository = require("../repositories/UserProfileRepository");
@@ -61,7 +61,7 @@ class UserProfileService {
       const userCommentCount = await PostCommentRepository.countByUserId(userId);
 
       // Get challenge participation and wins count
-      const userChallengeSubmissions = await ChallengePostRepository.findByUserId(userId);
+      const userChallengeSubmissions = await ChallengePostService.findByUserId(userId);
       const userChallengeCount = userChallengeSubmissions.length;
       const userChallengeWinCount = await UserBadgeRepository.countByUserId(userId);
 
@@ -114,10 +114,8 @@ class UserProfileService {
       const userFollowersCount = await UserFollowRepository.countFollowersByUserId(userId);
       // Get user post count
       const userPostCount = await UserPostRepository.countByUserId(userId); // Get user post like count
-      const userLikeCount = await PostLikeRepository.countByUserId(userId);
-
-      // Get challenge participation and wins count
-      const userChallengeSubmissions = await ChallengePostRepository.findByUserId(userId);
+      const userLikeCount = await PostLikeRepository.countByUserId(userId); // Get challenge participation and wins count
+      const userChallengeSubmissions = await ChallengePostService.findByUserId(userId);
       const userChallengeCount = userChallengeSubmissions.length;
       const userChallengeWinCount = await UserBadgeRepository.countByUserId(userId);
       const userAchievementsCount = await UserAchievementRepository.findByUserId(userId);

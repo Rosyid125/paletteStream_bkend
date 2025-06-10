@@ -54,7 +54,6 @@ class BadgeService {
       throw error;
     }
   }
-
   // Award badges to multiple winners
   static async awardBadgesToWinners(challengeId, winners, badgeImg, adminNote) {
     try {
@@ -80,51 +79,6 @@ class BadgeService {
         awardedBadges,
         errors,
       };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // Select winners and award badges
-  static async selectWinnersAndAwardBadges(challengeId, winnerUserIds, adminNote) {
-    try {
-      const challenge = await ChallengeRepository.findById(challengeId);
-      if (!challenge) {
-        throw new customError("Challenge not found", 404);
-      }
-
-      if (!challenge.is_closed) {
-        throw new customError("Challenge must be closed before selecting winners", 400);
-      }
-
-      const awardedBadges = [];
-      const errors = [];
-
-      for (const userId of winnerUserIds) {
-        try {
-          const badge = await this.awardBadge(userId, challengeId, challenge.badge_img, adminNote);
-          awardedBadges.push(badge);
-        } catch (error) {
-          errors.push({ userId, error: error.message });
-        }
-      }
-
-      return {
-        success: true,
-        message: `Awarded badges to ${awardedBadges.length} winners`,
-        awardedBadges,
-        errors,
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // Get challenge winners (users with badges)
-  static async getChallengeWinners(challengeId) {
-    try {
-      const winners = await UserBadgeRepository.findByChallengeId(challengeId);
-      return winners;
     } catch (error) {
       throw error;
     }

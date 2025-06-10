@@ -23,7 +23,6 @@ class ChallengePost extends Model {
       },
     };
   }
-
   static get relationMappings() {
     const Challenge = require("./Challenge");
     const UserPost = require("./UserPost");

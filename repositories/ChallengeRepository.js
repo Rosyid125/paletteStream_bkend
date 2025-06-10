@@ -4,18 +4,17 @@ class ChallengeRepository {
   // Get all challenges
   static async findAll() {
     try {
-      const challenges = await Challenge.query().withGraphFetched("[creator.[profile], challengePosts.post.[images, tags.tag, user.[profile, experience]]]").orderBy("created_at", "desc");
+      const challenges = await Challenge.query().withGraphFetched("[creator.[profile], challengePosts.post.[images, tags, user.[profile, experience]]]").orderBy("created_at", "desc");
       return challenges;
     } catch (error) {
       throw error;
     }
   }
-
   // Get active challenges (not closed and deadline not passed)
   static async findActive() {
     try {
       const challenges = await Challenge.query()
-        .withGraphFetched("[creator.[profile], challengePosts.post.[images, tags.tag, user.[profile, experience]]]")
+        .withGraphFetched("[creator.[profile], challengePosts.post.[images, tags, user.[profile, experience]]]")
         .where("is_closed", false)
         .where("deadline", ">", new Date().toISOString())
         .orderBy("created_at", "desc");
@@ -23,22 +22,67 @@ class ChallengeRepository {
     } catch (error) {
       throw error;
     }
-  }
-
-  // Get challenge by ID
+  } // Get challenge by ID
   static async findById(id) {
     try {
-      const challenge = await Challenge.query().findById(id).withGraphFetched("[creator.[profile], challengePosts.post.[images, tags.tag, user.[profile, experience]], userBadges.user.[profile]]");
+      const challenge = await Challenge.query().findById(id).withGraphFetched("[creator.[profile], challengePosts.post.[images, tags, user.[profile, experience]], userBadges.user.[profile], winners.user.[profile]]");
       return challenge;
     } catch (error) {
       throw error;
     }
   }
 
+  // Get challenge by ID with full details including likes and comment counts
+  static async findByIdWithCounts(id) {
+    try {
+      const challenge = await Challenge.query().findById(id).withGraphFetched("[creator.[profile], challengePosts.post.[images, tags, user.[profile, experience]], userBadges.user.[profile]]");
+
+      if (!challenge) return null;
+
+      // If there are challenge posts, we'll need to get the counts via service layer
+      if (challenge.challengePosts && challenge.challengePosts.length > 0) {
+        const PostLikeRepository = require("./PostLikeRepository");
+        const PostCommentService = require("../services/PostCommentService");
+
+        const postIds = challenge.challengePosts.map((cp) => cp.post.id);
+
+        // Get like and comment counts
+        const [likeCounts, commentCounts] = await Promise.all([PostLikeRepository.countByPostIds(postIds), PostCommentService.countByPostIds(postIds)]);
+
+        // Create maps for quick lookup
+        const likeCountMap = likeCounts.reduce((acc, row) => {
+          acc[row.post_id] = parseInt(row.count) || 0;
+          return acc;
+        }, {});
+
+        const commentCountMap = commentCounts.reduce((acc, row) => {
+          acc[row.post_id] = parseInt(row.count) || 0;
+          return acc;
+        }, {}); // Enrich challenge posts with counts
+        challenge.challengePosts = challenge.challengePosts.map((challengePost) => ({
+          ...challengePost,
+          post: {
+            ...challengePost.post,
+            likeCount: likeCountMap[challengePost.post.id] || 0,
+            commentCount: commentCountMap[challengePost.post.id] || 0,
+          },
+        }));
+
+        // Sort posts by like count (descending - most liked first)
+        challenge.challengePosts.sort((a, b) => {
+          return b.post.likeCount - a.post.likeCount;
+        });
+      }
+
+      return challenge;
+    } catch (error) {
+      throw error;
+    }
+  }
   // Get challenges created by a user
   static async findByCreator(userId) {
     try {
-      const challenges = await Challenge.query().where("created_by", userId).withGraphFetched("[challengePosts.post.[images, tags.tag, user.[profile, experience]]]").orderBy("created_at", "desc");
+      const challenges = await Challenge.query().where("created_by", userId).withGraphFetched("[challengePosts.post.[images, tags, user.[profile, experience]]]").orderBy("created_at", "desc");
       return challenges;
     } catch (error) {
       throw error;
@@ -99,29 +143,47 @@ class ChallengeRepository {
     } catch (error) {
       throw error;
     }
-  }
-
-  // Get challenge posts with like counts for leaderboard
+  } // Get challenge posts with like counts for leaderboard
   static async getChallengeLeaderboard(challengeId) {
     try {
-      const challenge = await Challenge.query().findById(challengeId).withGraphFetched(`[
-          challengePosts.post.[
-            images, 
-            tags.tag, 
-            user.[profile, experience],
-            likes,
-            comments
-          ]
-        ]`);
+      const challenge = await Challenge.query().findById(challengeId).withGraphFetched("[challengePosts.post.[images, tags, user.[profile, experience]]]");
 
       if (!challenge) return null;
 
-      // Sort posts by likes count
-      if (challenge.challengePosts) {
+      // If there are challenge posts, get accurate counts
+      if (challenge.challengePosts && challenge.challengePosts.length > 0) {
+        const PostLikeRepository = require("./PostLikeRepository");
+        const PostCommentService = require("../services/PostCommentService");
+
+        const postIds = challenge.challengePosts.map((cp) => cp.post.id);
+
+        // Get like and comment counts
+        const [likeCounts, commentCounts] = await Promise.all([PostLikeRepository.countByPostIds(postIds), PostCommentService.countByPostIds(postIds)]);
+
+        // Create maps for quick lookup
+        const likeCountMap = likeCounts.reduce((acc, row) => {
+          acc[row.post_id] = parseInt(row.count) || 0;
+          return acc;
+        }, {});
+
+        const commentCountMap = commentCounts.reduce((acc, row) => {
+          acc[row.post_id] = parseInt(row.count) || 0;
+          return acc;
+        }, {});
+
+        // Enrich challenge posts with counts and sort by likes
+        challenge.challengePosts = challenge.challengePosts.map((challengePost) => ({
+          ...challengePost,
+          post: {
+            ...challengePost.post,
+            likeCount: likeCountMap[challengePost.post.id] || 0,
+            commentCount: commentCountMap[challengePost.post.id] || 0,
+          },
+        }));
+
+        // Sort posts by like count (descending)
         challenge.challengePosts.sort((a, b) => {
-          const likesA = a.post.likes ? a.post.likes.length : 0;
-          const likesB = b.post.likes ? b.post.likes.length : 0;
-          return likesB - likesA;
+          return b.post.likeCount - a.post.likeCount;
         });
       }
 

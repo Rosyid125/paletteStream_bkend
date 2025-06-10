@@ -4,47 +4,42 @@ class ChallengePostRepository {
   // Get all challenge posts
   static async findAll() {
     try {
-      const challengePosts = await ChallengePost.query().withGraphFetched("[challenge, post.[images, tags.tag, user.[profile, experience]], user.[profile]]");
+      const challengePosts = await ChallengePost.query().withGraphFetched("[challenge, post.[images, tags, user.[profile, experience]], user.[profile]]");
       return challengePosts;
     } catch (error) {
       throw error;
     }
   }
-
   // Get challenge posts by challenge ID
   static async findByChallengeId(challengeId) {
     try {
-      const challengePosts = await ChallengePost.query().where("challenge_id", challengeId).withGraphFetched("[post.[images, tags.tag, user.[profile, experience]], user.[profile]]").orderBy("created_at", "desc");
+      const challengePosts = await ChallengePost.query().where("challenge_id", challengeId).withGraphFetched("[post.[images, tags, user.[profile, experience]], user.[profile]]").orderBy("created_at", "desc");
       return challengePosts;
     } catch (error) {
       throw error;
     }
-  }
-
-  // Get challenge posts by user ID
+  } // Get challenge posts by user ID
   static async findByUserId(userId) {
     try {
-      const challengePosts = await ChallengePost.query().where("user_id", userId).withGraphFetched("[challenge, post.[images, tags.tag]]").orderBy("created_at", "desc");
+      const challengePosts = await ChallengePost.query().where("user_id", userId).withGraphFetched("[challenge, post.[images, tags, user.[profile, experience]]]").orderBy("created_at", "desc");
       return challengePosts;
     } catch (error) {
       throw error;
     }
   }
-
   // Get challenge post by ID
   static async findById(id) {
     try {
-      const challengePost = await ChallengePost.query().findById(id).withGraphFetched("[challenge, post.[images, tags.tag, user.[profile, experience]], user.[profile]]");
+      const challengePost = await ChallengePost.query().findById(id).withGraphFetched("[challenge, post.[images, tags, user.[profile, experience]], user.[profile]]");
       return challengePost;
     } catch (error) {
       throw error;
     }
   }
-
   // Check if user already submitted to challenge
   static async findByUserAndChallenge(userId, challengeId) {
     try {
-      const challengePost = await ChallengePost.query().findOne({ user_id: userId, challenge_id: challengeId }).withGraphFetched("[post.[images, tags.tag]]");
+      const challengePost = await ChallengePost.query().findOne({ user_id: userId, challenge_id: challengeId }).withGraphFetched("[post.[images, tags]]");
       return challengePost;
     } catch (error) {
       throw error;
@@ -94,11 +89,10 @@ class ChallengePostRepository {
       throw error;
     }
   }
-
   // Get challenge posts with like counts (for leaderboard)
   static async findByChallengeWithLikeCounts(challengeId) {
     try {
-      const challengePosts = await ChallengePost.query().where("challenge_id", challengeId).withGraphFetched("[post.[images, tags.tag, user.[profile, experience], likes]]").orderBy("created_at", "desc");
+      const challengePosts = await ChallengePost.query().where("challenge_id", challengeId).withGraphFetched("[post.[images, tags, user.[profile, experience], likes]]").orderBy("created_at", "desc");
 
       // Sort by like count
       challengePosts.sort((a, b) => {

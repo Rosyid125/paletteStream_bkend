@@ -45,6 +45,7 @@ router.get("/challenges/:id/winners", ChallengeController.getChallengeWinners);
 // User authenticated routes
 router.post("/challenges/:id/submit-post", verifyAccessToken, ChallengeController.submitPostToChallenge);
 router.get("/user/challenge-history", verifyAccessToken, ChallengeController.getUserChallengeHistory);
+router.get("/user/wins", verifyAccessToken, ChallengeController.getUserWins);
 
 // Admin routes (require authentication and admin role)
 router.post("/challenges", verifyAccessToken, verifyAdminRole, upload.single("badge_img"), ChallengeController.createChallenge);
@@ -52,5 +53,6 @@ router.put("/challenges/:id", verifyAccessToken, verifyAdminRole, upload.single(
 router.put("/challenges/:id/close", verifyAccessToken, verifyAdminRole, ChallengeController.closeChallenge);
 router.delete("/challenges/:id", verifyAccessToken, verifyAdminRole, ChallengeController.deleteChallenge);
 router.post("/challenges/:id/select-winners", verifyAccessToken, verifyAdminRole, ChallengeController.selectWinners);
+router.post("/challenges/:id/auto-select-winners", verifyAccessToken, verifyAdminRole, ChallengeController.autoSelectWinners);
 
 module.exports = router;

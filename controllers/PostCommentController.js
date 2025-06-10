@@ -10,6 +10,9 @@ class PostCommentController {
       // Get post id from request
       let postId = req.params.postId;
 
+      // Get current user from cookie
+      const userId = req.user.id;
+
       // Turn params into integer
       postId = parseInt(postId);
 
@@ -18,7 +21,7 @@ class PostCommentController {
       const limit = parseInt(req.query.limit) || 10;
 
       // Get all post comments by post id
-      const postComments = await PostCommentService.findByPostId(postId, page, limit);
+      const postComments = await PostCommentService.findByPostId(postId, userId, page, limit);
 
       res.json({ success: true, data: postComments });
     } catch (error) {

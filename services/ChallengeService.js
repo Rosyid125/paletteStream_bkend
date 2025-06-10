@@ -1,5 +1,4 @@
 const ChallengeRepository = require("../repositories/ChallengeRepository");
-const ChallengePostRepository = require("../repositories/ChallengePostRepository");
 const UserBadgeRepository = require("../repositories/UserBadgeRepository");
 const UserPostService = require("./UserPostService");
 const customError = require("../errors/customError");
@@ -24,11 +23,10 @@ class ChallengeService {
       throw error;
     }
   }
-
   // Get challenge by ID with all details
   static async getChallengeById(id) {
     try {
-      const challenge = await ChallengeRepository.findById(id);
+      const challenge = await ChallengeRepository.findByIdWithCounts(id);
       if (!challenge) {
         throw new customError("Challenge not found", 404);
       }
@@ -152,21 +150,20 @@ class ChallengeService {
       const post = await UserPostService.getPostById(postId);
       if (!post || post.user_id !== userId) {
         throw new customError("Post not found or unauthorized", 404);
-      }
-
-      // Check if user already submitted to this challenge
-      const existingSubmission = await ChallengePostRepository.findByUserAndChallenge(userId, challengeId);
+      } // Check if user already submitted to this challenge
+      const ChallengePostService = require("./ChallengePostService");
+      const existingSubmission = await ChallengePostService.findByUserAndChallenge(userId, challengeId);
       if (existingSubmission) {
         throw new customError("You have already submitted to this challenge", 400);
       }
 
       // Check if post is already submitted to this challenge
-      const existingPost = await ChallengePostRepository.findByPostAndChallenge(postId, challengeId);
+      const existingPost = await ChallengePostService.findByPostAndChallenge(postId, challengeId);
       if (existingPost) {
         throw new customError("This post is already submitted to this challenge", 400);
       }
 
-      const challengePost = await ChallengePostRepository.create(challengeId, postId, userId);
+      const challengePost = await ChallengePostService.create(challengeId, postId, userId);
       return challengePost;
     } catch (error) {
       throw error;
@@ -207,11 +204,11 @@ class ChallengeService {
       throw error;
     }
   }
-
   // Get user's challenge history
   static async getUserChallengeHistory(userId) {
     try {
-      const challengePosts = await ChallengePostRepository.findByUserId(userId);
+      const ChallengePostService = require("./ChallengePostService");
+      const challengePosts = await ChallengePostService.findByUserId(userId);
       const userBadges = await UserBadgeRepository.findByUserId(userId);
 
       return {

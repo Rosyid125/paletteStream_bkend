@@ -30,6 +30,7 @@ class Challenge extends Model {
     const User = require("./User");
     const ChallengePost = require("./ChallengePost");
     const UserBadge = require("./UserBadge");
+    const ChallengeWinner = require("./ChallengeWinner");
 
     return {
       creator: {
@@ -54,6 +55,14 @@ class Challenge extends Model {
         join: {
           from: "challenges.id",
           to: "user_badges.challenge_id",
+        },
+      },
+      winners: {
+        relation: Model.HasManyRelation,
+        modelClass: ChallengeWinner,
+        join: {
+          from: "challenges.id",
+          to: "challenge_winners.challenge_id",
         },
       },
     };

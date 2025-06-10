@@ -876,33 +876,79 @@ class UserPostService {
       throw error;
     }
   }
+  // Static method to update a post
+  static async updatePost(postId, title, description, tags, imagePaths, type) {
+    try {
+      // Validasi post exists dan ambil post lama untuk validasi kepemilikan
+      const existingPost = await UserPostRepository.findByPostId(postId);
+      if (!existingPost) {
+        throw new Error("Post not found");
+      }
 
-  // // Static method to update a post
-  // static async updatePost(postId, title, description, tags, images, type) {
-  //   try {
-  //     // Update the post
-  //     const post = await UserPostRepository.update(postId, title, description, type);
+      // Update the post
+      const updatedRows = await UserPostRepository.update(postId, title, description, type);
+      if (updatedRows === 0) {
+        throw new Error("Failed to update post");
+      }
 
-  //     // Delete post tags
-  //     const postTags = await PostTagRepository.deleteByPostId(postId);
+      // Get updated post
+      const post = await UserPostRepository.findByPostId(postId);
 
-  //     // If tag does not exist, create a new tag
-  //     const createdTags = await Promise.all(tags.map((tag) => TagRepository.findOrCreate(tag)));
+      // Handle tags update
+      // Delete existing post tags
+      const deletedTags = await PostTagRepository.deleteByPostId(postId);
 
-  //     // Create post tags
-  //     const newPostTags = await Promise.all(createdTags.map((tag) => PostTagRepository.create(postId, tag.id)));
+      // Process new tags: Ensure 'tags' is an array before mapping
+      const tagsToProcess = Array.isArray(tags) ? tags : [];
+      let newPostTags = [];
 
-  //     // Delete post images
-  //     const postImages = await PostImageRepository.deleteByPostId(postId);
+      if (tagsToProcess.length > 0) {
+        // Create or find tags
+        const createdTags = await Promise.all(tagsToProcess.map((tag) => TagRepository.findOrCreate(tag.trim())));
 
-  //     // Create post images
-  //     const newPostImages = await Promise.all(images.map((image) => PostImageRepository.create(postId, image)));
+        // Filter out any potential null/undefined results
+        const validTags = createdTags.filter((tag) => tag && tag.id);
 
-  //     return { post, postTags, newPostTags, postImages, newPostImages };
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
+        // Create post tags
+        if (validTags.length > 0) {
+          newPostTags = await Promise.all(validTags.map((tag) => PostTagRepository.create(postId, tag.id)));
+        }
+      }
+
+      // Handle images update
+      // Get existing images for cleanup
+      const existingImages = await PostImageRepository.findByPostId(postId);
+      const existingImagePaths = existingImages.map((img) => img.image_url);
+
+      // Delete existing post images from database
+      const deletedImages = await PostImageRepository.deleteByPostId(postId);
+
+      // Process new images: Ensure 'imagePaths' is an array before mapping
+      const pathsToProcess = Array.isArray(imagePaths) ? imagePaths : [];
+      let newPostImages = [];
+
+      if (pathsToProcess.length > 0) {
+        newPostImages = await Promise.all(pathsToProcess.map((imagePath) => PostImageRepository.create(postId, imagePath)));
+      }
+
+      // Delete old image files from storage (only if they're not being reused)
+      existingImagePaths.forEach((imagePath) => {
+        if (!pathsToProcess.includes(imagePath)) {
+          deleteFile(imagePath);
+        }
+      });
+
+      return {
+        post,
+        deletedTags,
+        newPostTags: Array.isArray(newPostTags) ? newPostTags : [],
+        deletedImages,
+        newPostImages: Array.isArray(newPostImages) ? newPostImages : [],
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 
   // Static method to delete a post
   static async deletePost(postId) {
@@ -946,6 +992,68 @@ class UserPostService {
     try {
       const post = await UserPostRepository.findByPostId(postId);
       return post;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Static method to get single post with all details
+  static async getSinglePost(postId, currentUserId) {
+    try {
+      // Get the post
+      const post = await UserPostRepository.findByPostId(postId);
+      if (!post) {
+        return null;
+      }
+
+      // Get all related data
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+        PostImageRepository.findByPostIds([postId]),
+        PostTagRepository.findByPostIds([postId]),
+        PostLikeRepository.countByPostIds([postId]),
+        PostCommentService.countByPostIds([postId]),
+        PostLikeRepository.getStatuses(currentUserId, [postId]),
+        UserBookmarkService.getStatuses([postId], currentUserId),
+      ]);
+
+      // Convert arrays into maps for quick lookup
+      const imagesMap = postImages.reduce((acc, img) => {
+        acc[img.post_id] = acc[img.post_id] || [];
+        acc[img.post_id].push(img.image_url);
+        return acc;
+      }, {});
+
+      const tagsMap = postTags.reduce((acc, tag) => {
+        acc[tag.post_id] = acc[tag.post_id] || [];
+        acc[tag.post_id].push(tag.name);
+        return acc;
+      }, {});
+
+      const likeCount = postLikeCounts.length > 0 ? postLikeCounts[0].count : 0;
+      const commentCount = postCommentCounts.length > 0 ? postCommentCounts[0].count : 0;
+      const postLikeStatus = postLikeStatuses.length > 0;
+      const bookmarkStatus = userBookmarkStatuses.length > 0;
+
+      return {
+        id: post.id,
+        userId: post.user_id,
+        firstName: post.user.firstName,
+        lastName: post.user.lastName,
+        username: post.user.profile.username,
+        avatar: post.user.profile.avatar,
+        level: post.user.experience.level,
+        createdAt: formatDate(post.created_at),
+        updatedAt: formatDate(post.updated_at),
+        type: post.type,
+        title: post.title,
+        description: post.description,
+        images: imagesMap[post.id] || [],
+        tags: tagsMap[post.id] || [],
+        postLikeStatus,
+        bookmarkStatus,
+        likeCount,
+        commentCount,
+      };
     } catch (error) {
       throw error;
     }

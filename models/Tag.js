@@ -18,8 +18,10 @@ class Tag extends Model {
       },
     };
   }
-
   static get relationMappings() {
+    const PostTag = require("./PostTag");
+    const UserPost = require("./UserPost");
+
     return {
       postTags: {
         relation: Model.HasManyRelation,
@@ -27,6 +29,18 @@ class Tag extends Model {
         join: {
           from: "tags.id",
           to: "post_tags.tag_id",
+        },
+      },
+      posts: {
+        relation: Model.ManyToManyRelation,
+        modelClass: UserPost,
+        join: {
+          from: "tags.id",
+          through: {
+            from: "post_tags.tag_id",
+            to: "post_tags.post_id",
+          },
+          to: "user_posts.id",
         },
       },
     };

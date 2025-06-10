@@ -48,3 +48,4 @@ coverage/
 # Storage folders
 storage/avatars/
 storage/uploads/
+storage/badges/

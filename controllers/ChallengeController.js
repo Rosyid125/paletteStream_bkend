@@ -1,5 +1,6 @@
 const ChallengeService = require("../services/ChallengeService");
 const BadgeService = require("../services/BadgeService");
+const ChallengeWinnerService = require("../services/ChallengeWinnerService");
 const customError = require("../errors/customError");
 const jwt = require("jsonwebtoken");
 const logger = require("../utils/winstonLogger");
@@ -163,7 +164,9 @@ class ChallengeController {
   // POST /challenges/:id/submit-post - Submit post to challenge
   static async submitPostToChallenge(req, res) {
     try {
-      const { id: challengeId } = req.params;
+      let { id: challengeId } = req.params;
+      // Ensure challengeId is a number
+      challengeId = parseInt(challengeId, 10);
       const { postId } = req.body;
 
       // Get user from token
@@ -208,18 +211,31 @@ class ChallengeController {
       return res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
   }
-
   // POST /challenges/:id/select-winners - Select winners and award badges (Admin only)
   static async selectWinners(req, res) {
     try {
-      const { id: challengeId } = req.params;
-      const { winnerUserIds, adminNote } = req.body;
+      let { id: challengeId } = req.params;
 
-      if (!Array.isArray(winnerUserIds) || winnerUserIds.length === 0) {
-        throw new customError("Winner user IDs must be provided as an array", 400);
+      // Ensure challengeId is a number
+      challengeId = parseInt(challengeId, 10);
+
+      const { winnersData, adminNote } = req.body;
+
+      console.log("Selecting winners for challenge:", challengeId, "with winners:", winnersData);
+
+      // Validate winnersData format: [{ userId, postId, rank }, ...]
+      if (!Array.isArray(winnersData) || winnersData.length === 0) {
+        throw new customError("Winners data must be provided as an array with userId, postId, and rank", 400);
       }
 
-      const result = await BadgeService.selectWinnersAndAwardBadges(challengeId, winnerUserIds, adminNote);
+      // Validate each winner data
+      for (const winner of winnersData) {
+        if (!winner.userId || !winner.postId || !winner.rank) {
+          throw new customError("Each winner must have userId, postId, and rank", 400);
+        }
+      }
+
+      const result = await ChallengeWinnerService.selectWinners(challengeId, winnersData, adminNote);
       res.json(result);
     } catch (error) {
       logger.error(`Error selecting winners: ${error.message}`, {
@@ -233,12 +249,11 @@ class ChallengeController {
       return res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
   }
-
   // GET /challenges/:id/winners - Get challenge winners
   static async getChallengeWinners(req, res) {
     try {
       const { id } = req.params;
-      const winners = await BadgeService.getChallengeWinners(id);
+      const winners = await ChallengeWinnerService.getChallengeWinners(id);
       res.json({ success: true, data: winners });
     } catch (error) {
       logger.error(`Error getting challenge winners: ${error.message}`, {
@@ -269,6 +284,55 @@ class ChallengeController {
       res.json({ success: true, data: history });
     } catch (error) {
       logger.error(`Error getting user challenge history: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      if (error instanceof customError) {
+        return res.status(error.statusCode || 401).json({ success: false, message: error.message });
+      }
+      return res.status(500).json({ success: false, message: "An unexpected error occurred." });
+    }
+  }
+
+  // POST /challenges/:id/auto-select-winners - Auto-select winners based on likes (Admin only)
+  static async autoSelectWinners(req, res) {
+    try {
+      let { id: challengeId } = req.params;
+      challengeId = parseInt(challengeId, 10);
+
+      const { maxWinners = 3, adminNote = "Auto-selected by system" } = req.body;
+
+      const result = await ChallengeWinnerService.autoSelectWinnersByLikes(challengeId, maxWinners, adminNote);
+      res.json(result);
+    } catch (error) {
+      logger.error(`Error auto-selecting winners: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      if (error instanceof customError) {
+        return res.status(error.statusCode || 400).json({ success: false, message: error.message });
+      }
+      return res.status(500).json({ success: false, message: "An unexpected error occurred." });
+    }
+  }
+  // GET /user/wins - Get user's challenge wins
+  static async getUserWins(req, res) {
+    try {
+      // Get user from token
+      const token = req.cookies.accessToken;
+      if (!token) {
+        throw new customError("Unauthorized", 401);
+      }
+
+      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      const userId = user.id;
+
+      const wins = await ChallengeWinnerService.getUserWins(userId);
+      res.json({ success: true, data: wins });
+    } catch (error) {
+      logger.error(`Error getting user wins: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });

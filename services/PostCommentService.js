@@ -36,17 +36,14 @@ class PostCommentService {
       throw error;
     }
   }
-
   // Get post comment by post id
-  static async findByPostId(postId, page, limit) {
+  static async findByPostId(postId, userId, page, limit) {
     try {
       // Pagination setup
       const offset = (page - 1) * limit;
 
       // Get all post comments by post id
-      const postComments = await PostCommentRepository.findByPostId(postId, offset, limit);
-
-      // Map all comment id to get comment replies count
+      const postComments = await PostCommentRepository.findByPostId(postId, offset, limit); // Map all comment id to get comment replies count
       const commentIds = postComments.map((comment) => comment.id);
       const commentRepliesCountResult = await CommentReplyRepository.countByCommentIds(commentIds);
 
@@ -57,26 +54,52 @@ class PostCommentService {
         comment.replies_count = commentRepliesCount ? parseInt(commentRepliesCount.count) : 0;
       });
 
-      // Ambil post utama
+      // Get post details
       const post = await UserPostRepository.findByPostId(postId);
       if (!post) throw new customError("Post not found", 404);
-      // Ambil images dan tags
-      const [postImages, postTags] = await Promise.all([require("../repositories/PostImageRepository").findByPostIds([postId]), require("../repositories/PostTagRepository").findByPostIds([postId])]);
+
+      // Get post images, tags, likes, comments count, like status, and bookmark status
+      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+        require("../repositories/PostImageRepository").findByPostIds([postId]),
+        require("../repositories/PostTagRepository").findByPostIds([postId]),
+        require("../repositories/PostLikeRepository").countByPostIds([postId]),
+        this.countByPostIds([postId]),
+        require("../repositories/PostLikeRepository").getStatuses(userId, [postId]),
+        require("../services/UserBookmarkService").getStatuses([postId], userId),
+      ]);
+
+      // Create maps for quick lookup
       const imagesMap = postImages.reduce((acc, img) => {
         acc[img.post_id] = acc[img.post_id] || [];
         acc[img.post_id].push(img.image_url);
         return acc;
       }, {});
+
       const tagsMap = postTags.reduce((acc, tag) => {
         acc[tag.post_id] = acc[tag.post_id] || [];
         acc[tag.post_id].push(tag.name);
         return acc;
       }, {});
 
-      // Console log all data
-      console.log("Post:", post);
+      const likeCountMap = postLikeCounts.reduce((acc, row) => {
+        acc[row.post_id] = parseInt(row.count) || 0;
+        return acc;
+      }, {});
 
-      // Return post comments and post content
+      const commentCountMap = postCommentCounts.reduce((acc, row) => {
+        acc[row.post_id] = parseInt(row.count) || 0;
+        return acc;
+      }, {});
+
+      const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true;
+        return acc;
+      }, {});
+
+      const bookmarkStatusMap = userBookmarkStatuses.reduce((acc, status) => {
+        acc[status.post_id] = true;
+        return acc;
+      }, {}); // Return post comments and post content with engagement data
       return {
         post: {
           id: post.id,
@@ -92,6 +115,10 @@ class PostCommentService {
           description: post.description,
           images: imagesMap[post.id] || [],
           tags: tagsMap[post.id] || [],
+          likeCount: likeCountMap[post.id] || 0,
+          commentCount: commentCountMap[post.id] || 0,
+          postLikeStatus: likeStatusMap[post.id] || false,
+          bookmarkStatus: bookmarkStatusMap[post.id] || false,
         },
         comments: postComments.map((comment) => ({
           id: comment.id,
@@ -100,6 +127,8 @@ class PostCommentService {
           avatar: comment.user.profile.avatar,
           level: comment.user.experience.level,
           content: comment.content,
+          likeCount: comment.likes || 0,
+          commentCount: comment.replies_count,
           created_at: formatDate(comment.created_at),
           replies_count: comment.replies_count,
         })),
