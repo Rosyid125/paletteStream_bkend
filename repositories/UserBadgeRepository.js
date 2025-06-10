@@ -1,33 +1,65 @@
-// Import model
 const UserBadge = require("../models/UserBadge");
-// For error handling
-const currentRepo = "UserBadgeRepository";
 
 class UserBadgeRepository {
   // Get all user badges
   static async findAll() {
     try {
-      const userBadges = await UserBadge.query();
+      const userBadges = await UserBadge.query().withGraphFetched("[user.[profile], challenge]");
       return userBadges;
     } catch (error) {
       throw error;
     }
   }
 
-  // Get user badge by user id
-  static async findByUserId(user_id) {
+  // Get user badges by user ID
+  static async findByUserId(userId) {
     try {
-      const userBadge = await UserBadge.query().findOne({ user_id });
+      const userBadges = await UserBadge.query().where("user_id", userId).withGraphFetched("[challenge]").orderBy("awarded_at", "desc");
+      return userBadges;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get user badges by challenge ID
+  static async findByChallengeId(challengeId) {
+    try {
+      const userBadges = await UserBadge.query().where("challenge_id", challengeId).withGraphFetched("[user.[profile]]").orderBy("awarded_at", "desc");
+      return userBadges;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get user badge by ID
+  static async findById(id) {
+    try {
+      const userBadge = await UserBadge.query().findById(id).withGraphFetched("[user.[profile], challenge]");
       return userBadge;
     } catch (error) {
       throw error;
     }
   }
 
-  // Create a new user badge
-  static async create(user_id, badge_id) {
+  // Check if user already has badge for challenge
+  static async findByUserAndChallenge(userId, challengeId) {
     try {
-      const userBadge = await UserBadge.query().insert({ user_id, badge_id });
+      const userBadge = await UserBadge.query().findOne({ user_id: userId, challenge_id: challengeId }).withGraphFetched("[challenge]");
+      return userBadge;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Create user badge (award badge)
+  static async create(userId, challengeId, badgeImg, adminNote) {
+    try {
+      const userBadge = await UserBadge.query().insert({
+        user_id: userId,
+        challenge_id: challengeId,
+        badge_img: badgeImg,
+        admin_note: adminNote,
+      });
       return userBadge;
     } catch (error) {
       throw error;
@@ -35,14 +67,40 @@ class UserBadgeRepository {
   }
 
   // Update user badge
-  static async update(user_id, badge_id) {
+  static async update(id, updateData) {
     try {
-      const userBadge = await UserBadge.query().findOne({ user_id });
-      if (!userBadge) {
-        return null;
-      }
-      await UserBadge.query().findOne({ user_id }).patch({ badge_id });
+      const userBadge = await UserBadge.query().findById(id).patch(updateData);
       return userBadge;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Delete user badge
+  static async delete(id) {
+    try {
+      const deletedCount = await UserBadge.query().deleteById(id);
+      return deletedCount > 0;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Delete by user and challenge
+  static async deleteByUserAndChallenge(userId, challengeId) {
+    try {
+      const deletedCount = await UserBadge.query().delete().where({ user_id: userId, challenge_id: challengeId });
+      return deletedCount > 0;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Count badges for user
+  static async countByUserId(userId) {
+    try {
+      const count = await UserBadge.query().where("user_id", userId).count("id as count").first();
+      return count ? parseInt(count.count) : 0;
     } catch (error) {
       throw error;
     }

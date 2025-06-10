@@ -1,6 +1,7 @@
 // Import all necessary repositories
 const UserAchievementRepository = require("../repositories/UserAchievementRepository");
 const UserBadgeRepository = require("../repositories/UserBadgeRepository");
+const ChallengePostRepository = require("../repositories/ChallengePostRepository");
 const UserExpRepository = require("../repositories/UserExpRepository");
 const UserRepository = require("../repositories/UserRepository");
 const UserProfileRepository = require("../repositories/UserProfileRepository");
@@ -58,10 +59,11 @@ class UserProfileService {
       const userPostCount = await UserPostRepository.countByUserId(userId);
       const userLikeCount = await PostLikeRepository.countByUserId(userId);
       const userCommentCount = await PostCommentRepository.countByUserId(userId);
-      // const userChallangeCount = await UserChallangeService.countByUserId(userId);
-      // const userChallangeWinCount = await UserChallangeService.countWinByUserId(userId);
-      const userChallangeCount = 0; // Dummy data
-      const userChallangeWinCount = 0; // Dummy data
+
+      // Get challenge participation and wins count
+      const userChallengeSubmissions = await ChallengePostRepository.findByUserId(userId);
+      const userChallengeCount = userChallengeSubmissions.length;
+      const userChallengeWinCount = await UserBadgeRepository.countByUserId(userId);
 
       // get user follow status info
       const userFollowStatus = await UserFollowService.findByFollowerIdAndFollowedId(currentUserId, userId);
@@ -93,8 +95,8 @@ class UserProfileService {
         posts: userPostCount,
         likes: userLikeCount,
         comments: userCommentCount,
-        challanges: userChallangeCount,
-        challangeWins: userChallangeWinCount,
+        challanges: userChallengeCount,
+        challangeWins: userChallengeWinCount,
       };
     } catch (error) {
       throw error;
@@ -111,10 +113,15 @@ class UserProfileService {
       // Get followers count
       const userFollowersCount = await UserFollowRepository.countFollowersByUserId(userId);
       // Get user post count
-      const userPostCount = await UserPostRepository.countByUserId(userId);
-      // Get user post like count
+      const userPostCount = await UserPostRepository.countByUserId(userId); // Get user post like count
       const userLikeCount = await PostLikeRepository.countByUserId(userId);
-      // Comming soon: Get user challange count, user challange win count, user achievements, user badges
+
+      // Get challenge participation and wins count
+      const userChallengeSubmissions = await ChallengePostRepository.findByUserId(userId);
+      const userChallengeCount = userChallengeSubmissions.length;
+      const userChallengeWinCount = await UserBadgeRepository.countByUserId(userId);
+      const userAchievementsCount = await UserAchievementRepository.findByUserId(userId);
+      const userBadgesCount = await UserBadgeRepository.findByUserId(userId);
 
       if (!user) {
         throw new customError("User not found");
@@ -130,10 +137,10 @@ class UserProfileService {
         posts: userPostCount,
         likes: userLikeCount,
         score: score,
-        challanges: 0, // Dummy data
-        challangeWins: 0, // Dummy data
-        achievements: 0, // Dummy data
-        badges: 0, // Dummy data
+        challanges: userChallengeCount,
+        challangeWins: userChallengeWinCount,
+        achievements: userAchievementsCount.length,
+        badges: userBadgesCount.length,
       };
     } catch (error) {
       throw error;

@@ -1,8 +1,8 @@
 const { Model } = require("objection");
 
-class UserBadge extends Model {
+class ChallengePost extends Model {
   static get tableName() {
-    return "user_badges";
+    return "challenge_posts";
   }
 
   static get idColumn() {
@@ -12,14 +12,12 @@ class UserBadge extends Model {
   static get jsonSchema() {
     return {
       type: "object",
-      required: ["user_id", "challenge_id"],
+      required: ["challenge_id", "post_id", "user_id"],
       properties: {
         id: { type: "integer" },
-        user_id: { type: "integer" },
         challenge_id: { type: "integer" },
-        badge_img: { type: ["string", "null"], maxLength: 255 },
-        admin_note: { type: ["string", "null"] },
-        awarded_at: { type: "string" },
+        post_id: { type: "integer" },
+        user_id: { type: "integer" },
         created_at: { type: "string" },
         updated_at: { type: "string" },
       },
@@ -27,24 +25,33 @@ class UserBadge extends Model {
   }
 
   static get relationMappings() {
-    const User = require("./User");
     const Challenge = require("./Challenge");
+    const UserPost = require("./UserPost");
+    const User = require("./User");
 
     return {
-      user: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: User,
-        join: {
-          from: "user_badges.user_id",
-          to: "users.id",
-        },
-      },
       challenge: {
         relation: Model.BelongsToOneRelation,
         modelClass: Challenge,
         join: {
-          from: "user_badges.challenge_id",
+          from: "challenge_posts.challenge_id",
           to: "challenges.id",
+        },
+      },
+      post: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: UserPost,
+        join: {
+          from: "challenge_posts.post_id",
+          to: "user_posts.id",
+        },
+      },
+      user: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: User,
+        join: {
+          from: "challenge_posts.user_id",
+          to: "users.id",
         },
       },
     };
@@ -60,4 +67,4 @@ class UserBadge extends Model {
   }
 }
 
-module.exports = UserBadge;
+module.exports = ChallengePost;

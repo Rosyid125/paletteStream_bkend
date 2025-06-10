@@ -940,6 +940,16 @@ class UserPostService {
       throw error;
     }
   }
+
+  // Static method to get post by ID (for challenge integration)
+  static async getPostById(postId) {
+    try {
+      const post = await UserPostRepository.findByPostId(postId);
+      return post;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 // Export the UserPostService class

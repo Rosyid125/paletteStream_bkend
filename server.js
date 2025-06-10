@@ -23,8 +23,13 @@ app.use(cookieParser());
 
 app.use("/api/storage/uploads", express.static(path.join(__dirname, "storage/uploads")));
 app.use("/api/storage/avatars", express.static(path.join(__dirname, "storage/avatars")));
+app.use("/api/storage/badges", express.static(path.join(__dirname, "storage/badges")));
 
 require("./services/GamificationService");
+
+// Initialize Challenge Scheduler
+const ChallengeScheduler = require("./utils/ChallengeScheduler");
+ChallengeScheduler.start();
 
 app.get("/", (req, res) => {
   res.send("Hello World");
