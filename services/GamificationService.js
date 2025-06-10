@@ -54,19 +54,7 @@ Object.keys(expGainByEvent).forEach((eventType) => {
 });
 
 // Daftarkan listener untuk achievement events dengan metadata
-const achievementEvents = [
-  "post_liked",
-  "post_commented",
-  "comment_replied",
-  "post_bookmarked",
-  "user_followed",
-  "chat_started",
-  "comment_replied_by_user",
-  "leaderboard_daily",
-  "leaderboard_weekly",
-  "post_tagged",
-  "post_uploaded",
-];
+const achievementEvents = ["post_liked", "post_commented", "comment_replied", "post_bookmarked", "user_followed", "chat_started", "comment_replied_by_user", "leaderboard_daily", "leaderboard_weekly", "post_tagged", "post_uploaded"];
 
 achievementEvents.forEach((eventName) => {
   gamificationEmitter.on(`achievement:${eventName}`, async ({ userId, metadata }) => {

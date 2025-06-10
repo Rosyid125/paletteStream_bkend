@@ -106,7 +106,7 @@ class UserFollowRepository {
   static async findFollowers(user_id) {
     try {
       const userFollows = await UserFollow.query().where({ followed_id: user_id }).select("follower_id");
-      return userFollows.map(follow => ({ follower_id: follow.follower_id }));
+      return userFollows.map((follow) => ({ follower_id: follow.follower_id }));
     } catch (error) {
       throw error;
     }

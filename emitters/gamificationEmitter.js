@@ -4,7 +4,7 @@ const { EventEmitter } = require("events");
 const gamificationEmitter = new EventEmitter();
 
 // Enhanced event emitter for achievements with metadata
-gamificationEmitter.emitAchievementEvent = function(eventName, userId, metadata = {}) {
+gamificationEmitter.emitAchievementEvent = function (eventName, userId, metadata = {}) {
   this.emit(`achievement:${eventName}`, { userId, metadata });
 };
 

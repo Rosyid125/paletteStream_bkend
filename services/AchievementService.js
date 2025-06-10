@@ -82,10 +82,12 @@ class AchievementService {
         const posts = await UserPostRepository.findByUserId(userId, 0, 1000);
         const postIds = posts.map((p) => p.id);
         if (postIds.length === 0) return;
-        const allComments = await Promise.all(postIds.map(async (pid) => {
-          const comments = await PostCommentRepository.findByPostId(pid, 0, 1000); // Get first 1000 comments
-          return comments;
-        }));
+        const allComments = await Promise.all(
+          postIds.map(async (pid) => {
+            const comments = await PostCommentRepository.findByPostId(pid, 0, 1000); // Get first 1000 comments
+            return comments;
+          })
+        );
         const flatComments = allComments.flat();
         const uniqueCommenters = new Set(flatComments.map((c) => c.user_id).filter((uid) => uid !== userId));
         await AchievementService._updateUserAchievementProgress(userId, 3, flatComments.length);

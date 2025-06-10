@@ -48,7 +48,7 @@ class UserAchievementService {
   static async createAchievement(title, icon, description, goal) {
     try {
       // Create a new achievement
-      const achievement = await AchievementRepository.create(title, icon, description, goal);      // Add default entries to userAchievements table for all users
+      const achievement = await AchievementRepository.create(title, icon, description, goal); // Add default entries to userAchievements table for all users
       const users = await UserRepository.findAllUsers();
       for (const user of users) {
         await UserAchievementRepository.create(user.id, achievement.id, 0, "in-progress");

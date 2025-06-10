@@ -46,16 +46,12 @@ class UserAchievementRepository {
   // Update user achievement
   static async update(user_id, achievement_id, progress, status) {
     try {
-      const userAchievement = await UserAchievement.query()
-        .where({ user_id, achievement_id })
-        .patch({ progress, status })
-        .returning('*')
-        .first();
-      
+      const userAchievement = await UserAchievement.query().where({ user_id, achievement_id }).patch({ progress, status }).returning("*").first();
+
       if (!userAchievement) {
         return null;
       }
-      
+
       return userAchievement;
     } catch (error) {
       throw error;

@@ -42,7 +42,7 @@ class AchievementUtils {
     try {
       const achievements = await AchievementService.getAllAchievements();
       const userAchievements = await AchievementService.getUnlockedAchievements(userId);
-      
+
       const completed = userAchievements.length;
       const total = achievements.length;
       const percentage = Math.round((completed / total) * 100);
@@ -51,7 +51,7 @@ class AchievementUtils {
         completed,
         total,
         percentage,
-        remaining: total - completed
+        remaining: total - completed,
       };
     } catch (error) {
       console.error(`❌ Failed to get progress summary for user ${userId}:`, error);
@@ -65,17 +65,8 @@ class AchievementUtils {
    */
   static async recalculateAllAchievements(userId) {
     console.log(`🔄 Recalculating all achievements for user ${userId}...`);
-    
-    const events = [
-      "post_uploaded",
-      "post_liked", 
-      "post_commented",
-      "comment_replied",
-      "post_bookmarked",
-      "user_followed",
-      "chat_started",
-      "comment_replied_by_user"
-    ];
+
+    const events = ["post_uploaded", "post_liked", "post_commented", "comment_replied", "post_bookmarked", "user_followed", "chat_started", "comment_replied_by_user"];
 
     for (const eventName of events) {
       try {
@@ -107,24 +98,24 @@ class AchievementUtils {
     return {
       // Post-related events
       postCreated: "post_uploaded",
-      postGotLiked: "post_liked", 
+      postGotLiked: "post_liked",
       postGotCommented: "post_commented",
       postGotBookmarked: "post_bookmarked",
-      
+
       // Social events
       userGotFollowed: "user_followed",
       commentGotReplied: "comment_replied",
       replyOnComment: "comment_replied_by_user",
-      
+
       // Chat events
       chatStarted: "chat_started",
-      
+
       // Leaderboard events
       dailyLeaderboard: "leaderboard_daily",
       weeklyLeaderboard: "leaderboard_weekly",
-      
+
       // Tag events
-      postTagged: "post_tagged"
+      postTagged: "post_tagged",
     };
   }
 
@@ -136,18 +127,18 @@ class AchievementUtils {
    * @returns {boolean} Is valid
    */
   static validateEventData(eventName, userId, metadata = {}) {
-    if (!eventName || typeof eventName !== 'string') {
-      console.error('❌ Invalid event name');
+    if (!eventName || typeof eventName !== "string") {
+      console.error("❌ Invalid event name");
       return false;
     }
 
-    if (!userId || typeof userId !== 'number') {
-      console.error('❌ Invalid user ID');
+    if (!userId || typeof userId !== "number") {
+      console.error("❌ Invalid user ID");
       return false;
     }
 
-    if (typeof metadata !== 'object') {
-      console.error('❌ Invalid metadata');
+    if (typeof metadata !== "object") {
+      console.error("❌ Invalid metadata");
       return false;
     }
 

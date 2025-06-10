@@ -56,7 +56,7 @@ class AchievementController {
     try {
       const userId = parseInt(req.params.userId);
       if (!userId) return res.status(400).json({ success: false, message: "Valid userId required" });
-      
+
       const summary = await AchievementUtils.getProgressSummary(userId);
       res.json({ success: true, data: summary });
     } catch (error) {
@@ -69,7 +69,7 @@ class AchievementController {
     try {
       const userId = parseInt(req.params.userId);
       if (!userId) return res.status(400).json({ success: false, message: "Valid userId required" });
-      
+
       await AchievementUtils.recalculateAllAchievements(userId);
       res.json({ success: true, message: "Achievements recalculated successfully" });
     } catch (error) {
@@ -82,7 +82,7 @@ class AchievementController {
     try {
       const userId = parseInt(req.params.userId);
       if (!userId) return res.status(400).json({ success: false, message: "Valid userId required" });
-      
+
       const completedAchievements = await AchievementService.getUnlockedAchievements(userId);
       res.json({ success: true, data: completedAchievements });
     } catch (error) {

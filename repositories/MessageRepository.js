@@ -77,7 +77,7 @@ class MessageRepository {
       const received = await Message.query().where("receiver_id", userId).distinct("sender_id as user_id");
       const userIds = [...sent, ...received].map((u) => u.user_id);
       const uniqueUserIds = [...new Set(userIds)].filter((id) => id !== userId);
-      
+
       return uniqueUserIds;
     } catch (error) {
       throw error;
