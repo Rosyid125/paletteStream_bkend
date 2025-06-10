@@ -16,7 +16,7 @@ const deleteFile = require("../utils/deleteFileUtils");
 // Define the UserPostService class
 class UserPostService {
   // Static method to get all user posts and related data for a user profile page
-  static async getUserPosts(userId, page, limit) {
+  static async getUserPosts(userId, currentUserId, page, limit) {
     try {
       // Pagination setup
       const offset = (page - 1) * limit;
@@ -34,8 +34,8 @@ class UserPostService {
         PostTagRepository.findByPostIds(postIds),
         PostLikeRepository.countByPostIds(postIds),
         PostCommentService.countByPostIds(postIds),
-        PostLikeRepository.getStatuses(userId, postIds),
-        UserBookmarkService.getStatuses(postIds, userId),
+        PostLikeRepository.getStatuses(currentUserId, postIds),
+        UserBookmarkService.getStatuses(postIds, currentUserId),
       ]);
 
       // Convert arrays into maps for quick lookup

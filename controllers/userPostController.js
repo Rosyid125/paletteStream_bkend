@@ -19,12 +19,15 @@ class UserPostController {
       // Make user id integer
       userId = parseInt(userId);
 
+      // Get current userId from token
+      const currentUserId = req.user.id;
+
       // Get page and limit from query
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
 
       // Panggil service untuk mendapatkan post user
-      const userPosts = await UserPostService.getUserPosts(userId, page, limit);
+      const userPosts = await UserPostService.getUserPosts(userId, currentUserId, page, limit);
 
       // Jika tidak ada post
       if (!userPosts) {
