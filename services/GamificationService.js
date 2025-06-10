@@ -1,4 +1,5 @@
 const UserExpService = require("./UserExpService");
+const AchievementService = require("./AchievementService");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
 const expGainByEvent = {
@@ -52,10 +53,66 @@ Object.keys(expGainByEvent).forEach((eventType) => {
   });
 });
 
+// Daftarkan listener untuk achievement events dengan metadata
+const achievementEvents = [
+  "post_liked",
+  "post_commented",
+  "comment_replied",
+  "post_bookmarked",
+  "user_followed",
+  "chat_started",
+  "comment_replied_by_user",
+  "leaderboard_daily",
+  "leaderboard_weekly",
+  "post_tagged",
+  "post_uploaded",
+];
+
+achievementEvents.forEach((eventName) => {
+  gamificationEmitter.on(`achievement:${eventName}`, async ({ userId, metadata }) => {
+    try {
+      await AchievementService.handleEvent(eventName, userId, metadata);
+    } catch (error) {
+      console.error(`Error handling achievement ${eventName} for user ${userId}:`, error);
+    }
+  });
+});
+
 class GamificationService {
   static async updateUserAchievement(userId, eventType) {
     console.log(`Updating achievement for user ${userId} due to ${eventType}`);
-    // TODO: Implement achievement logic here
+    try {
+      // Map eventType to achievement event names
+      const eventMap = {
+        postCreated: "post_uploaded",
+        postDeleted: "post_uploaded", // reverse
+        userFollowed: "user_followed",
+        userUnfollowed: "user_followed", // reverse
+        userGotFollowed: "user_followed",
+        userGotUnfollowed: "user_followed", // reverse
+        commentOnPost: "post_commented",
+        commentOnPostDeleted: "post_commented", // reverse
+        postGotCommented: "post_commented",
+        postGotUncommented: "post_commented", // reverse
+        replyOnComment: "comment_replied_by_user",
+        replyOnCommentDeleted: "comment_replied_by_user", // reverse
+        commentGotReplied: "comment_replied",
+        commentGotUnreplied: "comment_replied", // reverse
+        likeOnPost: "post_liked",
+        likeOnPostDeleted: "post_liked", // reverse
+        postGotLiked: "post_liked",
+        postGotUnliked: "post_liked", // reverse
+        postGotBookmarked: "post_bookmarked",
+        postGotUnbookmarked: "post_bookmarked", // reverse
+      };
+
+      const achievementEvent = eventMap[eventType];
+      if (achievementEvent) {
+        await AchievementService.handleEvent(achievementEvent, userId, {});
+      }
+    } catch (error) {
+      console.error(`Error updating achievement for user ${userId}:`, error);
+    }
   }
 
   static async updateUserExpAndLevel(userId, eventType) {

@@ -56,7 +56,7 @@ class AchievementService {
         const posts = await UserPostRepository.findByUserId(userId, 0, 1000);
         const postIds = posts.map((p) => p.id);
         if (postIds.length === 0) return;
-        const allLikes = await Promise.all(postIds.map((pid) => PostLikeRepository.findByPostId(pid)));
+        const allLikes = await Promise.all(postIds.map((pid) => PostLikeRepository.findByPostIdAll(pid)));
         const uniqueUserIds = new Set();
         allLikes.flat().forEach((like) => {
           if (like && like.user_id && like.user_id !== userId) uniqueUserIds.add(like.user_id);
@@ -69,7 +69,7 @@ class AchievementService {
         await AchievementService._updateUserAchievementProgress(userId, 2, totalLikes); // Rising Star
         // Mini Viral (id:10): 5 likes from different users in 1 hour (metadata.postId, metadata.likedAt)
         if (metadata.postId && metadata.likedAt) {
-          const likes = await PostLikeRepository.findByPostId(metadata.postId);
+          const likes = await PostLikeRepository.findByPostIdAll(metadata.postId);
           const oneHourAgo = new Date(new Date(metadata.likedAt).getTime() - 60 * 60 * 1000);
           const recentLikes = likes.filter((like) => new Date(like.created_at) >= oneHourAgo);
           const uniqueRecent = new Set(recentLikes.map((like) => like.user_id));
@@ -82,7 +82,10 @@ class AchievementService {
         const posts = await UserPostRepository.findByUserId(userId, 0, 1000);
         const postIds = posts.map((p) => p.id);
         if (postIds.length === 0) return;
-        const allComments = await Promise.all(postIds.map((pid) => PostCommentRepository.findByPostId(pid)));
+        const allComments = await Promise.all(postIds.map(async (pid) => {
+          const comments = await PostCommentRepository.findByPostId(pid, 0, 1000); // Get first 1000 comments
+          return comments;
+        }));
         const flatComments = allComments.flat();
         const uniqueCommenters = new Set(flatComments.map((c) => c.user_id).filter((uid) => uid !== userId));
         await AchievementService._updateUserAchievementProgress(userId, 3, flatComments.length);
@@ -92,7 +95,7 @@ class AchievementService {
         // Talk of the Thread (id:4): comment got 10 replies from different users
         const { commentId } = metadata;
         if (!commentId) return;
-        const replies = await CommentReplyRepository.findByCommentId(commentId);
+        const replies = await CommentReplyRepository.findByCommentId(commentId, 0, 1000);
         const uniqueUserIds = new Set();
         replies.forEach((reply) => {
           if (reply && reply.user_id && reply.user_id !== userId) uniqueUserIds.add(reply.user_id);

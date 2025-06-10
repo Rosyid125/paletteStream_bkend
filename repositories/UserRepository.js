@@ -93,6 +93,15 @@ class UserRepository {
     }
   }
 
+  // Get all users without pagination (for achievement system)
+  static async findAllUsers() {
+    try {
+      return await User.query();
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Update user status (ban)
   static async updateStatus(id, status) {
     try {

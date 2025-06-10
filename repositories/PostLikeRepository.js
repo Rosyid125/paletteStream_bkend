@@ -44,6 +44,16 @@ class PostLikeRepository {
     }
   }
 
+  // Get post like by post id (without pagination for achievement system)
+  static async findByPostIdAll(post_id) {
+    try {
+      const postLikes = await PostLike.query().where({ post_id });
+      return postLikes;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Get post like by user id
   static async findByUserId(user_id) {
     try {

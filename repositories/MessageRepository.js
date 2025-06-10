@@ -68,6 +68,21 @@ class MessageRepository {
     chats.sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time));
     return chats;
   }
+
+  // Get active chats for achievement system
+  async findActiveChats(userId) {
+    try {
+      // Get all users who have sent or received messages from this user
+      const sent = await Message.query().where("sender_id", userId).distinct("receiver_id as user_id");
+      const received = await Message.query().where("receiver_id", userId).distinct("sender_id as user_id");
+      const userIds = [...sent, ...received].map((u) => u.user_id);
+      const uniqueUserIds = [...new Set(userIds)].filter((id) => id !== userId);
+      
+      return uniqueUserIds;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new MessageRepository();

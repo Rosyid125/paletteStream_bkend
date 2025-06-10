@@ -92,12 +92,21 @@ class UserFollowRepository {
       throw error;
     }
   }
-
   // Count followers by user id
   static async countFollowersByUserId(followed_id) {
     try {
       const result = await UserFollow.query().where({ followed_id }).count("followed_id as count").first();
       return result?.count || 0;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get followers for achievement system
+  static async findFollowers(user_id) {
+    try {
+      const userFollows = await UserFollow.query().where({ followed_id: user_id }).select("follower_id");
+      return userFollows.map(follow => ({ follower_id: follow.follower_id }));
     } catch (error) {
       throw error;
     }

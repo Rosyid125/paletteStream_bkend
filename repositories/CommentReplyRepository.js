@@ -98,7 +98,6 @@ class CommentReplyRepository {
       throw error;
     }
   }
-
   // Count comment replies by comment ids
   static async countByCommentIds(commentIds) {
     try {
@@ -109,6 +108,16 @@ class CommentReplyRepository {
         .groupBy("comment_id");
 
       return result; // Formatnya sama: [{ comment_id: 1, count: 2 }, { comment_id: 2, count: 4 }]
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get comment replies by user id
+  static async findByUserId(user_id) {
+    try {
+      const commentReplies = await CommentReply.query().where({ user_id });
+      return commentReplies;
     } catch (error) {
       throw error;
     }

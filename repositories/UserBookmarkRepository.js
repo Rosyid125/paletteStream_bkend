@@ -44,12 +44,21 @@ class UserBookmarkRepository {
       throw error;
     }
   }
-
   // Delete a post bookmark
   static async delete(user_id, post_id) {
     try {
       const userBookmark = await UserBookmark.query().delete().where({ user_id, post_id });
       return userBookmark;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get all bookmarks by post id (for achievement system)
+  static async findByPostId(post_id) {
+    try {
+      const bookmarks = await UserBookmark.query().where({ post_id });
+      return bookmarks;
     } catch (error) {
       throw error;
     }
