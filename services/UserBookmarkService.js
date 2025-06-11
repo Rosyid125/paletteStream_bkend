@@ -2,6 +2,7 @@ const UserBookmarkRepository = require("../repositories/UserBookmarkRepository.j
 const customError = require("../errors/customError");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter.js");
 const UserPostRepository = require("../repositories/UserPostRepository.js");
+const NotificationService = require("./NotificationService.js");
 
 class UserBookmarkService {
   // Get all post ids that are bookmarked by user id
@@ -45,9 +46,7 @@ class UserBookmarkService {
         }
 
         return { message: "Post bookmark deleted" };
-      }
-
-      // Create a new user bookmark
+      } // Create a new user bookmark
       const userBookmark = await UserBookmarkRepository.create(userId, postId);
 
       // Check if user bookmark was created successfully
@@ -58,7 +57,18 @@ class UserBookmarkService {
         const post = await UserPostRepository.findByPostId(postId);
         if (post) {
           gamificationEmitter.emit("postGotBookmarked", post.user_id);
+
+          // Send notification to post owner (if not bookmarking own post)
+          if (post.user_id !== userId) {
+            try {
+              await NotificationService.notifyPostBookmarked(post.user_id, userId, postId, post.title);
+            } catch (notificationError) {
+              // Log error but don't break the main flow
+              console.error("Failed to send bookmark notification:", notificationError);
+            }
+          }
         }
+
         // If it was created successfully, return the user bookmark
         const userBookmarkData = {
           id: userBookmark.id,

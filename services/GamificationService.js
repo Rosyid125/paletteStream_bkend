@@ -1,5 +1,6 @@
 const UserExpService = require("./UserExpService");
 const AchievementService = require("./AchievementService");
+const NotificationService = require("./NotificationService");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
 const expGainByEvent = {
@@ -133,7 +134,41 @@ class GamificationService {
 
     await UserExpService.updateUserExpByUserId(userId, newExp, newLevel, currentTreshold, nextTreshold);
 
+    // Send level up notification if level increased
+    if (newLevel > currentLevel) {
+      try {
+        await NotificationService.notifyLevelUp(userId, newLevel, deltaExp);
+      } catch (notificationError) {
+        console.error("Failed to send level up notification:", notificationError);
+      }
+    }
+
+    // Send EXP gained notification for significant gains
+    if (deltaExp > 0 && deltaExp >= 10) {
+      try {
+        const reason = this.getExpGainReason(eventType);
+        await NotificationService.notifyExpGained(userId, deltaExp, reason);
+      } catch (notificationError) {
+        console.error("Failed to send exp gain notification:", notificationError);
+      }
+    }
+
     console.log(`User ${userId}: EXP ${currentExp} -> ${newExp}, Level ${currentLevel} -> ${newLevel} (Treshold: ${nextTreshold})`);
+  }
+
+  static getExpGainReason(eventType) {
+    const reasonMap = {
+      postCreated: "Creating a post",
+      userGotFollowed: "Getting a new follower",
+      postGotLiked: "Post received a like",
+      postGotCommented: "Post received a comment",
+      postGotBookmarked: "Post was bookmarked",
+      commentOnPost: "Commenting on a post",
+      replyOnComment: "Liking a post",
+      likeOnPost: "Liking a post",
+      userFollowed: "Following a user",
+    };
+    return reasonMap[eventType] || "User activity";
   }
 }
 

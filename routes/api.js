@@ -13,6 +13,7 @@ const adminRoutes = require("./adminRoutes"); // Import the adminRoutes
 const achievementRoutes = require("./achievementRoutes"); // Import the achievementRoutes
 const challengeRoutes = require("./challengeRoutes"); // Import the challengeRoutes
 const postReportRoutes = require("./postReportRoutes"); // Import the postReportRoutes
+const notificationRoutes = require("./notificationRoutes"); // Import the notificationRoutes
 
 router.use("/profiles", userProfileRoutes); // Use the userProfileRoutes for the /users route
 router.use("/auth", authRoutes); // Use the authRoutes for the /auth route
@@ -27,5 +28,6 @@ router.use("/chats", chatRoutes); // Use the chatRoutes for the /chats route
 router.use("/admin", adminRoutes); // Use the adminRoutes for the /admin route
 router.use("/achievements", achievementRoutes); // Use the achievementRoutes for the /achievements route
 router.use("/", challengeRoutes); // Use the challengeRoutes for challenge endpoints
+router.use("/notifications", notificationRoutes); // Use the notificationRoutes for notifications
 
 module.exports = router; // Export the router

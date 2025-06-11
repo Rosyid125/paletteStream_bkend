@@ -4,6 +4,7 @@ const ChallengePostRepository = require("../repositories/ChallengePostRepository
 const PostLikeRepository = require("../repositories/PostLikeRepository");
 const UserService = require("./UserService");
 const BadgeService = require("./BadgeService");
+const NotificationService = require("./NotificationService");
 const customError = require("../errors/customError");
 
 class ChallengeWinnerService {
@@ -70,6 +71,15 @@ class ChallengeWinnerService {
             await BadgeService.awardBadge(userId, challengeId, challenge.badge_img, `Winner - Rank ${rank}`);
           } catch (badgeError) {
             console.log(`Badge award failed for user ${userId}:`, badgeError.message);
+          }
+
+          // Send winner notification
+          try {
+            await NotificationService.notifyChallengeWinner(userId, challengeId, challenge.title, rank, `Rank ${rank} in ${challenge.title}`);
+
+            await NotificationService.notifyBadgeAwarded(userId, challengeId, challenge.title, challenge.badge_img, rank);
+          } catch (notificationError) {
+            console.error("Failed to send winner notification:", notificationError);
           }
 
           createdWinners.push(winner);

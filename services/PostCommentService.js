@@ -1,11 +1,11 @@
 const PostCommentRepository = require("../repositories/PostCommentRepository");
 const CommentReplyRepository = require("../repositories/CommentReplyRepository");
+const UserPostRepository = require("../repositories/UserPostRepository");
 const customError = require("../errors/customError");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
-
-// Import utility functions
-const { formatDate } = require("../utils/dateFormatterUtils");
-const UserPostRepository = require("../repositories/UserPostRepository");
+const formatDate = require("../utils/dateFormatterUtils");
+const NotificationService = require("./NotificationService");
+const MentionService = require("./MentionService");
 
 class PostCommentService {
   // Get all post comments and comment replies
@@ -148,13 +148,25 @@ class PostCommentService {
       }
 
       // Emit the gamification event for post comment
-      gamificationEmitter.emit("commentOnPost", userId);
-
-      // Get the userid from postId
+      gamificationEmitter.emit("commentOnPost", userId); // Get the userid from postId
       const post = await UserPostRepository.findByPostId(postId);
       if (post) {
         // Emit the gamification event for post got commented
         gamificationEmitter.emit("postGotCommented", post.user_id);
+
+        // Send notification to post owner
+        try {
+          await NotificationService.notifyPostCommented(post.user_id, userId, postId, post.title, postComment.id, content);
+        } catch (notificationError) {
+          console.error("Failed to send comment notification:", notificationError);
+        }
+
+        // Process mentions in comment content
+        try {
+          await MentionService.processMentions(content, userId, postId, postComment.id, "comment");
+        } catch (mentionError) {
+          console.error("Failed to process mentions in comment:", mentionError);
+        }
       }
 
       // Return post comment
@@ -256,6 +268,18 @@ class PostCommentService {
         if (post) {
           // Emit the gamification event for post got commented
           gamificationEmitter.emit("commentGotReplied", post.user_id);
+        } // Send notification to comment owner
+        try {
+          await NotificationService.notifyCommentReplied(postComment.user_id, userId, postComment.post_id, commentId, commentReply.id, content);
+        } catch (notificationError) {
+          console.error("Failed to send reply notification:", notificationError);
+        }
+
+        // Process mentions in reply content
+        try {
+          await MentionService.processMentions(content, userId, postComment.post_id, commentReply.id, "reply");
+        } catch (mentionError) {
+          console.error("Failed to process mentions in reply:", mentionError);
         }
       }
 

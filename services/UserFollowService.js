@@ -74,6 +74,17 @@ class UserFollowService {
         // Emit the gamification event for user got followed
         gamificationEmitter.emit("userGotFollowed", followed_id);
 
+        // Send follow notification
+        try {
+          // Get follower's username for notification
+          const UserProfileService = require("./UserProfileService");
+          const followerProfile = await UserProfileService.findMiniInfosByUserId(follower_id);
+
+          await NotificationService.notifyUserFollowed(followed_id, follower_id, followerProfile?.username || "Someone");
+        } catch (notificationError) {
+          console.error("Failed to send follow notification:", notificationError);
+        }
+
         // If it was created successfully, return the user follow
         const userFollowData = {
           id: userFollow.id,

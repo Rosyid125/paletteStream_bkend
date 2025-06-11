@@ -2,6 +2,7 @@ const PostLikeRepository = require("../repositories/PostLikeRepository");
 const customError = require("../errors/customError");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 const UserPostRepository = require("../repositories/UserPostRepository");
+const NotificationService = require("./NotificationService");
 
 class PostLikeService {
   // Get all post likes by post id
@@ -56,14 +57,22 @@ class PostLikeService {
       if (!postLike) {
         throw new customError("Post like cannot be created");
       } else {
+        // Get the post to send notification
+        const post = await UserPostRepository.findByPostId(postId);
+
         // Emit the gamification event for post like created
         gamificationEmitter.emit("likeOnPost", userId);
 
         // Emit the gamification event for post got liked
-        // get userid from postId
-        const post = await UserPostRepository.findByPostId(postId);
         if (post) {
           gamificationEmitter.emit("postGotLiked", post.user_id);
+
+          // Send notification to post owner
+          try {
+            await NotificationService.notifyPostLiked(post.user_id, userId, postId, post.title);
+          } catch (notificationError) {
+            console.error("Failed to send like notification:", notificationError);
+          }
         }
 
         // If it was created successfully, return the post like

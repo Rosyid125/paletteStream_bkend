@@ -6,6 +6,7 @@ const PostLikeRepository = require("../repositories/PostLikeRepository");
 const PostCommentRepository = require("../repositories/PostCommentRepository");
 const CommentReplyRepository = require("../repositories/CommentReplyRepository");
 const customError = require("../errors/customError");
+const NotificationService = require("./NotificationService");
 
 class AchievementService {
   // Ambil semua achievement (maks 20)
@@ -208,13 +209,27 @@ class AchievementService {
   static async _updateUserAchievementProgress(userId, achievementId, progress) {
     const achievement = await AchievementRepository.findById(achievementId);
     if (!achievement) return;
+
     let userAch = await UserAchievementRepository.findByUserAndAchievement(userId, achievementId);
     const status = progress >= achievement.goal ? "completed" : "in-progress";
     const cappedProgress = Math.min(progress, achievement.goal);
+
+    // Check if achievement was just completed
+    const wasJustCompleted = userAch ? userAch.status !== "completed" && status === "completed" : status === "completed";
+
     if (!userAch) {
       await UserAchievementRepository.create(userId, achievementId, cappedProgress, status);
     } else {
       await UserAchievementRepository.update(userId, achievementId, cappedProgress, status);
+    }
+
+    // Send achievement unlocked notification
+    if (wasJustCompleted) {
+      try {
+        await NotificationService.notifyAchievementUnlocked(userId, achievementId, achievement.title, achievement.icon);
+      } catch (notificationError) {
+        console.error("Failed to send achievement notification:", notificationError);
+      }
     }
   }
 
