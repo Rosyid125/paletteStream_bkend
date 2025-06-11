@@ -16,8 +16,16 @@ class UserPostController {
       // Get user id from request
       let { userId } = req.params;
 
-      // Make user id integer
+      // Make user id integer and validate
       userId = parseInt(userId);
+
+      // Check if userId is valid
+      if (isNaN(userId) || userId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid user ID provided",
+        });
+      }
 
       // Get current userId from token
       const currentUserId = req.user.id;

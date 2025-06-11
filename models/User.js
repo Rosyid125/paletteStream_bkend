@@ -128,6 +128,14 @@ class User extends Model {
       },
     };
   }
+
+  static get modifiers() {
+    return {
+      selectBasicInfo(query) {
+        query.select("id", "first_name", "last_name", "email");
+      },
+    };
+  }
 }
 
 module.exports = User;

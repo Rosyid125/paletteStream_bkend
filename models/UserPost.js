@@ -101,6 +101,14 @@ class UserPost extends Model {
       },
     };
   }
+
+  static get modifiers() {
+    return {
+      selectBasicInfo(query) {
+        query.select("id", "user_id", "title", "description", "type", "created_at");
+      },
+    };
+  }
 }
 
 module.exports = UserPost;

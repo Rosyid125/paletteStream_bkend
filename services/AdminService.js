@@ -1,5 +1,6 @@
 const UserRepository = require("../repositories/UserRepository");
 const UserPostRepository = require("../repositories/UserPostRepository");
+const PostReportRepository = require("../repositories/PostReportRepository");
 const UserProfileService = require("./UserProfileService");
 const UserExpService = require("./UserExpService");
 const customError = require("../errors/customError");
@@ -25,26 +26,58 @@ class AdminService {
   static async deleteUser(id) {
     return UserRepository.delete(id);
   }
-
   // Post Management
   static async getPosts({ search, page = 1, limit = 20 }) {
     const offset = (page - 1) * limit;
+    let posts;
+
     if (search) {
-      return UserPostRepository.searchByTitleOrDesc(search, offset, limit);
+      posts = await UserPostRepository.searchByTitleOrDesc(search, offset, limit);
+    } else {
+      posts = await UserPostRepository.findAll(offset, limit);
     }
-    return UserPostRepository.findAll(offset, limit);
+
+    // Add report counts to posts
+    if (posts && posts.length > 0) {
+      const postIds = posts.map((post) => post.id);
+      const reportCounts = await PostReportRepository.getReportCountsForPosts(postIds);
+
+      // Create a map for quick lookup
+      const reportCountMap = {};
+      reportCounts.forEach((item) => {
+        reportCountMap[item.post_id] = parseInt(item.report_count) || 0;
+      });
+
+      // Add report counts to posts
+      posts = posts.map((post) => ({
+        ...post,
+        report_count: reportCountMap[post.id] || 0,
+      }));
+    }
+
+    return posts;
   }
 
   static async deletePost(id) {
     return UserPostRepository.delete(id);
   }
-
   // Dashboard
   static async getDashboardStats() {
     const totalUsers = await UserRepository.countAll();
     const totalPosts = await UserPostRepository.countAll();
     const bannedUsers = await UserRepository.countBanned();
-    return { totalUsers, totalPosts, bannedUsers };
+    const reportStats = await PostReportRepository.getReportStats();
+
+    const totalReports = reportStats.statusStats.reduce((sum, stat) => sum + parseInt(stat.count), 0);
+    const pendingReports = reportStats.statusStats.find((stat) => stat.status === "pending")?.count || 0;
+
+    return {
+      totalUsers,
+      totalPosts,
+      bannedUsers,
+      totalReports,
+      pendingReports,
+    };
   }
 
   // Create new admin
