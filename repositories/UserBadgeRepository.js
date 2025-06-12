@@ -10,11 +10,27 @@ class UserBadgeRepository {
       throw error;
     }
   }
-
   // Get user badges by user ID
   static async findByUserId(userId) {
     try {
       const userBadges = await UserBadge.query().where("user_id", userId).withGraphFetched("[challenge]").orderBy("awarded_at", "desc");
+      return userBadges;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get user badges by user ID with rank information from challenge_winners
+  static async findByUserIdWithRank(userId) {
+    try {
+      const userBadges = await UserBadge.query()
+        .select("user_badges.*", "challenge_winners.rank")
+        .where("user_badges.user_id", userId)
+        .leftJoin("challenge_winners", function () {
+          this.on("user_badges.user_id", "=", "challenge_winners.user_id").andOn("user_badges.challenge_id", "=", "challenge_winners.challenge_id");
+        })
+        .withGraphFetched("[challenge]")
+        .orderBy("awarded_at", "desc");
       return userBadges;
     } catch (error) {
       throw error;

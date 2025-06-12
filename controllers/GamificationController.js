@@ -19,14 +19,12 @@ class GamificationController {
       }
 
       const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-      const userId = user.id;
-
-      // Get all gamification data concurrently
+      const userId = user.id; // Get all gamification data concurrently
       const [userExp, allAchievements, userAchievements, userBadges, activeChallenges, userWins] = await Promise.all([
         UserExpService.getUserExpByUserId(userId),
         AchievementService.getAllAchievements(),
         UserAchievementRepository.findByUserId(userId),
-        UserBadgeRepository.findByUserId(userId),
+        UserBadgeRepository.findByUserIdWithRank(userId),
         ChallengeService.getActiveChallenges(),
         ChallengeWinnerService.getUserWins(userId),
       ]);
@@ -52,17 +50,34 @@ class GamificationController {
 
       // Separate completed and in-progress achievements
       const completedAchievements = achievementsData.filter((a) => a.is_completed);
-      const inProgressAchievements = achievementsData.filter((a) => !a.is_completed);
+      const inProgressAchievements = achievementsData.filter((a) => !a.is_completed); // Process badges data
+      const badgesData = userBadges.map((badge) => {
+        const rank = badge.rank;
+        let rank_display = "Participant";
 
-      // Process badges data
-      const badgesData = userBadges.map((badge) => ({
-        id: badge.id,
-        challenge_id: badge.challenge_id,
-        challenge_title: badge.challenge_title || "Challenge",
-        badge_img: badge.badge_img,
-        earned_at: badge.created_at,
-        admin_note: badge.admin_note,
-      }));
+        if (rank) {
+          if (rank === 1) {
+            rank_display = "Winner";
+          } else if (rank === 2) {
+            rank_display = "2nd Place";
+          } else if (rank === 3) {
+            rank_display = "3rd Place";
+          } else {
+            rank_display = `${rank}th Place`;
+          }
+        }
+
+        return {
+          id: badge.id,
+          challenge_id: badge.challenge_id,
+          challenge_title: badge.challenge?.title || "Challenge",
+          badge_img: badge.badge_img,
+          earned_at: badge.awarded_at || badge.created_at,
+          admin_note: badge.admin_note,
+          rank: rank || null,
+          rank_display: rank_display,
+        };
+      });
 
       // Process active challenges data
       const challengesData = activeChallenges.map((challenge) => ({
@@ -242,7 +257,6 @@ class GamificationController {
       return res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
   }
-
   // GET /gamification/badges/:userId - Get badges for specific user
   static async getUserBadges(req, res) {
     try {
@@ -252,17 +266,35 @@ class GamificationController {
         throw new customError("Valid user ID required", 400);
       }
 
-      const userBadges = await UserBadgeRepository.findByUserId(parseInt(userId));
+      const userBadges = await UserBadgeRepository.findByUserIdWithRank(parseInt(userId));
 
-      const badgesData = userBadges.map((badge) => ({
-        id: badge.id,
-        challenge_id: badge.challenge_id,
-        challenge_title: badge.challenge_title || "Challenge",
-        badge_img: badge.badge_img,
-        earned_at: badge.created_at,
-        admin_note: badge.admin_note,
-        rank: badge.rank || null,
-      }));
+      const badgesData = userBadges.map((badge) => {
+        const rank = badge.rank;
+        let rank_display = "Participant";
+
+        if (rank) {
+          if (rank === 1) {
+            rank_display = "Winner";
+          } else if (rank === 2) {
+            rank_display = "2nd Place";
+          } else if (rank === 3) {
+            rank_display = "3rd Place";
+          } else {
+            rank_display = `${rank}th Place`;
+          }
+        }
+
+        return {
+          id: badge.id,
+          challenge_id: badge.challenge_id,
+          challenge_title: badge.challenge?.title || "Challenge",
+          badge_img: badge.badge_img,
+          earned_at: badge.awarded_at || badge.created_at,
+          admin_note: badge.admin_note,
+          rank: rank || null,
+          rank_display: rank_display,
+        };
+      });
 
       const summary = {
         total_badges: badgesData.length,
@@ -287,8 +319,7 @@ class GamificationController {
       }
       return res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
-  }
-  // GET /gamification/profile/badges/:userId - Get user badges for profile page
+  } // GET /gamification/profile/badges/:userId - Get user badges for profile page
   static async getProfileBadges(req, res) {
     try {
       const { userId } = req.params;
@@ -297,19 +328,36 @@ class GamificationController {
         throw new customError("Valid user ID required", 400);
       }
 
-      const userBadges = await UserBadgeRepository.findByUserId(parseInt(userId));
+      const userBadges = await UserBadgeRepository.findByUserIdWithRank(parseInt(userId));
 
       // Format badges data with detailed information
-      const badgesData = userBadges.map((badge) => ({
-        id: badge.id,
-        challenge_id: badge.challenge_id,
-        challenge_title: badge.challenge_title || "Challenge",
-        badge_img: badge.badge_img,
-        earned_at: badge.awarded_at || badge.created_at,
-        admin_note: badge.admin_note,
-        rank: badge.rank || null,
-        rank_display: badge.rank === 1 ? "Winner" : badge.rank === 2 ? "2nd Place" : badge.rank === 3 ? "3rd Place" : `${badge.rank}th Place`,
-      }));
+      const badgesData = userBadges.map((badge) => {
+        const rank = badge.rank;
+        let rank_display = "Participant";
+
+        if (rank) {
+          if (rank === 1) {
+            rank_display = "Winner";
+          } else if (rank === 2) {
+            rank_display = "2nd Place";
+          } else if (rank === 3) {
+            rank_display = "3rd Place";
+          } else {
+            rank_display = `${rank}th Place`;
+          }
+        }
+
+        return {
+          id: badge.id,
+          challenge_id: badge.challenge_id,
+          challenge_title: badge.challenge?.title || "Challenge",
+          badge_img: badge.badge_img,
+          earned_at: badge.awarded_at || badge.created_at,
+          admin_note: badge.admin_note,
+          rank: rank || null,
+          rank_display: rank_display,
+        };
+      });
 
       // Sort by earned date (newest first)
       badgesData.sort((a, b) => new Date(b.earned_at) - new Date(a.earned_at));
