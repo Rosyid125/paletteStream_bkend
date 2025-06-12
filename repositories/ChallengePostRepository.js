@@ -106,6 +106,18 @@ class ChallengePostRepository {
       throw error;
     }
   }
+
+  // Check if post is submitted to any challenge
+  static async findByPostId(postId) {
+    try {
+      const challengePost = await ChallengePost.query()
+        .findOne({ post_id: postId })
+        .withGraphFetched("[challenge]");
+      return challengePost;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = ChallengePostRepository;

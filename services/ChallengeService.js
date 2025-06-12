@@ -144,14 +144,15 @@ class ChallengeService {
 
       if (new Date(challenge.deadline) <= new Date()) {
         throw new customError("Challenge deadline has passed", 400);
-      }
-
-      // Check if post exists and belongs to user
+      }      // Check if post exists and belongs to user
       const post = await UserPostService.getPostById(postId);
       if (!post || post.user_id !== userId) {
         throw new customError("Post not found or unauthorized", 404);
-      } // Check if user already submitted to this challenge
+      }
+
       const ChallengePostService = require("./ChallengePostService");
+      
+      // Check if user already submitted to this challenge
       const existingSubmission = await ChallengePostService.findByUserAndChallenge(userId, challengeId);
       if (existingSubmission) {
         throw new customError("You have already submitted to this challenge", 400);
@@ -161,6 +162,12 @@ class ChallengeService {
       const existingPost = await ChallengePostService.findByPostAndChallenge(postId, challengeId);
       if (existingPost) {
         throw new customError("This post is already submitted to this challenge", 400);
+      }
+
+      // Check if post is already submitted to ANY other challenge
+      const postInOtherChallenge = await ChallengePostService.findByPostId(postId);
+      if (postInOtherChallenge && postInOtherChallenge.challenge_id !== challengeId) {
+        throw new customError("This post has already been submitted to another challenge and cannot be reused", 400);
       }
 
       const challengePost = await ChallengePostService.create(challengeId, postId, userId);

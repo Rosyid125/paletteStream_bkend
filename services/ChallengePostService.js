@@ -91,6 +91,15 @@ class ChallengePostService {
     }
   }
 
+  // Check if post is already submitted to any challenge
+  static async findByPostId(postId) {
+    try {
+      return await ChallengePostRepository.findByPostId(postId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Create challenge post submission
   static async create(challengeId, postId, userId) {
     try {
