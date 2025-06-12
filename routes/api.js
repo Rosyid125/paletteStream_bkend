@@ -15,6 +15,7 @@ const challengeRoutes = require("./challengeRoutes"); // Import the challengeRou
 const postReportRoutes = require("./postReportRoutes"); // Import the postReportRoutes
 const notificationRoutes = require("./notificationRoutes"); // Import the notificationRoutes
 const gamificationRoutes = require("./gamificationRoutes"); // Import the gamificationRoutes
+const tagRoutes = require("./tagRoutes"); // Import the tagRoutes
 
 router.use("/profiles", userProfileRoutes); // Use the userProfileRoutes for the /users route
 router.use("/auth", authRoutes); // Use the authRoutes for the /auth route
@@ -31,5 +32,6 @@ router.use("/achievements", achievementRoutes); // Use the achievementRoutes for
 router.use("/", challengeRoutes); // Use the challengeRoutes for challenge endpoints
 router.use("/notifications", notificationRoutes); // Use the notificationRoutes for notifications
 router.use("/gamification", gamificationRoutes); // Use the gamificationRoutes for gamification hub
+router.use("/tags", tagRoutes); // Use the tagRoutes for the /tags route
 
 module.exports = router; // Export the router

@@ -103,6 +103,17 @@ class TagRepository {
       throw error;
     }
   }
+
+  // Get popular tags (by post count)
+  static async popularTags(limit = 10) {
+    try {
+      // Join ke post_tags dan hitung jumlah post untuk setiap tag
+      const result = await Tag.query().select("tags.id", "tags.name").count("post_tags.post_id as post_count").join("post_tags", "tags.id", "post_tags.tag_id").groupBy("tags.id", "tags.name").orderBy("post_count", "desc").limit(limit);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = TagRepository;
