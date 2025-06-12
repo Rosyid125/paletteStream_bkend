@@ -6,6 +6,7 @@ const UserService = require("./UserService");
 const BadgeService = require("./BadgeService");
 const NotificationService = require("./NotificationService");
 const customError = require("../errors/customError");
+const FairRankingService = require("./FairRankingService");
 
 class ChallengeWinnerService {
   // Select winners for a challenge
@@ -160,9 +161,8 @@ class ChallengeWinnerService {
       throw error;
     }
   }
-
-  // Auto-select winners based on like count (for closed challenges without winners)
-  static async autoSelectWinnersByLikes(challengeId, maxWinners = 3, adminNote = "Auto-selected by system") {
+  // Auto-select winners based on fair challenge ranking (not just raw likes)
+  static async autoSelectWinnersByLikes(challengeId, maxWinners = 3, adminNote = "Auto-selected by fair ranking system") {
     try {
       const challenge = await ChallengeRepository.findById(challengeId);
       if (!challenge) {
@@ -179,20 +179,47 @@ class ChallengeWinnerService {
         throw new customError("Winners already selected for this challenge", 400);
       }
 
-      // Get challenge leaderboard (sorted by likes)
+      // Get challenge leaderboard with fair ranking considerations
       const leaderboard = await ChallengeRepository.getChallengeLeaderboard(challengeId);
       if (!leaderboard || !leaderboard.challengePosts || leaderboard.challengePosts.length === 0) {
         throw new customError("No submissions found for this challenge", 400);
       }
 
-      // Take top posts based on like count
-      const topPosts = leaderboard.challengePosts.slice(0, maxWinners);
+      // Apply fair challenge scoring to posts
+      const scoredPosts = leaderboard.challengePosts.map((challengePost) => {
+        const likeCount = challengePost.post.likeCount || 0;
+        const commentCount = challengePost.post.commentCount || 0;
+        const submissionTime = challengePost.created_at;
+        const challengeDeadline = challenge.deadline;
+
+        const fairScore = FairRankingService.calculateChallengeScore(likeCount, commentCount, submissionTime, challengeDeadline);
+
+        return {
+          ...challengePost,
+          fairScore,
+          originalScore: likeCount, // Keep original for comparison
+        };
+      });
+
+      // Sort by fair score (highest first)
+      scoredPosts.sort((a, b) => b.fairScore - a.fairScore);
+
+      // Take top posts based on fair score
+      const topPosts = scoredPosts.slice(0, maxWinners);
 
       const winnersData = topPosts.map((challengePost, index) => ({
         userId: challengePost.user_id,
         postId: challengePost.post_id,
         rank: index + 1,
+        fairScore: challengePost.fairScore,
+        originalScore: challengePost.originalScore,
       }));
+
+      // Log fair ranking results for transparency
+      console.log(`🏆 Fair Challenge Winner Selection for Challenge ${challengeId}:`);
+      winnersData.forEach((winner, index) => {
+        console.log(`  ${index + 1}. User ${winner.userId} - Fair Score: ${winner.fairScore}, Original Score: ${winner.originalScore}`);
+      });
 
       // Select winners
       const result = await this.selectWinners(challengeId, winnersData, adminNote);

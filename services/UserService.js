@@ -2,6 +2,7 @@ const UserRepository = require("../repositories/UserRepository");
 
 const UserFollowService = require("./UserFollowService");
 const UserProfileService = require("./UserProfileService");
+const FairRankingService = require("./FairRankingService");
 
 const UserProfileRepository = require("../repositories/UserProfileRepository");
 const UserExpRepository = require("../repositories/UserExpRepository");
@@ -87,40 +88,34 @@ class UserService {
       throw error;
     }
   }
-
-  // Get top leaderboard users with pagination
+  // Get top leaderboard users with fair ranking system
   static async getLeaderboardUsers(page, limit) {
     try {
-      const allUserIds = await UserRepository.findAllUserIdsWithoutPagination(); // tanpa offset
+      // Use fair ranking service for improved user ranking
+      const fairRankedUsers = await FairRankingService.getFairUserLeaderboard(page, limit);
+      if (fairRankedUsers.length === 0) return [];
 
-      const leaderboardData = [];
-
-      for (const id of allUserIds) {
-        const [userExp, followers, posts, likes] = await Promise.all([UserExpRepository.findByUserId(id), UserFollowRepository.countFollowersByUserId(id), UserPostRepository.countByUserId(id), PostLikeRepository.countByUserId(id)]);
-
-        const score = (userExp?.exp || 0) * 0.4 + (userExp?.level || 0) * 0.2 + followers * 0.15 + posts * 0.15 + likes * 0.1;
-
-        leaderboardData.push({ userId: id, score });
-      }
-
-      // Urutkan berdasarkan skor tertinggi
-      leaderboardData.sort((a, b) => b.score - a.score);
-
-      // Paginate setelah pengurutan
-      const paginatedData = leaderboardData.slice((page - 1) * limit, page * limit);
-
-      // Ambil profil dan tampilkan skor
+      // Enrich with user profile data
       const enrichedLeaderboard = await Promise.all(
-        paginatedData.map(async (data) => {
+        fairRankedUsers.map(async (data) => {
           try {
-            const profile = await UserProfileService.getUserProfileForTopUser(data.userId, data.score);
+            const profile = await UserProfileService.getUserProfileForTopUser(data.userId, data.fairScore);
             return {
               ...data,
-              ...profile, // spread isi profile
+              ...profile,
+              fairScore: data.fairScore,
+              originalScore: data.originalScore,
+              accountAgeDays: data.accountAgeDays,
+              metrics: data.metrics,
             };
           } catch (error) {
             console.error(`Error fetching profile for user ${data.userId}:`, error);
-            return data; // tetap kembalikan skor meskipun profil gagal
+            return {
+              ...data,
+              username: "Unknown User",
+              fairScore: data.fairScore,
+              originalScore: data.originalScore,
+            };
           }
         })
       );

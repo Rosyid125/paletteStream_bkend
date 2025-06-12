@@ -144,14 +144,14 @@ class ChallengeService {
 
       if (new Date(challenge.deadline) <= new Date()) {
         throw new customError("Challenge deadline has passed", 400);
-      }      // Check if post exists and belongs to user
+      } // Check if post exists and belongs to user
       const post = await UserPostService.getPostById(postId);
       if (!post || post.user_id !== userId) {
         throw new customError("Post not found or unauthorized", 404);
       }
 
       const ChallengePostService = require("./ChallengePostService");
-      
+
       // Check if user already submitted to this challenge
       const existingSubmission = await ChallengePostService.findByUserAndChallenge(userId, challengeId);
       if (existingSubmission) {

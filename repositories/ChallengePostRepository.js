@@ -110,9 +110,7 @@ class ChallengePostRepository {
   // Check if post is submitted to any challenge
   static async findByPostId(postId) {
     try {
-      const challengePost = await ChallengePost.query()
-        .findOne({ post_id: postId })
-        .withGraphFetched("[challenge]");
+      const challengePost = await ChallengePost.query().findOne({ post_id: postId }).withGraphFetched("[challenge]");
       return challengePost;
     } catch (error) {
       throw error;

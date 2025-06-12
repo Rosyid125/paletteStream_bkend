@@ -8,6 +8,7 @@ const UserBookmarkService = require("./UserBookmarkService");
 const UserFollowRepository = require("../repositories/UserFollowRepository");
 const PostCommentService = require("../services/PostCommentService");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
+const FairRankingService = require("./FairRankingService");
 
 // Import utility functions
 const { formatDate } = require("../utils/dateFormatterUtils");
@@ -497,24 +498,20 @@ class UserPostService {
       throw error;
     }
   }
-
-  // Get post leaderboards, sorted by like and comment count
+  // Get post leaderboards with fair ranking system
   static async getPostLeaderboards(userId, page, limit) {
     try {
-      const offset = (page - 1) * limit;
+      // Use fair ranking service for improved post ranking
+      const fairRankedPosts = await FairRankingService.getFairPostLeaderboard(userId, page, limit);
+      if (fairRankedPosts.length === 0) return [];
 
-      const posts = await UserPostRepository.findSortedByEngagement(offset, limit);
-      if (posts.length === 0) return [];
-
-      // 2. Get all post IDs
-      const postIds = posts.map((post) => post.id);
+      // Get all post IDs from fair ranking result
+      const postIds = fairRankedPosts.map((post) => post.id);
 
       // Fetch all related data in batches
-      const [postImages, postTags, postLikeCounts, postCommentCounts, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
+      const [postImages, postTags, postLikeStatuses, userBookmarkStatuses] = await Promise.all([
         PostImageRepository.findByPostIds(postIds),
         PostTagRepository.findByPostIds(postIds),
-        PostLikeRepository.countByPostIds(postIds),
-        PostCommentService.countByPostIds(postIds),
         PostLikeRepository.getStatuses(userId, postIds),
         UserBookmarkService.getStatuses(postIds, userId),
       ]);
@@ -532,16 +529,6 @@ class UserPostService {
         return acc;
       }, {});
 
-      const likeCountMap = postLikeCounts.reduce((acc, like) => {
-        acc[like.post_id] = like.count;
-        return acc;
-      }, {});
-
-      const commentCountMap = postCommentCounts.reduce((acc, comment) => {
-        acc[comment.post_id] = comment.count;
-        return acc;
-      }, {});
-
       const likeStatusMap = postLikeStatuses.reduce((acc, status) => {
         acc[status.post_id] = true; // Set true untuk post_id yang ada
         return acc;
@@ -552,7 +539,7 @@ class UserPostService {
         return acc;
       }, {});
 
-      return posts.map((post) => ({
+      return fairRankedPosts.map((post) => ({
         id: post.id,
         userId: post.user_id,
         firstName: post.user.firstName,
@@ -568,8 +555,10 @@ class UserPostService {
         tags: tagsMap[post.id] || [],
         postLikeStatus: likeStatusMap[post.id] || false,
         bookmarkStatus: bookmarkStatusMap[post.id] || false,
-        likeCount: likeCountMap[post.id] || 0,
-        commentCount: commentCountMap[post.id] || 0,
+        likeCount: post.likeCount,
+        commentCount: post.commentCount,
+        fairScore: post.fairScore, // Include fair score for transparency
+        originalScore: post.originalScore, // Include original score for comparison
       }));
     } catch (error) {
       throw error;
