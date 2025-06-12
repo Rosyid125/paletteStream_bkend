@@ -66,7 +66,6 @@ class UserProfileRepository {
       throw error;
     }
   }
-
   static async update(user_id, updateData) {
     try {
       const userProfile = await UserProfile.query().findOne({ user_id });
@@ -74,16 +73,20 @@ class UserProfileRepository {
         return null;
       }
 
-      // Buat hanya field yang tidak undefined
+      // Buat objek update yang bersih, hanya field yang tidak undefined
       const safeUpdate = {};
-      if (updateData.name !== undefined) safeUpdate.username = updateData.name;
+      if (updateData.username !== undefined) safeUpdate.username = updateData.username;
       if (updateData.avatar !== undefined) safeUpdate.avatar = updateData.avatar;
       if (updateData.bio !== undefined) safeUpdate.bio = updateData.bio;
       if (updateData.location !== undefined) safeUpdate.location = updateData.location;
 
-      await UserProfile.query().findOne({ user_id }).patch(safeUpdate);
+      // Hanya lakukan update jika ada field yang berubah
+      if (Object.keys(safeUpdate).length > 0) {
+        await UserProfile.query().findOne({ user_id }).patch(safeUpdate);
+      }
 
-      return userProfile;
+      // Return updated profile
+      return await UserProfile.query().findOne({ user_id });
     } catch (error) {
       throw error;
     }

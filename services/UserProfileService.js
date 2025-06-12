@@ -160,24 +160,32 @@ class UserProfileService {
       throw error;
     }
   }
-
   // Static method to get a user profile by user id
   static async getUserProfileById(userId) {
     try {
-      const userPlatformLinks = await UserSocialLinkService.findAllByUserId(userId);
-      // Get user profile by user id
-      const userProfile = await UserProfileRepository.findByUserId(userId);
+      // Get user data from users table
+      const user = await UserRepository.findById(userId);
+      if (!user) {
+        throw new customError("User not found");
+      }
 
+      // Get user profile data from user_profiles table
+      const userProfile = await UserProfileRepository.findByUserId(userId);
       if (!userProfile) {
         throw new customError("User profile not found");
       }
 
-      // Return editable user profile
+      // Get platform links
+      const userPlatformLinks = await UserSocialLinkService.findAllByUserId(userId);
+
+      // Return complete editable user profile data
       return {
         id: userProfile.id,
+        user_id: userProfile.user_id,
         username: userProfile.username,
-        first_name: userProfile.first_name,
-        last_name: userProfile.last_name,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email, // untuk display saja, tidak boleh diedit
         avatar: userProfile.avatar,
         bio: userProfile.bio,
         location: userProfile.location,
@@ -187,62 +195,71 @@ class UserProfileService {
       throw error;
     }
   }
-
   // Static method to update user profile
   static async updateUserProfile(userId, updateData) {
     try {
+      // 1. Ambil data user dan profile yang ada
+      const user = await UserRepository.findById(userId);
       const userProfile = await UserProfileRepository.findByUserId(userId);
-      if (!userProfile) {
-        throw new customError("User profile not found", 404); // Ganti dengan error yang sesuai
+
+      if (!user || !userProfile) {
+        throw new customError("User or user profile not found", 404);
       }
 
       // 2. Simpan path avatar lama SEBELUM diupdate (jika ada avatar baru)
-      let oldAvatarPath = userProfile.avatar; // Asumsi field di DB adalah 'avatar'
+      let oldAvatarPath = userProfile.avatar;
 
-      // 3. Siapkan data untuk update field dasar (name, bio, location, avatar)
-      const fieldsToUpdate = {};
-      if (updateData.name !== undefined) fieldsToUpdate.name = updateData.name;
-      if (updateData.bio !== undefined) fieldsToUpdate.bio = updateData.bio;
-      if (updateData.location !== undefined) fieldsToUpdate.location = updateData.location;
+      // 3. Persiapkan data untuk update tabel USERS (first_name, last_name)
+      const userFieldsToUpdate = {};
+      if (updateData.first_name !== undefined) userFieldsToUpdate.first_name = updateData.first_name;
+      if (updateData.last_name !== undefined) userFieldsToUpdate.last_name = updateData.last_name;
+
+      // 4. Persiapkan data untuk update tabel USER_PROFILES (username, bio, location, avatar)
+      const profileFieldsToUpdate = {};
+      if (updateData.username !== undefined) profileFieldsToUpdate.username = updateData.username;
+      if (updateData.bio !== undefined) profileFieldsToUpdate.bio = updateData.bio;
+      if (updateData.location !== undefined) profileFieldsToUpdate.location = updateData.location;
       if (updateData.avatarPath !== undefined) {
-        // Hanya update jika path baru BERBEDA dari yang lama (opsional, mencegah update DB yg tidak perlu)
-        // if (updateData.avatarPath !== oldAvatarPath) {
-        fieldsToUpdate.avatar = updateData.avatarPath;
-        // }
+        profileFieldsToUpdate.avatar = updateData.avatarPath;
       }
 
-      // 4. Lakukan update fields dasar & avatar di Database (JIKA ADA PERUBAHAN)
-      let profileUpdateSuccess = false;
-      if (Object.keys(fieldsToUpdate).length > 0) {
-        await UserProfileRepository.update(userId, fieldsToUpdate); // Perlu method update(userId, data)
-        profileUpdateSuccess = true; // Tandai bahwa update DB profile berhasil
+      // 5. Lakukan update ke tabel USERS (JIKA ADA PERUBAHAN)
+      let userUpdateSuccess = false;
+      if (Object.keys(userFieldsToUpdate).length > 0) {
+        await UserRepository.update(userId, userFieldsToUpdate);
+        userUpdateSuccess = true;
       } else {
-        // Tidak ada field dasar yang diubah, anggap "sukses" untuk melanjutkan ke social links/hapus file
+        userUpdateSuccess = true; // Tidak ada yang diubah, anggap sukses
+      }
+
+      // 6. Lakukan update ke tabel USER_PROFILES (JIKA ADA PERUBAHAN)
+      let profileUpdateSuccess = false;
+      if (Object.keys(profileFieldsToUpdate).length > 0) {
+        await UserProfileRepository.update(userId, profileFieldsToUpdate);
         profileUpdateSuccess = true;
+      } else {
+        profileUpdateSuccess = true; // Tidak ada yang diubah, anggap sukses
       }
 
-      // --- 5. DELEGASIKAN Update Social Links ke Service terpisah ---
-      // Cek jika 'platforms' (data social links) ada di request
+      // 7. Update Social Links (JIKA ADA)
       if (updateData.platforms !== undefined) {
-        // Pastikan kita mengirim array yang bersih ke service social link
-        const socialLinksData = Array.isArray(updateData.platforms)
-          ? updateData.platforms // Asumsikan service social link bisa menangani sanitasi internal
-          : []; // Kirim array kosong jika bukan array
+        const socialLinksData = Array.isArray(updateData.platforms) ? updateData.platforms : [];
 
-        await UserSocialLinkService.update(userId, socialLinksData); // Asumsi service ini menangani semuanya
+        await UserSocialLinkService.update(userId, socialLinksData);
       }
 
-      if (profileUpdateSuccess && updateData.avatarPath !== undefined && oldAvatarPath && oldAvatarPath !== updateData.avatarPath && oldAvatarPath !== "storage/avatars/noimage.png") {
-        await deleteFile(oldAvatarPath); // Panggil fungsi utilitas penghapus file
+      // 8. Hapus avatar lama jika ada avatar baru dan berbeda
+      if (userUpdateSuccess && profileUpdateSuccess && updateData.avatarPath !== undefined && oldAvatarPath && oldAvatarPath !== updateData.avatarPath && oldAvatarPath !== "storage/avatars/noimage.png") {
+        await deleteFile(oldAvatarPath);
       }
 
-      // 6. Ambil data profile yang sudah diupdate dari DB (JIKA PERLU)
-      const updatedProfile = await UserProfileRepository.findByUserId(userId); // Ambil data terbaru dari DB
+      // 9. Ambil data profile yang sudah diupdate dari DB
+      const updatedProfile = await UserProfileRepository.findByUserId(userId);
       if (!updatedProfile) {
-        throw new customError("User profile not found", 404); // Ganti dengan error yang sesuai
+        throw new customError("Updated user profile not found", 404);
       }
 
-      return updatedProfile; // Kembalikan data profile yang sudah diupdate
+      return updatedProfile;
     } catch (error) {
       throw error;
     }

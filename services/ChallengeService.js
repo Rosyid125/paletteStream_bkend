@@ -203,8 +203,7 @@ class ChallengeService {
     } catch (error) {
       throw error;
     }
-  }
-  // Get user's challenge history
+  } // Get user's challenge history
   static async getUserChallengeHistory(userId) {
     try {
       const ChallengePostService = require("./ChallengePostService");
@@ -215,6 +214,39 @@ class ChallengeService {
         submissions: challengePosts,
         badges: userBadges,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get user's challenge participations with challenge details
+  static async getUserChallengeParticipations(userId) {
+    try {
+      const ChallengePostService = require("./ChallengePostService");
+      const challengePosts = await ChallengePostService.findByUserId(userId);
+
+      // Get unique challenge IDs from user's posts
+      const challengeIds = [...new Set(challengePosts.map((cp) => cp.challenge_id))];
+
+      // Get challenge details for each participated challenge
+      const challengeDetails = await Promise.all(challengeIds.map((challengeId) => ChallengeRepository.findById(challengeId)));
+
+      // Combine challenge details with participation info
+      const participations = challengeDetails.map((challenge) => {
+        const userPost = challengePosts.find((cp) => cp.challenge_id === challenge.id);
+        return {
+          challenge_id: challenge.id,
+          title: challenge.title,
+          description: challenge.description,
+          badge_img: challenge.badge_img,
+          deadline: challenge.deadline,
+          is_closed: challenge.is_closed,
+          created_at: userPost.created_at, // participation date
+          post_id: userPost.post_id,
+        };
+      });
+
+      return participations;
     } catch (error) {
       throw error;
     }

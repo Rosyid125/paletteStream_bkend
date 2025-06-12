@@ -122,10 +122,8 @@ class UserProfileController {
           // Validasi userId dasar
           if (isNaN(userId)) {
             return res.status(400).json({ success: false, error: "Invalid user ID format." });
-          }
-
-          // Ambil data dari request body
-          const { name, bio, location, platforms } = req.body;
+          } // Ambil data dari request body
+          const { first_name, last_name, username, bio, location, platforms } = req.body;
 
           // 2. Ambil path dari file yang diupload (JIKA ADA)
           let avatarPath = undefined; // Default tidak ada perubahan avatar
@@ -141,11 +139,13 @@ class UserProfileController {
           // 3. Persiapkan data untuk service
           // Kirim sebagai objek agar lebih mudah dikelola di service
           const updateData = {
-            name, // akan undefined jika tidak dikirim dari frontend
-            bio, // akan undefined jika tidak dikirim dari frontend
-            location, // akan undefined jika tidak dikirim dari frontend
-            avatarPath, // akan undefined jika tidak ada file diupload
-            platforms, // bisa array atau undefined/null
+            first_name, // untuk update tabel users
+            last_name, // untuk update tabel users
+            username, // untuk update tabel user_profiles
+            bio, // untuk update tabel user_profiles
+            location, // untuk update tabel user_profiles
+            avatarPath, // untuk update tabel user_profiles
+            platforms, // untuk update social links
           };
 
           // 4. Panggil service dengan data yang sudah diproses

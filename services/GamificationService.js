@@ -3,43 +3,148 @@ const AchievementService = require("./AchievementService");
 const NotificationService = require("./NotificationService");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
+// REVISI ANTI-SPAM: Hanya event yang melibatkan interaksi dengan akun lain yang memberikan EXP
+// Ini mencegah user spam aktivitas sendiri untuk farming EXP
 const expGainByEvent = {
-  postCreated: 40, // sudah
-  postDeleted: -40, // sudah
-  userFollowed: 5, // sudah
-  userUnfollowed: -5, // sudah
-  userGotFollowed: 20, // sudah
-  userGotUnfollowed: -20, // sudah
-  commentOnPost: 2, // sudah
-  commentOnPostDeleted: -2, // sudah
-  postGotCommented: 5, // sudah
-  postGotUncommented: -5, // sudah
-  replyOnComment: 1, // sudah
-  replyOnCommentDeleted: -1, // sudah
-  commentGotReplied: 3, // sudah
-  commentGotUnreplied: -3, // sudah
-  likeOnPost: 3, // sudah
-  likeOnPostDeleted: -3, // sudah
-  postGotLiked: 8, // sudah
-  postGotUnliked: -8, // sudah
-  postGotBookmarked: 10, // sudah
-  postGotUnbookmarked: -10, // sudah
-  // challengeJoined: 100,
-  // challengeLeft: -100,
-  // challengeWinner: 5000,
+  // === EVENT YANG MEMBERIKAN EXP (Interaksi dengan akun lain) ===
+
+  // User mendapat interaksi dari orang lain (PASSIVE REWARDS - tidak bisa di-spam)
+  userGotFollowed: 25, // Dapat follower baru dari orang lain
+  userGotUnfollowed: -25, // Kehilangan follower
+  postGotCommented: 15, // Post mendapat komentar dari orang lain
+  postGotUncommented: -15, // Komentar dihapus dari post
+  postGotLiked: 10, // Post mendapat like dari orang lain
+  postGotUnliked: -10, // Like dihapus dari post
+  postGotBookmarked: 20, // Post dibookmark orang lain
+  postGotUnbookmarked: -20, // Bookmark dihapus dari post
+  commentGotReplied: 8, // Komentar user dibalas orang lain
+  commentGotUnreplied: -8, // Reply dihapus dari komentar user
+
+  // User berinteraksi dengan konten berkualitas (LIMITED REWARDS untuk mencegah spam)
+  postCreated: 50, // Membuat post baru (daily limit akan diterapkan)
+  postDeleted: -50, // Menghapus post
+
+  // === EVENT YANG TIDAK MEMBERIKAN EXP (Dihapus untuk mencegah spam) ===
+  // userFollowed: 0,            // Follow orang lain - DIHAPUS (bisa di-spam)
+  // userUnfollowed: 0,          // Unfollow orang lain - DIHAPUS (bisa di-spam)
+  // commentOnPost: 0,           // Komentar di post orang lain - DIHAPUS (bisa di-spam)
+  // commentOnPostDeleted: 0,    // Hapus komentar - DIHAPUS (bisa di-spam)
+  // replyOnComment: 0,          // Reply komentar - DIHAPUS (bisa di-spam)
+  // replyOnCommentDeleted: 0,   // Hapus reply - DIHAPUS (bisa di-spam)
+  // likeOnPost: 0,              // Like post orang lain - DIHAPUS (sangat mudah di-spam)
+  // likeOnPostDeleted: 0,       // Unlike post - DIHAPUS (sangat mudah di-spam)
+
+  // === FUTURE: Challenge Events (High Reward, Limited Participation) ===
+  challengeJoined: 100, // Join challenge (limited per user per challenge)
+  challengeLeft: -100, // Leave challenge
+  challengeWinner: 5000, // Menang challenge (rare reward)
+  challengeRunnerUp: 2500, // Runner up challenge
+  challengeParticipant: 500, // Participant yang menyelesaikan challenge
 };
 
+// LEVEL SYSTEM: Extended to Level 100 with exponential growth
+// Mencegah user mencapai level tinggi terlalu mudah
 const levelThresholds = {
   1: 0,
   2: 100,
   3: 250,
-  4: 500,
-  5: 1000,
-  6: 2000,
-  7: 4000,
-  8: 8000,
-  9: 16000,
-  10: 32000,
+  4: 450,
+  5: 700,
+  6: 1000,
+  7: 1350,
+  8: 1750,
+  9: 2200,
+  10: 2700,
+  11: 3250,
+  12: 3850,
+  13: 4500,
+  14: 5200,
+  15: 5950,
+  16: 6750,
+  17: 7600,
+  18: 8500,
+  19: 9450,
+  20: 10450,
+  21: 11500,
+  22: 12600,
+  23: 13750,
+  24: 14950,
+  25: 16200,
+  26: 17500,
+  27: 18850,
+  28: 20250,
+  29: 21700,
+  30: 23200,
+  31: 24750,
+  32: 26350,
+  33: 28000,
+  34: 29700,
+  35: 31450,
+  36: 33250,
+  37: 35100,
+  38: 37000,
+  39: 38950,
+  40: 40950,
+  41: 43000,
+  42: 45100,
+  43: 47250,
+  44: 49450,
+  45: 51700,
+  46: 54000,
+  47: 56350,
+  48: 58750,
+  49: 61200,
+  50: 63700,
+  51: 66250,
+  52: 68850,
+  53: 71500,
+  54: 74200,
+  55: 76950,
+  56: 79750,
+  57: 82600,
+  58: 85500,
+  59: 88450,
+  60: 91450,
+  61: 94500,
+  62: 97600,
+  63: 100750,
+  64: 103950,
+  65: 107200,
+  66: 110500,
+  67: 113850,
+  68: 117250,
+  69: 120700,
+  70: 124200,
+  71: 127750,
+  72: 131350,
+  73: 135000,
+  74: 138700,
+  75: 142450,
+  76: 146250,
+  77: 150100,
+  78: 154000,
+  79: 157950,
+  80: 161950,
+  81: 166000,
+  82: 170100,
+  83: 174250,
+  84: 178450,
+  85: 182700,
+  86: 187000,
+  87: 191350,
+  88: 195750,
+  89: 200200,
+  90: 204700,
+  91: 209250,
+  92: 213850,
+  93: 218500,
+  94: 223200,
+  95: 227950,
+  96: 232750,
+  97: 237600,
+  98: 242500,
+  99: 247450,
+  100: 252450, // MAX LEVEL
 };
 
 // Daftarkan listener untuk setiap eventType
@@ -71,33 +176,38 @@ class GamificationService {
   static async updateUserAchievement(userId, eventType) {
     console.log(`Updating achievement for user ${userId} due to ${eventType}`);
     try {
-      // Map eventType to achievement event names
+      // REVISI: Hanya event yang memberikan EXP yang akan trigger achievement
+      // Map eventType to achievement event names (hanya untuk event yang valid)
       const eventMap = {
-        postCreated: "post_uploaded",
-        postDeleted: "post_uploaded", // reverse
-        userFollowed: "user_followed",
-        userUnfollowed: "user_followed", // reverse
+        // Passive rewards (user mendapat interaksi)
         userGotFollowed: "user_followed",
         userGotUnfollowed: "user_followed", // reverse
-        commentOnPost: "post_commented",
-        commentOnPostDeleted: "post_commented", // reverse
         postGotCommented: "post_commented",
         postGotUncommented: "post_commented", // reverse
-        replyOnComment: "comment_replied_by_user",
-        replyOnCommentDeleted: "comment_replied_by_user", // reverse
-        commentGotReplied: "comment_replied",
-        commentGotUnreplied: "comment_replied", // reverse
-        likeOnPost: "post_liked",
-        likeOnPostDeleted: "post_liked", // reverse
         postGotLiked: "post_liked",
         postGotUnliked: "post_liked", // reverse
         postGotBookmarked: "post_bookmarked",
         postGotUnbookmarked: "post_bookmarked", // reverse
+        commentGotReplied: "comment_replied",
+        commentGotUnreplied: "comment_replied", // reverse
+
+        // Content creation (limited)
+        postCreated: "post_uploaded",
+        postDeleted: "post_uploaded", // reverse
+
+        // Challenge events (future)
+        challengeJoined: "challenge_joined",
+        challengeLeft: "challenge_joined", // reverse
+        challengeWinner: "challenge_winner",
+        challengeRunnerUp: "challenge_runner_up",
+        challengeParticipant: "challenge_participant",
       };
 
       const achievementEvent = eventMap[eventType];
       if (achievementEvent) {
         await AchievementService.handleEvent(achievementEvent, userId, {});
+      } else {
+        console.log(`No achievement mapping for event: ${eventType}`);
       }
     } catch (error) {
       console.error(`Error updating achievement for user ${userId}:`, error);
@@ -106,6 +216,12 @@ class GamificationService {
 
   static async updateUserExpAndLevel(userId, eventType) {
     const deltaExp = expGainByEvent[eventType] || 0;
+
+    // ANTI-SPAM: Skip jika event tidak memberikan EXP
+    if (deltaExp === 0) {
+      console.log(`Event ${eventType} does not grant EXP - skipping update for user ${userId}`);
+      return;
+    }
 
     const user = await UserExpService.getUserExpByUserId(userId);
     if (!user) {
@@ -116,21 +232,30 @@ class GamificationService {
     let { exp: currentExp, level: currentLevel } = user;
     currentExp = parseInt(currentExp, 10) || 0; // Konversi ke integer, jika gagal jadi 0
     currentLevel = parseInt(currentLevel, 10) || 1; // Konversi level, jika gagal jadi 1
+
+    // LEVEL CAP: Mencegah user melebihi level 100
+    if (currentLevel >= 100 && deltaExp > 0) {
+      console.log(`User ${userId} already at max level (100) - no EXP gain allowed`);
+      return;
+    }
+
     const newExp = Math.max(0, currentExp + deltaExp);
     let newLevel = currentLevel;
 
+    // Hitung level baru berdasarkan EXP
     Object.entries(levelThresholds)
       .sort((a, b) => Number(a[0]) - Number(b[0]))
       .forEach(([lvl, threshold]) => {
-        if (newExp >= threshold) {
+        if (newExp >= threshold && Number(lvl) <= 100) {
+          // Level cap 100
           newLevel = Number(lvl);
         }
       });
 
-    // Curent treshold for the current level
+    // Current threshold for the current level
     const currentTreshold = levelThresholds[newLevel] || 0;
-    // Next threshold for the current level
-    const nextTreshold = levelThresholds[newLevel + 1] || Infinity;
+    // Next threshold for the current level (cap at level 100)
+    const nextTreshold = newLevel >= 100 ? levelThresholds[100] : levelThresholds[newLevel + 1] || levelThresholds[100];
 
     await UserExpService.updateUserExpByUserId(userId, newExp, newLevel, currentTreshold, nextTreshold);
 
@@ -138,13 +263,15 @@ class GamificationService {
     if (newLevel > currentLevel) {
       try {
         await NotificationService.notifyLevelUp(userId, newLevel, deltaExp);
+        console.log(`🎉 User ${userId} leveled up to ${newLevel}!`);
       } catch (notificationError) {
         console.error("Failed to send level up notification:", notificationError);
       }
     }
 
-    // Send EXP gained notification for significant gains
-    if (deltaExp > 0 && deltaExp >= 10) {
+    // Send EXP gained notification for significant gains (threshold dinaikkan)
+    if (deltaExp > 0 && deltaExp >= 20) {
+      // Dinaikkan dari 10 ke 20
       try {
         const reason = this.getExpGainReason(eventType);
         await NotificationService.notifyExpGained(userId, deltaExp, reason);
@@ -153,22 +280,36 @@ class GamificationService {
       }
     }
 
-    console.log(`User ${userId}: EXP ${currentExp} -> ${newExp}, Level ${currentLevel} -> ${newLevel} (Treshold: ${nextTreshold})`);
+    console.log(`💎 User ${userId}: EXP ${currentExp} -> ${newExp} (${deltaExp >= 0 ? "+" : ""}${deltaExp}), Level ${currentLevel} -> ${newLevel} (Next: ${nextTreshold})`);
   }
 
   static getExpGainReason(eventType) {
     const reasonMap = {
-      postCreated: "Creating a post",
-      userGotFollowed: "Getting a new follower",
-      postGotLiked: "Post received a like",
-      postGotCommented: "Post received a comment",
-      postGotBookmarked: "Post was bookmarked",
-      commentOnPost: "Commenting on a post",
-      replyOnComment: "Liking a post",
-      likeOnPost: "Liking a post",
-      userFollowed: "Following a user",
+      // Passive rewards (user mendapat interaksi)
+      userGotFollowed: "Gained a new follower",
+      postGotLiked: "Your post received a like",
+      postGotCommented: "Your post received a comment",
+      postGotBookmarked: "Your post was bookmarked",
+      commentGotReplied: "Your comment received a reply",
+
+      // Content creation
+      postCreated: "Created a new post",
+
+      // Challenge events
+      challengeJoined: "Joined a challenge",
+      challengeWinner: "Won a challenge",
+      challengeRunnerUp: "Runner up in challenge",
+      challengeParticipant: "Completed a challenge",
     };
-    return reasonMap[eventType] || "User activity";
+    return reasonMap[eventType] || "Community interaction";
+  }
+
+  // ANTI-SPAM: Method untuk cek daily limits (implementasi future)
+  static async checkDailyLimits(userId, eventType) {
+    // TODO: Implementasi daily limits untuk event tertentu
+    // Contoh: maksimal 10 post per hari yang memberikan EXP
+    // Ini akan mencegah spam posting untuk farming EXP
+    return true; // Placeholder
   }
 }
 
