@@ -3,7 +3,7 @@ const CommentReplyRepository = require("../repositories/CommentReplyRepository")
 const UserPostRepository = require("../repositories/UserPostRepository");
 const customError = require("../errors/customError");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
-const formatDate = require("../utils/dateFormatterUtils");
+const { formatDate } = require("../utils/dateFormatterUtils");
 const NotificationService = require("./NotificationService");
 const MentionService = require("./MentionService");
 

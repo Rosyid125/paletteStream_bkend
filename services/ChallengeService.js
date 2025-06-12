@@ -71,9 +71,9 @@ class ChallengeService {
         throw new customError("Challenge not found", 404);
       }
 
-      // If challenge is already closed, don't allow major updates
-      if (existingChallenge.is_closed && (updateData.deadline || updateData.title)) {
-        throw new customError("Cannot modify closed challenge details", 400);
+      // Tidak boleh update jika challenge sudah closed
+      if (existingChallenge.is_closed) {
+        throw new customError("Challenge is already closed and cannot be edited", 400);
       }
 
       // Validate deadline if provided
