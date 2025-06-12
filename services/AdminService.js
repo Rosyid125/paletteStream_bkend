@@ -3,6 +3,7 @@ const UserPostRepository = require("../repositories/UserPostRepository");
 const PostReportRepository = require("../repositories/PostReportRepository");
 const UserProfileService = require("./UserProfileService");
 const UserExpService = require("./UserExpService");
+const bcrypt = require("bcryptjs");
 const customError = require("../errors/customError");
 
 class AdminService {
@@ -18,9 +19,44 @@ class AdminService {
   static async banUser(id) {
     return UserRepository.updateStatus(id, "banned");
   }
-
   static async editUser(id, data) {
-    return UserRepository.update(id, data);
+    try {
+      // Validate user exists
+      const userExists = await UserRepository.existsById(id);
+      if (!userExists) {
+        throw new Error("User not found");
+      }
+
+      // Prepare update data
+      const updateData = { ...data };
+
+      // Hash password if provided
+      if (updateData.password) {
+        updateData.password = await bcrypt.hash(updateData.password, 10);
+      }
+
+      // Update user
+      const updatedUser = await UserRepository.updateComplete(id, updateData);
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+
+      return userWithoutPassword;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getUserById(id) {
+    try {
+      const user = await UserRepository.getDetailedById(id);
+      if (!user) {
+        throw new Error("User not found");
+      }
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
 
   static async deleteUser(id) {
@@ -79,14 +115,35 @@ class AdminService {
       pendingReports,
     };
   }
-
   // Create new admin
-  static async createAdmin({ email, password, first_name, last_name }) {
-    // Validasi sederhana
-    if (!email || !password || !first_name || !last_name) throw new Error("All fields are required");
-    await UserProfileService.createDefaultUserProfile(user.id);
-    await UserExpService.create(user.id, 0, 1);
-    return UserRepository.createAdmin({ email, password, first_name, last_name });
+  static async createAdmin({ email, password, first_name, last_name, role = "admin" }) {
+    try {
+      // Validasi input
+      if (!email || !password || !first_name || !last_name) {
+        throw new Error("All fields are required");
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user with admin role
+      const user = await UserRepository.createAdmin({
+        email,
+        password: hashedPassword,
+        first_name,
+        last_name,
+      });
+
+      // Create default profile and experience for new admin
+      await UserProfileService.createDefaultUserProfile(user.id);
+      await UserExpService.create(user.id, 0, 1);
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      throw error;
+    }
   }
 
   // Dashboard trend

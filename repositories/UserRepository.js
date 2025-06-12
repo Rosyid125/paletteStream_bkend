@@ -232,13 +232,70 @@ class UserRepository {
       .orderBy("month", "asc");
     return result;
   }
-
   // Create admin with email unique check
   static async createAdmin({ email, password, first_name, last_name }) {
     // Cek email sudah terdaftar
     const existing = await User.query().where("email", email).first();
     if (existing) throw new Error("Email already registered");
     return User.query().insert({ email, password, first_name, last_name, role: "admin", status: "active", is_active: true });
+  }
+
+  // Check if user exists by id
+  static async existsById(id) {
+    try {
+      const user = await User.query().findById(id);
+      return !!user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update user with complete data (for admin edit)
+  static async updateComplete(id, updateData) {
+    try {
+      // Filter only allowed fields and non-undefined values
+      const allowedFields = ["email", "password", "first_name", "last_name", "role", "is_active", "status"];
+      const filteredData = {};
+
+      allowedFields.forEach((field) => {
+        if (updateData[field] !== undefined) {
+          filteredData[field] = updateData[field];
+        }
+      });
+
+      if (Object.keys(filteredData).length === 0) {
+        throw new Error("No valid fields to update");
+      }
+
+      // Check if email is unique (if email is being updated)
+      if (filteredData.email) {
+        const existingUser = await User.query().where("email", filteredData.email).where("id", "!=", id).first();
+        if (existingUser) {
+          throw new Error("Email already exists");
+        }
+      }
+
+      return await User.query().patchAndFetchById(id, filteredData);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get detailed user info with profile for admin
+  static async getDetailedById(id) {
+    try {
+      const user = await User.query().findById(id).withGraphFetched("profile").select("users.*");
+
+      if (!user) {
+        return null;
+      }
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

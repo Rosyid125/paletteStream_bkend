@@ -4,13 +4,23 @@ const AdminController = require("../controllers/AdminController");
 const { verifyAdminRole } = require("../middlewares/roleMiddleware");
 const { verifyAccessToken } = require("../middlewares/authMiddleware");
 const { validateReportStatusUpdate } = require("../middlewares/reportValidation");
+const { validateCreateAdmin, validateEditUser, handleValidationErrors } = require("../middlewares/adminValidation");
 
+// User Management Routes
 router.get("/users", verifyAccessToken, verifyAdminRole, AdminController.getUsers);
+router.get("/users/:id", verifyAccessToken, verifyAdminRole, AdminController.getUserById);
 router.put("/users/:id/ban", verifyAccessToken, verifyAdminRole, AdminController.banUser);
-router.put("/users/:id", verifyAccessToken, verifyAdminRole, AdminController.editUser);
+router.put("/users/:id", verifyAccessToken, verifyAdminRole, validateEditUser, handleValidationErrors, AdminController.editUser);
 router.delete("/users/:id", verifyAccessToken, verifyAdminRole, AdminController.deleteUser);
+
+// Admin Management Routes
+router.post("/admins", verifyAccessToken, verifyAdminRole, validateCreateAdmin, handleValidationErrors, AdminController.createAdmin);
+
+// Post Management Routes
 router.get("/posts", verifyAccessToken, verifyAdminRole, AdminController.getPosts);
 router.delete("/posts/:id", verifyAccessToken, verifyAdminRole, AdminController.deletePost);
+
+// Dashboard Routes
 router.get("/dashboard", verifyAccessToken, verifyAdminRole, AdminController.getDashboard);
 router.get("/dashboard/trends", verifyAccessToken, verifyAdminRole, AdminController.getDashboardTrends);
 

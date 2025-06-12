@@ -21,14 +21,40 @@ class AdminController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
-
   static async editUser(req, res) {
     try {
       const { id } = req.params;
-      await AdminService.editUser(id, req.body);
-      res.json({ success: true });
+      const updateData = req.body;
+
+      const updatedUser = await AdminService.editUser(id, updateData);
+      res.json({
+        success: true,
+        message: "User updated successfully",
+        data: updatedUser,
+      });
     } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+      const statusCode = error.message === "User not found" ? 404 : error.message.includes("Email already exists") ? 409 : error.message.includes("No valid fields") ? 400 : 500;
+      res.status(statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  static async getUserById(req, res) {
+    try {
+      const { id } = req.params;
+      const user = await AdminService.getUserById(id);
+      res.json({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      const statusCode = error.message === "User not found" ? 404 : 500;
+      res.status(statusCode).json({
+        success: false,
+        message: error.message,
+      });
     }
   }
 
@@ -70,14 +96,21 @@ class AdminController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
-
   static async createAdmin(req, res) {
     try {
-      const { email, password, first_name, last_name } = req.body;
-      const admin = await AdminService.createAdmin({ email, password, first_name, last_name });
-      res.status(201).json({ success: true, data: admin });
+      const { email, password, first_name, last_name, role } = req.body;
+      const admin = await AdminService.createAdmin({ email, password, first_name, last_name, role });
+      res.status(201).json({
+        success: true,
+        message: "Admin created successfully",
+        data: admin,
+      });
     } catch (error) {
-      res.status(400).json({ success: false, message: error.message });
+      const statusCode = error.message.includes("Email already registered") ? 409 : error.message.includes("All fields are required") ? 400 : 500;
+      res.status(statusCode).json({
+        success: false,
+        message: error.message,
+      });
     }
   }
   static async getDashboardTrends(req, res) {
