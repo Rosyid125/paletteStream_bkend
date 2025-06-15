@@ -55,12 +55,28 @@ class NotificationService {
     return NotificationRepository.getByUser(user_id);
   }
 
+  static async getNotificationsWithFilter(user_id, options = {}) {
+    return NotificationRepository.getByUserWithFilter(user_id, options);
+  }
+
+  static async getUnreadCount(user_id) {
+    return NotificationRepository.getUnreadCount(user_id);
+  }
+
+  static async getNotificationsByType(user_id, type) {
+    return NotificationRepository.getNotificationsByType(user_id, type);
+  }
+
   static async markAsRead(notification_id) {
     return NotificationRepository.markAsRead(notification_id);
   }
 
   static async markAllAsRead(user_id) {
     return NotificationRepository.markAllAsRead(user_id);
+  }
+
+  static async markAsReadByType(user_id, type) {
+    return NotificationRepository.markAsReadByType(user_id, type);
   }
 
   // =================== FEATURE-BASED NOTIFICATION TRIGGERS ===================
@@ -479,12 +495,23 @@ class NotificationService {
     this._sendRealTimeNotification(userId, notification);
     return notification;
   }
-
   /**
    * Delete old notifications (cleanup job)
    */
   static async deleteOldNotifications(daysOld = 30) {
     return NotificationRepository.deleteOldNotifications(daysOld);
+  }
+
+  /**
+   * Send real-time notification via WebSocket
+   */
+  static _sendRealTimeNotification(userId, notification) {
+    try {
+      const { sendNotification } = require("../socketHandler");
+      sendNotification(userId, notification);
+    } catch (error) {
+      console.error(`[NOTIFICATION-SERVICE] Failed to send real-time notification:`, error.message);
+    }
   }
 }
 

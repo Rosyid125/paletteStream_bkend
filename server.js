@@ -31,6 +31,10 @@ require("./services/GamificationService");
 const ChallengeScheduler = require("./utils/ChallengeScheduler");
 ChallengeScheduler.start();
 
+// Initialize Anti-Spam Scheduler
+const AntiSpamScheduler = require("./schedulers/AntiSpamScheduler");
+AntiSpamScheduler.start();
+
 app.get("/", (req, res) => {
   res.send("Hello World");
 });

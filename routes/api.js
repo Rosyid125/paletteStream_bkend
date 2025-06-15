@@ -16,6 +16,7 @@ const postReportRoutes = require("./postReportRoutes"); // Import the postReport
 const notificationRoutes = require("./notificationRoutes"); // Import the notificationRoutes
 const gamificationRoutes = require("./gamificationRoutes"); // Import the gamificationRoutes
 const tagRoutes = require("./tagRoutes"); // Import the tagRoutes
+const antiSpamAdminRoutes = require("./antiSpamAdmin"); // Import the antiSpamAdminRoutes
 
 router.use("/profiles", userProfileRoutes); // Use the userProfileRoutes for the /users route
 router.use("/auth", authRoutes); // Use the authRoutes for the /auth route
@@ -33,5 +34,6 @@ router.use("/", challengeRoutes); // Use the challengeRoutes for challenge endpo
 router.use("/notifications", notificationRoutes); // Use the notificationRoutes for notifications
 router.use("/gamification", gamificationRoutes); // Use the gamificationRoutes for gamification hub
 router.use("/tags", tagRoutes); // Use the tagRoutes for the /tags route
+router.use("/admin/spam", antiSpamAdminRoutes); // Use the antiSpamAdminRoutes for admin spam management
 
 module.exports = router; // Export the router

@@ -149,11 +149,26 @@ class AdminController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
-
   static async getAllReports(req, res) {
     try {
-      const reports = await PostReportService.getAllReports();
-      res.json({ success: true, data: reports });
+      const { search, page = 1, limit = 20 } = req.query;
+
+      const result = await PostReportService.getAllReports({
+        search,
+        page: parseInt(page),
+        limit: parseInt(limit),
+      });
+
+      res.json({
+        success: true,
+        data: result.reports,
+        pagination: {
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          totalPages: result.totalPages,
+        },
+      });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }

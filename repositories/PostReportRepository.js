@@ -130,6 +130,47 @@ class PostReportRepository {
       throw error;
     }
   }
+  // Get all post reports with relations and pagination
+  static async findAllWithPagination(options = {}) {
+    try {
+      const { search, page = 1, limit = 20 } = options;
+      const offset = (page - 1) * limit;
+
+      // Build base query
+      let query = PostReport.query().withGraphFetched("[reporter(selectBasicInfo), post(selectBasicInfo)]");
+
+      // Apply search filter if provided
+      if (search && search.trim()) {
+        const searchTerm = `%${search.trim()}%`;
+        query = query.where((builder) => {
+          builder
+            // Search in reason, additional_info, status
+            .where("post_reports.reason", "like", searchTerm)
+            .orWhere("post_reports.additional_info", "like", searchTerm)
+            .orWhere("post_reports.status", "like", searchTerm)
+            // Search in reporter's details
+            .orWhereExists(PostReport.relatedQuery("reporter").where("first_name", "like", searchTerm).orWhere("last_name", "like", searchTerm).orWhere("email", "like", searchTerm))
+            // Search in post details
+            .orWhereExists(PostReport.relatedQuery("post").where("title", "like", searchTerm).orWhere("description", "like", searchTerm));
+        });
+      } // Get total count for pagination
+      const totalQuery = query.clone().clearSelect().clearOrder().clearWithGraph();
+      const total = await totalQuery.resultSize();
+
+      // Apply pagination and ordering
+      const reports = await query.orderBy("post_reports.created_at", "desc").limit(limit).offset(offset);
+
+      return {
+        reports,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: parseInt(total),
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = PostReportRepository;

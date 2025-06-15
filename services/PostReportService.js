@@ -47,11 +47,16 @@ class PostReportService {
       throw error;
     }
   }
-
   // Get all post reports (admin only)
-  static async getAllReports() {
+  static async getAllReports(options = {}) {
     try {
-      return await PostReportRepository.findAll();
+      const { search, page = 1, limit = 20 } = options;
+
+      return await PostReportRepository.findAllWithPagination({
+        search,
+        page,
+        limit,
+      });
     } catch (error) {
       throw error;
     }

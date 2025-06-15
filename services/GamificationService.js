@@ -1,6 +1,8 @@
 const UserExpService = require("./UserExpService");
 const AchievementService = require("./AchievementService");
 const NotificationService = require("./NotificationService");
+const AntiSpamService = require("./AntiSpamService");
+const AntiSpamLogger = require("../utils/AntiSpamLogger");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
 // REVISI ANTI-SPAM: Hanya event yang melibatkan interaksi dengan akun lain yang memberikan EXP
@@ -227,13 +229,18 @@ class GamificationService {
       console.error(`Error updating achievement for user ${userId}:`, error);
     }
   }
-
   static async updateUserExpAndLevel(userId, eventType) {
     const deltaExp = expGainByEvent[eventType] || 0;
 
     // ANTI-SPAM: Skip jika event tidak memberikan EXP
     if (deltaExp === 0) {
       console.log(`Event ${eventType} does not grant EXP - skipping update for user ${userId}`);
+      return;
+    } // ANTI-SPAM: Cek apakah user bisa mendapat EXP untuk event ini
+    const canGetExp = await AntiSpamService.canUserGetExp(userId, eventType);
+    if (!canGetExp) {
+      AntiSpamLogger.logExpBlocked(userId, eventType, deltaExp);
+      console.log(`🚨 User ${userId} is spam-locked for ${eventType} - EXP gain blocked`);
       return;
     }
 
@@ -323,6 +330,56 @@ class GamificationService {
       challengeParticipant: "Participated in a challenge",
     };
     return reasonMap[eventType] || "Community interaction";
+  }
+
+  /**
+   * Method khusus untuk handle comment spam detection dan EXP gain
+   * @param {number} userId - User yang melakukan comment
+   * @param {number} postId - Post yang dikomentari
+   * @param {string} commentContent - Isi comment
+   * @returns {Promise<{success: boolean, canGiveExp: boolean, message?: string}>}
+   */
+  static async handleCommentWithSpamCheck(userId, postId, commentContent) {
+    try {
+      // Check comment spam sebelum memberikan EXP
+      const spamCheck = await AntiSpamService.checkCommentSpam(userId, postId, commentContent);
+
+      if (spamCheck.isSpam) {
+        console.log(`🚨 Comment spam detected for user ${userId}: ${spamCheck.reason}`);
+        return {
+          success: false,
+          canGiveExp: false,
+          message: spamCheck.reason,
+          lockDetail: spamCheck.lockDetail,
+        };
+      }
+
+      // Jika tidak spam, lanjutkan dengan pemberian EXP
+      if (spamCheck.canGiveExp) {
+        // Trigger EXP gain event untuk comment
+        gamificationEmitter.emit("commentOnPost", userId);
+        console.log(`✅ Comment approved for user ${userId}, EXP gain triggered`);
+
+        return {
+          success: true,
+          canGiveExp: true,
+          message: "Comment processed successfully",
+        };
+      }
+
+      return {
+        success: true,
+        canGiveExp: false,
+        message: "Comment processed but no EXP gain",
+      };
+    } catch (error) {
+      console.error(`Error handling comment spam check for user ${userId}:`, error);
+      return {
+        success: false,
+        canGiveExp: false,
+        message: "Error processing comment spam check",
+      };
+    }
   }
 
   // ANTI-SPAM: Method untuk cek daily limits (implementasi future)

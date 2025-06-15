@@ -6,6 +6,7 @@ const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 const { formatDate } = require("../utils/dateFormatterUtils");
 const NotificationService = require("./NotificationService");
 const MentionService = require("./MentionService");
+const { GamificationService } = require("./GamificationService");
 
 class PostCommentService {
   // Get all post comments and comment replies
@@ -137,18 +138,32 @@ class PostCommentService {
       throw error;
     }
   }
-
   // Create a new post comment
   static async create(postId, userId, content) {
     try {
-      // Create a new post comment
+      // ANTI-SPAM: Cek spam detection sebelum membuat comment
+      const spamCheckResult = await GamificationService.handleCommentWithSpamCheck(userId, postId, content);
+
+      // Create a new post comment regardless of spam status (comment tetap dibuat)
       const postComment = await PostCommentRepository.create(postId, userId, content);
       if (!postComment) {
         throw new customError("Post comment not found");
       }
 
-      // Emit the gamification event for post comment
-      gamificationEmitter.emit("commentOnPost", userId); // Creator userId
+      // Jika spam terdeteksi, tidak emit gamification event tapi comment tetap dibuat
+      if (!spamCheckResult.success) {
+        console.log(`⚠️ Comment created but flagged as spam for user ${userId}: ${spamCheckResult.message}`);
+
+        // Return comment dengan warning message
+        return {
+          ...postComment,
+          _spamWarning: spamCheckResult.message,
+          _expGained: false,
+        };
+      }
+
+      // Jika bukan spam, emit gamification event secara normal
+      // Note: GamificationService.handleCommentWithSpamCheck sudah emit event jika valid
 
       const post = await UserPostRepository.findByPostId(postId);
 
@@ -174,8 +189,11 @@ class PostCommentService {
         }
       }
 
-      // Return post comment
-      return postComment;
+      // Return post comment dengan info EXP
+      return {
+        ...postComment,
+        _expGained: spamCheckResult.canGiveExp,
+      };
     } catch (error) {
       throw error;
     }
