@@ -222,13 +222,18 @@ class UserPostRepository {
       throw error;
     }
   }
-
   // Count new posts by day (trend)
   static async countNewPostsByDay(days = 7) {
+    // Validasi input untuk mencegah SQL injection
+    const validDays = parseInt(days, 10);
+    if (isNaN(validDays) || validDays <= 0 || validDays > 365) {
+      throw new Error("Invalid days parameter");
+    }
+    
     const result = await UserPost.query()
       .select(UserPost.raw("DATE(created_at) as date"))
       .count("id as count")
-      .where("created_at", ">=", UserPost.raw(`DATE_SUB(CURDATE(), INTERVAL ${days} DAY)`))
+      .where("created_at", ">=", UserPost.raw("DATE_SUB(CURDATE(), INTERVAL ? DAY)", [validDays]))
       .groupByRaw("DATE(created_at)")
       .orderBy("date", "asc");
     return result;
@@ -236,10 +241,16 @@ class UserPostRepository {
 
   // Count new posts by month (trend)
   static async countNewPostsByMonth(months = 6) {
+    // Validasi input untuk mencegah SQL injection
+    const validMonths = parseInt(months, 10);
+    if (isNaN(validMonths) || validMonths <= 0 || validMonths > 24) {
+      throw new Error("Invalid months parameter");
+    }
+    
     const result = await UserPost.query()
       .select(UserPost.raw('DATE_FORMAT(created_at, "%Y-%m") as month'))
       .count("id as count")
-      .where("created_at", ">=", UserPost.raw(`DATE_SUB(CURDATE(), INTERVAL ${months} MONTH)`))
+      .where("created_at", ">=", UserPost.raw("DATE_SUB(CURDATE(), INTERVAL ? MONTH)", [validMonths]))
       .groupByRaw('DATE_FORMAT(created_at, "%Y-%m")')
       .orderBy("month", "asc");
     return result;
