@@ -78,7 +78,7 @@ class NotificationService {
         post_title: postTitle,
         from_user_id: likerId,
         message: "liked your post",
-        redirect_url: `/home?post=${postId}`,
+        redirect_url: `/post/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -101,7 +101,7 @@ class NotificationService {
         comment_content: commentContent.substring(0, 100), // Truncate for preview
         from_user_id: commenterId,
         message: "commented on your post",
-        redirect_url: `/home?post=${postId}&comment=${commentId}`,
+        redirect_url: `/post/${postId}&comment=${commentId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -123,7 +123,7 @@ class NotificationService {
         reply_content: replyContent.substring(0, 100),
         from_user_id: replierId,
         message: "replied to your comment",
-        redirect_url: `/home?post=${postId}&comment=${commentId}`,
+        redirect_url: `/post/${postId}&comment=${commentId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -143,7 +143,7 @@ class NotificationService {
         post_title: postTitle,
         from_user_id: bookmarkerId,
         message: "bookmarked your post",
-        redirect_url: `/home?post=${postId}`,
+        redirect_url: `/post/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -356,7 +356,7 @@ class NotificationService {
         post_title: postTitle,
         rank: rank,
         leaderboard_type: leaderboardType, // 'daily' or 'weekly'        message: `Your post "${postTitle}" is #${rank} on the ${leaderboardType} leaderboard!`,
-        redirect_url: `/home?post=${postId}`,
+        redirect_url: `/post/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -378,7 +378,7 @@ class NotificationService {
         from_user_id: mentionerId,
         context: context,
         message: "mentioned you in a comment",
-        redirect_url: commentId ? `/home?post=${postId}&comment=${commentId}` : `/home?post=${postId}`,
+        redirect_url: commentId ? `/post/${postId}&comment=${commentId}` : `/post/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -413,7 +413,7 @@ class NotificationService {
         post_title: postTitle,
         reason: reason,
         message: "Your post has been reported and is under review",
-        redirect_url: `/home?post=${postId}`,
+        redirect_url: `/post/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -430,7 +430,7 @@ class NotificationService {
         post_id: postId,
         post_title: postTitle,
         message: `Your post "${postTitle}" has been featured!`,
-        redirect_url: `/home?post=${postId}`,
+        redirect_url: `/post/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
