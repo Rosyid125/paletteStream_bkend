@@ -148,11 +148,16 @@ class PostCommentService {
       }
 
       // Emit the gamification event for post comment
-      gamificationEmitter.emit("commentOnPost", userId); // Get the userid from postId
+      gamificationEmitter.emit("commentOnPost", userId); // Creator userId
+
       const post = await UserPostRepository.findByPostId(postId);
+
       if (post) {
         // Emit the gamification event for post got commented
-        gamificationEmitter.emit("postGotCommented", post.user_id);
+        // Only if creator userId is not the same as post userId
+        if (post.user_id !== userId) {
+          gamificationEmitter.emit("postGotCommented", post.user_id);
+        }
 
         // Send notification to post owner
         try {
@@ -181,6 +186,7 @@ class PostCommentService {
     try {
       // Delete a post comment
       const postComment = await PostCommentRepository.delete(id);
+
       if (!postComment) {
         throw new customError("Post comment not found");
       }
@@ -190,11 +196,16 @@ class PostCommentService {
 
       // Get the postId from post comment
       const postId = postComment.post_id;
+
       // Get the userid from postId
       const post = await UserPostRepository.findByPostId(postId);
+
       if (post) {
         // Emit the gamification event for post got commented
-        gamificationEmitter.emit("postGotUncommented", post.user_id);
+        // Only if creator userId is not the same as post userId
+        if (post.user_id !== postComment.user_id) {
+          gamificationEmitter.emit("postGotUncommented", post.user_id);
+        }
       }
 
       // Return deleted post comment
