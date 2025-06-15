@@ -7,6 +7,7 @@ const BadgeService = require("./BadgeService");
 const NotificationService = require("./NotificationService");
 const customError = require("../errors/customError");
 const FairRankingService = require("./FairRankingService");
+const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
 class ChallengeWinnerService {
   // Select winners for a challenge
@@ -62,10 +63,11 @@ class ChallengeWinnerService {
 
           // Get final score (like count) for the post
           const likeCount = await PostLikeRepository.countByPostId(postId);
-          const finalScore = parseInt(likeCount) || 0;
-
-          // Create winner entry
+          const finalScore = parseInt(likeCount) || 0;          // Create winner entry
           const winner = await ChallengeWinnerRepository.create(challengeId, userId, postId, rank, finalScore, adminNote);
+
+          // Emit challengeWinner event untuk gamifikasi
+          gamificationEmitter.emit('challengeWinner', userId);
 
           // Award badge to winner
           try {
@@ -81,6 +83,20 @@ class ChallengeWinnerService {
             await NotificationService.notifyBadgeAwarded(userId, challengeId, challenge.title, challenge.badge_img, rank);
           } catch (notificationError) {
             console.error("Failed to send winner notification:", notificationError);
+          }
+
+          // Emit challengeWinner event
+          try {
+            gamificationEmitter.emit("challengeWinner", {
+              userId,
+              challengeId,
+              postId,
+              rank,
+              finalScore,
+              adminNote,
+            });
+          } catch (emitError) {
+            console.error("Failed to emit challengeWinner event:", emitError);
           }
 
           createdWinners.push(winner);

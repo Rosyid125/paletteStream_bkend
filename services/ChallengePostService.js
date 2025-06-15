@@ -1,6 +1,7 @@
 const ChallengePostRepository = require("../repositories/ChallengePostRepository");
 const PostCommentService = require("./PostCommentService");
 const PostLikeRepository = require("../repositories/PostLikeRepository");
+const { gamificationEmitter } = require("../emitters/gamificationEmitter");
 
 class ChallengePostService {
   // Get challenge posts by user ID with accurate comment counts
@@ -99,11 +100,15 @@ class ChallengePostService {
       throw error;
     }
   }
-
   // Create challenge post submission
   static async create(challengeId, postId, userId) {
     try {
-      return await ChallengePostRepository.create(challengeId, postId, userId);
+      const challengePost = await ChallengePostRepository.create(challengeId, postId, userId);
+
+      // Emit challengeParticipant event untuk gamifikasi
+      gamificationEmitter.emit('challengeParticipant', userId);
+
+      return challengePost;
     } catch (error) {
       throw error;
     }
