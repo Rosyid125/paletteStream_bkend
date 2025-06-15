@@ -63,11 +63,11 @@ class ChallengeWinnerService {
 
           // Get final score (like count) for the post
           const likeCount = await PostLikeRepository.countByPostId(postId);
-          const finalScore = parseInt(likeCount) || 0;          // Create winner entry
+          const finalScore = parseInt(likeCount) || 0; // Create winner entry
           const winner = await ChallengeWinnerRepository.create(challengeId, userId, postId, rank, finalScore, adminNote);
 
           // Emit challengeWinner event untuk gamifikasi
-          gamificationEmitter.emit('challengeWinner', userId);
+          gamificationEmitter.emit("challengeWinner", userId);
 
           // Award badge to winner
           try {

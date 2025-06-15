@@ -229,7 +229,7 @@ class UserPostRepository {
     if (isNaN(validDays) || validDays <= 0 || validDays > 365) {
       throw new Error("Invalid days parameter");
     }
-    
+
     const result = await UserPost.query()
       .select(UserPost.raw("DATE(created_at) as date"))
       .count("id as count")
@@ -246,7 +246,7 @@ class UserPostRepository {
     if (isNaN(validMonths) || validMonths <= 0 || validMonths > 24) {
       throw new Error("Invalid months parameter");
     }
-    
+
     const result = await UserPost.query()
       .select(UserPost.raw('DATE_FORMAT(created_at, "%Y-%m") as month'))
       .count("id as count")

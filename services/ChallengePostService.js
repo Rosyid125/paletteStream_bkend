@@ -106,7 +106,7 @@ class ChallengePostService {
       const challengePost = await ChallengePostRepository.create(challengeId, postId, userId);
 
       // Emit challengeParticipant event untuk gamifikasi
-      gamificationEmitter.emit('challengeParticipant', userId);
+      gamificationEmitter.emit("challengeParticipant", userId);
 
       return challengePost;
     } catch (error) {

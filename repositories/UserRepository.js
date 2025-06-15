@@ -215,7 +215,7 @@ class UserRepository {
     if (isNaN(validDays) || validDays <= 0 || validDays > 365) {
       throw new Error("Invalid days parameter");
     }
-    
+
     // Menghitung jumlah user baru per hari selama N hari terakhir
     const result = await User.query()
       .select(User.raw("DATE(created_at) as date"))
@@ -232,7 +232,7 @@ class UserRepository {
     if (isNaN(validMonths) || validMonths <= 0 || validMonths > 24) {
       throw new Error("Invalid months parameter");
     }
-    
+
     // Menghitung jumlah user baru per bulan selama N bulan terakhir
     const result = await User.query()
       .select(User.raw('DATE_FORMAT(created_at, "%Y-%m") as month'))
