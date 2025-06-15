@@ -25,6 +25,7 @@ const NOTIFICATION_TYPES = [
   "challenge_joined",
   "challenge_deadline",
   "system",
+  "spam_warning",
 ];
 
 class NotificationService {
@@ -78,7 +79,7 @@ class NotificationService {
         post_title: postTitle,
         from_user_id: likerId,
         message: "liked your post",
-        redirect_url: `/post/${postId}`,
+        redirect_url: `/posts/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -101,7 +102,7 @@ class NotificationService {
         comment_content: commentContent.substring(0, 100), // Truncate for preview
         from_user_id: commenterId,
         message: "commented on your post",
-        redirect_url: `/post/${postId}&comment=${commentId}`,
+        redirect_url: `/posts/${postId}&comment=${commentId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -123,7 +124,7 @@ class NotificationService {
         reply_content: replyContent.substring(0, 100),
         from_user_id: replierId,
         message: "replied to your comment",
-        redirect_url: `/post/${postId}&comment=${commentId}`,
+        redirect_url: `/posts/${postId}&comment=${commentId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -143,7 +144,7 @@ class NotificationService {
         post_title: postTitle,
         from_user_id: bookmarkerId,
         message: "bookmarked your post",
-        redirect_url: `/post/${postId}`,
+        redirect_url: `/posts/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -356,7 +357,7 @@ class NotificationService {
         post_title: postTitle,
         rank: rank,
         leaderboard_type: leaderboardType, // 'daily' or 'weekly'        message: `Your post "${postTitle}" is #${rank} on the ${leaderboardType} leaderboard!`,
-        redirect_url: `/post/${postId}`,
+        redirect_url: `/posts/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -378,7 +379,7 @@ class NotificationService {
         from_user_id: mentionerId,
         context: context,
         message: "mentioned you in a comment",
-        redirect_url: commentId ? `/post/${postId}&comment=${commentId}` : `/post/${postId}`,
+        redirect_url: commentId ? `/posts/${postId}&comment=${commentId}` : `/posts/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -413,7 +414,7 @@ class NotificationService {
         post_title: postTitle,
         reason: reason,
         message: "Your post has been reported and is under review",
-        redirect_url: `/post/${postId}`,
+        redirect_url: `/posts/${postId}`,
         timestamp: new Date().toISOString(),
       },
     });
@@ -457,66 +458,26 @@ class NotificationService {
     return notification;
   }
 
-  // =================== HELPER METHODS ===================
   /**
-   * Send real-time notification via WebSocket
+   * Spam Detection Notification
    */
-  static _sendRealTimeNotification(userId, notification) {
-    console.log(`[NOTIFICATION-SERVICE] 📨 Triggering real-time notification for user ${userId}`, {
-      userId,
-      notificationType: notification.type,
-      notificationId: notification.id,
-      timestamp: new Date().toISOString(),
-    });
-
-    try {
-      // Import socket handler to avoid circular dependency
-      const { sendNotification } = require("../socketHandler");
-      sendNotification(userId, notification);
-
-      console.log(`[NOTIFICATION-SERVICE] ✅ Real-time notification triggered successfully for user ${userId}`, {
-        userId,
-        notificationType: notification.type,
-        notificationId: notification.id,
-      });
-    } catch (error) {
-      console.error(`[NOTIFICATION-SERVICE] ❌ Failed to send real-time notification for user ${userId}:`, {
-        userId,
-        notificationType: notification.type,
-        notificationId: notification.id,
-        error: error.message,
-        stack: error.stack,
+  static async notifySpamDetected(userId, spamType, unlockAt) {
+    const notification = await this.create({
+      user_id: userId,
+      type: "system",
+      data: {
+        spam_type: spamType,
+        unlock_at: unlockAt,
+        message: `Spam activity detected. Your EXP gain from comments is temporarily locked until ${new Date(unlockAt).toLocaleString()}`,
+        title: "⚠️ Spam Detection Alert",
+        severity: "warning",
         timestamp: new Date().toISOString(),
-      });
-    }
-  }
-
-  /**
-   * Get notifications with pagination and filtering
-   */
-  static async getNotificationsWithFilter(userId, options = {}) {
-    const { page = 1, limit = 20, type = null, unread_only = false } = options;
-
-    return NotificationRepository.getByUserWithFilter(userId, {
-      page,
-      limit,
-      type,
-      unread_only,
+      },
     });
-  }
 
-  /**
-   * Get unread notification count
-   */
-  static async getUnreadCount(userId) {
-    return NotificationRepository.getUnreadCount(userId);
-  }
-
-  /**
-   * Mark notifications as read by type
-   */
-  static async markAsReadByType(userId, type) {
-    return NotificationRepository.markAsReadByType(userId, type);
+    // Send real-time notification
+    this._sendRealTimeNotification(userId, notification);
+    return notification;
   }
 
   /**
