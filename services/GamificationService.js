@@ -202,6 +202,16 @@ class GamificationService {
         postCreated: "post_uploaded",
         postDeleted: "post_uploaded", // reverse
 
+        // User interactions (passive)
+        userFollowed: "user_followed",
+        userUnfollowed: "user_followed", // reverse
+        commentOnPost: "post_commented",
+        commentOnPostDeleted: "post_commented", // reverse
+        replyOnComment: "comment_replied",
+        replyOnCommentDeleted: "comment_replied", // reverse
+        likeOnPost: "post_liked",
+        likeOnPostDeleted: "post_liked", // reverse
+
         // Challenge events (future)
         challengeJoined: "challenge_joined",
         challengeLeft: "challenge_joined", // reverse
