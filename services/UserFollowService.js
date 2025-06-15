@@ -1,6 +1,7 @@
 const UserFollowRepository = require("../repositories/UserFollowRepository");
 const customError = require("../errors/customError");
 const { gamificationEmitter } = require("../emitters/gamificationEmitter");
+const NotificationService = require("./NotificationService");
 
 class UserFollowService {
   // Get all user followers by user id
@@ -16,6 +17,32 @@ class UserFollowService {
   static async findByFollowerId(userId) {
     try {
       return await UserFollowRepository.findByFollowerId(userId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get user followings with pagination
+  static async getFollowingsWithPagination(userId, page = 1, limit = 10) {
+    try {
+      // Validate pagination parameters
+      const pageNum = Math.max(1, parseInt(page) || 1);
+      const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 10)); // Max 50 items per page
+
+      return await UserFollowRepository.findFollowingsByFollowerIdWithPagination(userId, pageNum, limitNum);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get user followers with pagination
+  static async getFollowersWithPagination(userId, page = 1, limit = 10) {
+    try {
+      // Validate pagination parameters
+      const pageNum = Math.max(1, parseInt(page) || 1);
+      const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 10)); // Max 50 items per page
+
+      return await UserFollowRepository.findFollowersByFollowedIdWithPagination(userId, pageNum, limitNum);
     } catch (error) {
       throw error;
     }

@@ -41,6 +41,54 @@ class UserFollowController {
     }
   }
 
+  // Get user followers with pagination
+  static async getFollowersWithPagination(req, res) {
+    try {
+      const { userId } = req.params;
+      const { page = 1, limit = 10 } = req.query;
+
+      const result = await UserFollowService.getFollowersWithPagination(userId, page, limit);
+
+      res.json({
+        success: true,
+        message: "Followers retrieved successfully",
+        ...result,
+      });
+    } catch (error) {
+      // Log the error using logger
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, message: "An unexpected error occurred." });
+    }
+  }
+
+  // Get user following with pagination
+  static async getFollowingWithPagination(req, res) {
+    try {
+      const { userId } = req.params;
+      const { page = 1, limit = 10 } = req.query;
+
+      const result = await UserFollowService.getFollowingsWithPagination(userId, page, limit);
+
+      res.json({
+        success: true,
+        message: "Following retrieved successfully",
+        ...result,
+      });
+    } catch (error) {
+      // Log the error using logger
+      logger.error(`Error: ${error.message}`, {
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(500).json({ success: false, message: "An unexpected error occurred." });
+    }
+  }
+
   // Create and delete a user follow
   static async createDelete(req, res) {
     try {

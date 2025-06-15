@@ -19,7 +19,6 @@ class UserFollow extends Model {
       },
     };
   }
-
   static get relationMappings() {
     return {
       follower: {
@@ -31,6 +30,22 @@ class UserFollow extends Model {
         },
       },
       followed: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: User,
+        join: {
+          from: "user_follows.followed_id",
+          to: "users.id",
+        },
+      },
+      followerUser: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: User,
+        join: {
+          from: "user_follows.follower_id",
+          to: "users.id",
+        },
+      },
+      followedUser: {
         relation: Model.BelongsToOneRelation,
         modelClass: User,
         join: {
