@@ -213,10 +213,7 @@ class GamificationService {
         likeOnPostDeleted: "post_liked", // reverse
 
         // Challenge events (future)
-        challengeJoined: "challenge_joined",
-        challengeLeft: "challenge_joined", // reverse
         challengeWinner: "challenge_winner",
-        challengeRunnerUp: "challenge_runner_up",
         challengeParticipant: "challenge_participant",
       };
 
@@ -302,21 +299,28 @@ class GamificationService {
 
   static getExpGainReason(eventType) {
     const reasonMap = {
-      // Passive rewards (user mendapat interaksi)
       userGotFollowed: "Gained a new follower",
-      postGotLiked: "Your post received a like",
+      userGotUnfollowed: "Lost a follower",
       postGotCommented: "Your post received a comment",
+      postGotUncommented: "A comment on your post was removed",
+      postGotLiked: "Your post received a like",
+      postGotUnliked: "A like on your post was removed",
       postGotBookmarked: "Your post was bookmarked",
+      postGotUnbookmarked: "A bookmark on your post was removed",
       commentGotReplied: "Your comment received a reply",
-
-      // Content creation
+      commentGotUnreplied: "A reply to your comment was removed",
       postCreated: "Created a new post",
-
-      // Challenge events
-      challengeJoined: "Joined a challenge",
+      postDeleted: "Deleted a post",
+      userFollowed: "Followed a user",
+      userUnfollowed: "Unfollowed a user",
+      commentOnPost: "Commented on a post",
+      commentOnPostDeleted: "Deleted a comment on a post",
+      replyOnComment: "Replied to a comment",
+      replyOnCommentDeleted: "Deleted a reply to a comment",
+      likeOnPost: "Liked a post",
+      likeOnPostDeleted: "Removed a like from a post",
       challengeWinner: "Won a challenge",
-      challengeRunnerUp: "Runner up in challenge",
-      challengeParticipant: "Completed a challenge",
+      challengeParticipant: "Participated in a challenge",
     };
     return reasonMap[eventType] || "Community interaction";
   }
