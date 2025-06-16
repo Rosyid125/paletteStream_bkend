@@ -2,6 +2,7 @@ const ChallengeRepository = require("../repositories/ChallengeRepository");
 const UserBadgeRepository = require("../repositories/UserBadgeRepository");
 const UserPostService = require("./UserPostService");
 const customError = require("../errors/customError");
+const { deleteFromCloudinary, extractPublicIdFromUrl } = require("../utils/cloudinaryUtil");
 
 class ChallengeService {
   // Get all challenges
@@ -62,7 +63,6 @@ class ChallengeService {
       throw error;
     }
   }
-
   // Update challenge (Admin only)
   static async updateChallenge(id, updateData) {
     try {
@@ -81,6 +81,23 @@ class ChallengeService {
         const deadlineDate = new Date(updateData.deadline);
         if (deadlineDate <= new Date()) {
           throw new customError("Deadline must be in the future", 400);
+        }
+      }
+
+      // Handle old badge image deletion if new image is uploaded
+      if (updateData.badge_img && existingChallenge.badge_img) {
+        try {
+          // Check if old image is from Cloudinary
+          if (existingChallenge.badge_img.includes('cloudinary.com')) {
+            const publicId = extractPublicIdFromUrl(existingChallenge.badge_img);
+            if (publicId) {
+              await deleteFromCloudinary(publicId);
+            }
+          }
+          // For local files, you might want to add fs.unlink logic here if needed
+        } catch (deleteError) {
+          console.error("Error deleting old badge image:", deleteError);
+          // Continue with update even if old image deletion fails
         }
       }
 
@@ -107,8 +124,7 @@ class ChallengeService {
       return { success: true, message: "Challenge closed successfully" };
     } catch (error) {
       throw error;
-    }
-  }
+    }  }
 
   // Delete challenge (Admin only)
   static async deleteChallenge(id) {
@@ -116,6 +132,23 @@ class ChallengeService {
       const challenge = await ChallengeRepository.findById(id);
       if (!challenge) {
         throw new customError("Challenge not found", 404);
+      }
+
+      // Delete badge image from Cloudinary if it exists
+      if (challenge.badge_img) {
+        try {
+          // Check if image is from Cloudinary
+          if (challenge.badge_img.includes('cloudinary.com')) {
+            const publicId = extractPublicIdFromUrl(challenge.badge_img);
+            if (publicId) {
+              await deleteFromCloudinary(publicId);
+            }
+          }
+          // For local files, you might want to add fs.unlink logic here if needed
+        } catch (deleteError) {
+          console.error("Error deleting badge image:", deleteError);
+          // Continue with challenge deletion even if image deletion fails
+        }
       }
 
       const deleted = await ChallengeRepository.delete(id);

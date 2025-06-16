@@ -13,6 +13,7 @@ const FairRankingService = require("./FairRankingService");
 // Import utility functions
 const { formatDate } = require("../utils/dateFormatterUtils");
 const deleteFile = require("../utils/deleteFileUtils");
+const { deleteImage, extractPublicId, isCloudinaryUrl } = require("../utils/cloudinaryUtil");
 
 // Define the UserPostService class
 class UserPostService {
@@ -902,12 +903,10 @@ class UserPostService {
         if (validTags.length > 0) {
           newPostTags = await Promise.all(validTags.map((tag) => PostTagRepository.create(postId, tag.id)));
         }
-      }
-
-      // Handle images update
+      }      // Handle images update
       // Get existing images for cleanup
       const existingImages = await PostImageRepository.findByPostId(postId);
-      const existingImagePaths = existingImages.map((img) => img.image_url);
+      const existingImageUrls = existingImages.map((img) => img.image_url);
 
       // Delete existing post images from database
       const deletedImages = await PostImageRepository.deleteByPostId(postId);
@@ -920,12 +919,24 @@ class UserPostService {
         newPostImages = await Promise.all(pathsToProcess.map((imagePath) => PostImageRepository.create(postId, imagePath)));
       }
 
-      // Delete old image files from storage (only if they're not being reused)
-      existingImagePaths.forEach((imagePath) => {
-        if (!pathsToProcess.includes(imagePath)) {
-          deleteFile(imagePath);
+      // Delete old image files from Cloudinary (only if they're not being reused)
+      for (const imageUrl of existingImageUrls) {
+        if (!pathsToProcess.includes(imageUrl) && isCloudinaryUrl(imageUrl)) {
+          try {
+            const publicId = extractPublicId(imageUrl);
+            if (publicId) {
+              await deleteImage(publicId);
+              console.log(`Deleted image from Cloudinary: ${publicId}`);
+            }
+          } catch (error) {
+            console.error(`Failed to delete image from Cloudinary: ${imageUrl}`, error);
+            // Continue with other operations even if one image deletion fails
+          }
+        } else if (!pathsToProcess.includes(imageUrl) && !isCloudinaryUrl(imageUrl)) {
+          // For backward compatibility, handle local storage files
+          deleteFile(imageUrl);
         }
-      });
+      }
 
       return {
         post,
@@ -938,33 +949,39 @@ class UserPostService {
       throw error;
     }
   }
-
   // Static method to delete a post
   static async deletePost(postId) {
     try {
-      // Get all images paths for the post
+      // Get all images for the post
       const postImages = await PostImageRepository.findByPostId(postId);
 
-      // Make it array by mapping
-      const imagePaths = postImages.map((image) => image.image_url);
+      // Get image URLs
+      const imageUrls = postImages.map((image) => image.image_url);
 
-      // Delete images from storage with forEach
-      imagePaths.forEach((imagePath) => {
-        // deleteFileUtils is a utility function to delete files
-        deleteFile(imagePath);
-      });
+      // Delete images from Cloudinary and local storage
+      for (const imageUrl of imageUrls) {
+        if (isCloudinaryUrl(imageUrl)) {
+          try {
+            const publicId = extractPublicId(imageUrl);
+            if (publicId) {
+              await deleteImage(publicId);
+              console.log(`Deleted image from Cloudinary: ${publicId}`);
+            }
+          } catch (error) {
+            console.error(`Failed to delete image from Cloudinary: ${imageUrl}`, error);
+            // Continue with other operations even if one image deletion fails
+          }
+        } else {
+          // For backward compatibility, handle local storage files
+          deleteFile(imageUrl);
+        }
+      }
 
       // Delete the post
       const post = await UserPostRepository.delete(postId);
 
       console.log("Post deleted:", post);
-      // Because db alerady has cascade delete, we don't need to delete post tags and images again (so i commented it out, untested though)
-
-      // // Delete post tags
-      // const postTags = await PostTagRepository.deleteByPostId(postId);
-
-      // // Delete post images
-      // const postImages = await PostImageRepository.deleteByPostId(postId);
+      // Because db already has cascade delete, we don't need to delete post tags and images again
 
       // Gamification event for post deletion
       const userId = post.user_id;

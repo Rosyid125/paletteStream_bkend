@@ -4,6 +4,7 @@ const ChallengeWinnerService = require("../services/ChallengeWinnerService");
 const customError = require("../errors/customError");
 const jwt = require("jsonwebtoken");
 const logger = require("../utils/winstonLogger");
+const { uploadToCloudinary } = require("../utils/cloudinaryUtil");
 
 class ChallengeController {
   // GET /challenges - Get all challenges
@@ -60,7 +61,6 @@ class ChallengeController {
       return res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
   }
-
   // POST /challenges - Create new challenge (Admin only)
   static async createChallenge(req, res) {
     try {
@@ -75,10 +75,18 @@ class ChallengeController {
       const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
       const userId = user.id;
 
-      // Handle file upload for badge image
+      // Handle file upload for badge image to Cloudinary
       let badgeImg = null;
       if (req.file) {
-        badgeImg = req.file.path; // Multer provides the file path
+        try {
+          const result = await uploadToCloudinary(req.file.buffer, 'badges', {
+            public_id: `badge_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+          });
+          badgeImg = result.secure_url;
+        } catch (uploadError) {
+          logger.error(`Error uploading badge image to Cloudinary: ${uploadError.message}`);
+          throw new customError("Failed to upload badge image", 400);
+        }
       }
 
       const challenge = await ChallengeService.createChallenge(title, description, badgeImg, deadline, userId);
@@ -96,16 +104,23 @@ class ChallengeController {
       return res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
   }
-
   // PUT /challenges/:id - Update challenge (Admin only)
   static async updateChallenge(req, res) {
     try {
       const { id } = req.params;
       const updateData = req.body;
 
-      // Handle file upload for badge image
+      // Handle file upload for badge image to Cloudinary
       if (req.file) {
-        updateData.badge_img = req.file.path;
+        try {
+          const result = await uploadToCloudinary(req.file.buffer, 'badges', {
+            public_id: `badge_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+          });
+          updateData.badge_img = result.secure_url;
+        } catch (uploadError) {
+          logger.error(`Error uploading badge image to Cloudinary: ${uploadError.message}`);
+          throw new customError("Failed to upload badge image", 400);
+        }
       }
 
       const challenge = await ChallengeService.updateChallenge(id, updateData);

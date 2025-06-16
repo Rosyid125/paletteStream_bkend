@@ -4,7 +4,8 @@ const customError = require("../errors/customError");
 // logger
 const logger = require("../utils/winstonLogger");
 const jwt = require("jsonwebtoken");
-const upload = require("../utils/multerUtil");
+const { uploadSingle } = require("../utils/multerCloudinaryUtil");
+const { uploadAvatar, deleteImage, extractPublicId, isCloudinaryUrl } = require("../utils/cloudinaryUtil");
 const path = require("path");
 
 class UserProfileController {
@@ -93,13 +94,12 @@ class UserProfileController {
       }
     }
   }
-
   // update user profile
   static async updateUserProfile(req, res) {
     try {
       // 1. Gunakan multer untuk menangani upload SATU file 'avatar'
       // Nama 'avatar' harus sesuai dengan nama field di form-data frontend
-      upload.single("avatar")(req, res, async (err) => {
+      uploadSingle("avatar")(req, res, async (err) => {
         // Handle error dari multer
         if (err) {
           // Contoh error: file terlalu besar, tipe file salah, dll.
@@ -125,18 +125,19 @@ class UserProfileController {
           } // Ambil data dari request body
           const { first_name, last_name, username, bio, location, platforms } = req.body;
 
-          // 2. Ambil path dari file yang diupload (JIKA ADA)
-          let avatarPath = undefined; // Default tidak ada perubahan avatar
+          // 2. Upload avatar to Cloudinary if file exists
+          let avatarUrl = undefined; // Default tidak ada perubahan avatar
           if (req.file) {
-            // req.file ada jika user mengupload file 'avatar'
-            // Gunakan path.posix.join untuk konsistensi path (forward slash)
-            avatarPath = path.posix.join("storage", "avatars", path.basename(req.file.path)); // Simpan di subfolder 'avatars' (opsional)
-            // Pastikan folder 'storage/uploads/avatars' ada
+            try {
+              const result = await uploadAvatar(req.file.buffer);
+              avatarUrl = result.secure_url;
+            } catch (uploadError) {
+              logger.error(`Error uploading avatar to Cloudinary: ${uploadError.message}`);
+              throw new customError("Avatar upload failed", 500);
+            }
           }
-          // Jika req.file tidak ada, avatarPath akan tetap undefined,
-          // service akan tahu untuk tidak mengubah avatar.
-
-          // 3. Persiapkan data untuk service
+          // Jika req.file tidak ada, avatarUrl akan tetap undefined,
+          // service akan tahu untuk tidak mengubah avatar.          // 3. Persiapkan data untuk service
           // Kirim sebagai objek agar lebih mudah dikelola di service
           const updateData = {
             first_name, // untuk update tabel users
@@ -144,7 +145,7 @@ class UserProfileController {
             username, // untuk update tabel user_profiles
             bio, // untuk update tabel user_profiles
             location, // untuk update tabel user_profiles
-            avatarPath, // untuk update tabel user_profiles
+            avatarUrl, // untuk update tabel user_profiles (Cloudinary URL)
             platforms, // untuk update social links
           };
 

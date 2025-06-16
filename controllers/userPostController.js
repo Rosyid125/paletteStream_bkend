@@ -1,5 +1,6 @@
 const UserPostService = require("../services/UserPostService");
-const upload = require("../utils/multerUtil");
+const { uploadArray } = require("../utils/multerCloudinaryUtil");
+const { uploadPostImage, deleteImage, extractPublicId, isCloudinaryUrl } = require("../utils/cloudinaryUtil");
 // import logger
 const logger = require("../utils/winstonLogger");
 const customError = require("../errors/customError");
@@ -7,7 +8,6 @@ const jwt = require("jsonwebtoken");
 
 // Import path module
 const path = require("path");
-const { th } = require("@faker-js/faker");
 
 class UserPostController {
   // Get all current user posts
@@ -365,12 +365,11 @@ class UserPostController {
       }
     }
   }
-
   // Create a user post
   static async createPost(req, res) {
     try {
       // Gunakan multer untuk menangani upload sebelum memanggil service
-      upload.array("images", 10)(req, res, async (err) => {
+      uploadArray("images", 10)(req, res, async (err) => {
         if (err) {
           return res.status(400).json({ error: "File upload failed", details: err.message });
         }
@@ -389,11 +388,22 @@ class UserPostController {
             return res.status(400).json({ error: "Title and description are required" });
           }
 
-          // Ambil path dari file yang diupload
-          const imagePaths = req.files ? req.files.map((file) => path.posix.join("storage", "uploads", path.basename(file.path))) : [];
+          // Upload images to Cloudinary
+          const imageUrls = [];
+          if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+              try {
+                const result = await uploadPostImage(file.buffer);
+                imageUrls.push(result.secure_url);
+              } catch (uploadError) {
+                logger.error(`Error uploading image to Cloudinary: ${uploadError.message}`);
+                // Continue with other images, don't fail the entire request
+              }
+            }
+          }
 
           // Panggil service dengan data yang sudah diproses
-          const newPost = await UserPostService.createPost(userId, title, description, tags, imagePaths, type);
+          const newPost = await UserPostService.createPost(userId, title, description, tags, imageUrls, type);
 
           // Kirim response ke client
           res.json({ success: true, data: newPost });
@@ -414,12 +424,11 @@ class UserPostController {
 
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
-  }
-  // Edit a user post
+  }  // Edit a user post
   static async updatePost(req, res) {
     try {
       // Gunakan multer untuk menangani upload sebelum memanggil service
-      upload.array("images", 10)(req, res, async (err) => {
+      uploadArray("images", 10)(req, res, async (err) => {
         if (err) {
           return res.status(400).json({ error: "File upload failed", details: err.message });
         }
@@ -456,11 +465,22 @@ class UserPostController {
             return res.status(403).json({ success: false, message: "You are not authorized to edit this post" });
           }
 
-          // Ambil path dari file yang diupload (jika ada)
-          const imagePaths = req.files ? req.files.map((file) => path.posix.join("storage", "uploads", path.basename(file.path))) : [];
+          // Upload new images to Cloudinary (if any)
+          const newImageUrls = [];
+          if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+              try {
+                const result = await uploadPostImage(file.buffer);
+                newImageUrls.push(result.secure_url);
+              } catch (uploadError) {
+                logger.error(`Error uploading image to Cloudinary: ${uploadError.message}`);
+                // Continue with other images, don't fail the entire request
+              }
+            }
+          }
 
           // Panggil service dengan data yang sudah diproses
-          const updatedPost = await UserPostService.updatePost(postId, title, description, tags, imagePaths, type);
+          const updatedPost = await UserPostService.updatePost(postId, title, description, tags, newImageUrls, type);
 
           // Kirim response ke client
           res.json({ success: true, data: updatedPost, message: "Post updated successfully" });

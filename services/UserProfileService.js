@@ -15,6 +15,7 @@ const UserSocialLinkService = require("./UserSocialLinkService");
 
 const customError = require("../errors/customError");
 const deleteFile = require("../utils/deleteFileUtils");
+const { deleteImage, extractPublicId, isCloudinaryUrl } = require("../utils/cloudinaryUtil");
 
 // Define the UserProfileService class
 class UserProfileService {
@@ -212,15 +213,13 @@ class UserProfileService {
       // 3. Persiapkan data untuk update tabel USERS (first_name, last_name)
       const userFieldsToUpdate = {};
       if (updateData.first_name !== undefined) userFieldsToUpdate.first_name = updateData.first_name;
-      if (updateData.last_name !== undefined) userFieldsToUpdate.last_name = updateData.last_name;
-
-      // 4. Persiapkan data untuk update tabel USER_PROFILES (username, bio, location, avatar)
+      if (updateData.last_name !== undefined) userFieldsToUpdate.last_name = updateData.last_name;      // 4. Persiapkan data untuk update tabel USER_PROFILES (username, bio, location, avatar)
       const profileFieldsToUpdate = {};
       if (updateData.username !== undefined) profileFieldsToUpdate.username = updateData.username;
       if (updateData.bio !== undefined) profileFieldsToUpdate.bio = updateData.bio;
       if (updateData.location !== undefined) profileFieldsToUpdate.location = updateData.location;
-      if (updateData.avatarPath !== undefined) {
-        profileFieldsToUpdate.avatar = updateData.avatarPath;
+      if (updateData.avatarUrl !== undefined) {
+        profileFieldsToUpdate.avatar = updateData.avatarUrl;
       }
 
       // 5. Lakukan update ke tabel USERS (JIKA ADA PERUBAHAN)
@@ -246,11 +245,26 @@ class UserProfileService {
         const socialLinksData = Array.isArray(updateData.platforms) ? updateData.platforms : [];
 
         await UserSocialLinkService.update(userId, socialLinksData);
-      }
-
-      // 8. Hapus avatar lama jika ada avatar baru dan berbeda
-      if (userUpdateSuccess && profileUpdateSuccess && updateData.avatarPath !== undefined && oldAvatarPath && oldAvatarPath !== updateData.avatarPath && oldAvatarPath !== "storage/avatars/noimage.png") {
-        await deleteFile(oldAvatarPath);
+      }      // 8. Hapus avatar lama jika ada avatar baru dan berbeda
+      if (userUpdateSuccess && profileUpdateSuccess && updateData.avatarUrl !== undefined && oldAvatarPath && oldAvatarPath !== updateData.avatarUrl) {
+        // Tidak hapus avatar default
+        if (oldAvatarPath !== "storage/avatars/noimage.png" && oldAvatarPath !== process.env.DEFAULT_USER_AVATAR) {
+          if (isCloudinaryUrl(oldAvatarPath)) {
+            try {
+              const publicId = extractPublicId(oldAvatarPath);
+              if (publicId) {
+                await deleteImage(publicId);
+                console.log(`Deleted old avatar from Cloudinary: ${publicId}`);
+              }
+            } catch (error) {
+              console.error(`Failed to delete old avatar from Cloudinary: ${oldAvatarPath}`, error);
+              // Continue with other operations even if avatar deletion fails
+            }
+          } else {
+            // For backward compatibility, handle local storage files
+            await deleteFile(oldAvatarPath);
+          }
+        }
       }
 
       // 9. Ambil data profile yang sudah diupdate dari DB
