@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const userPostController = require("../controllers/UserPostController");
+const userPostController = require("../controllers/userPostController");
 const { verifyAccessToken } = require("../middlewares/authMiddleware");
 
 // Get all posts

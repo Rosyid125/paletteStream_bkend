@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 // Import path module
 const path = require("path");
 
-class UserPostController {
+class userPostController {
   // Get all current user posts
   static async getUserPost(req, res) {
     try {
@@ -561,4 +561,4 @@ class UserPostController {
   }
 }
 
-module.exports = UserPostController;
+module.exports = userPostController;
