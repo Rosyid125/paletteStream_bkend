@@ -44,7 +44,15 @@ build/
 .nyc_output/
 coverage/
 
-# Storage folders
-storage/avatars/
-storage/uploads/
-storage/badges/
+# Ignore all files in the folders
+storage/avatars/*
+storage/uploads/*
+storage/badges/*
+
+# Keep the folder structure (Git needs at least one file to keep folder)
+!storage/avatars/
+!storage/uploads/
+!storage/badges/
+
+# Track the default image only
+!storage/avatars/noimage.png
