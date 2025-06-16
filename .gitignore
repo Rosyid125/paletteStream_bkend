@@ -15,7 +15,6 @@ pnpm-lock.yaml
 .env.test
 
 # Database & ORM
-knexfile.js
 db.sqlite
 *.sqlite3
 *.sqlite-wal
