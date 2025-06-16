@@ -50,21 +50,20 @@ class UserRepository {
     } catch (error) {
       throw error;
     }
-  }
-
-  static async searchByUsernameOrNameOrEmail(query, offset, limit) {
+  }  static async searchByUsernameOrNameOrEmail(query, offset, limit) {
     try {
       const users = await User.query()
+        .select('users.*') // Select all user fields including status
         .joinRelated("profile") // join relasi profile
-        .withGraphFetched("profile") // ambil juga relasi profile
         .where((builder) => {
           builder.where("profile.username", "like", `%${query}%`).orWhere("users.first_name", "like", `%${query}%`).orWhere("users.last_name", "like", `%${query}%`).orWhere("users.email", "like", `%${query}%`);
         })
+        .orderBy('users.created_at', 'desc')
         .offset(offset)
         .limit(limit);
 
-      const userIds = users.map((user) => user.id);
-      return userIds;
+      // Return full user objects instead of just IDs for consistency with findAll
+      return users;
     } catch (error) {
       throw error;
     }
@@ -83,11 +82,15 @@ class UserRepository {
       throw error;
     }
   }
-
   // Get all users with pagination
   static async findAll(offset, limit) {
     try {
-      return await User.query().offset(offset).limit(limit);
+      // Select all user fields including status for admin interface
+      return await User.query()
+        .select('*')
+        .offset(offset)
+        .limit(limit)
+        .orderBy('created_at', 'desc');
     } catch (error) {
       throw error;
     }

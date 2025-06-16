@@ -125,22 +125,22 @@ class UserService {
       throw error;
     }
   }
-
   // Search user by username, first name, last name, or email
   static async searchByUsernameOrNameOrEmail(query, page, limit) {
     try {
       const offset = (page - 1) * limit;
-      const userIds = await UserRepository.searchByUsernameOrNameOrEmail(query, offset, limit);
+      const users = await UserRepository.searchByUsernameOrNameOrEmail(query, offset, limit);
 
+      // Now searchByUsernameOrNameOrEmail returns full user objects with profile
       // Get all users mini infos by user ids
-      const users = await Promise.all(
-        userIds.map(async (userId) => {
-          const user = await UserProfileService.findMiniInfosByUserId(userId);
-          return user;
+      const usersWithMiniInfo = await Promise.all(
+        users.map(async (user) => {
+          const userMiniInfo = await UserProfileService.findMiniInfosByUserId(user.id);
+          return userMiniInfo;
         })
       );
 
-      return users;
+      return usersWithMiniInfo;
     } catch (error) {
       throw error;
     }
