@@ -50,15 +50,16 @@ class UserRepository {
     } catch (error) {
       throw error;
     }
-  }  static async searchByUsernameOrNameOrEmail(query, offset, limit) {
+  }
+  static async searchByUsernameOrNameOrEmail(query, offset, limit) {
     try {
       const users = await User.query()
-        .select('users.*') // Select all user fields including status
+        .select("users.*") // Select all user fields including status
         .joinRelated("profile") // join relasi profile
         .where((builder) => {
           builder.where("profile.username", "like", `%${query}%`).orWhere("users.first_name", "like", `%${query}%`).orWhere("users.last_name", "like", `%${query}%`).orWhere("users.email", "like", `%${query}%`);
         })
-        .orderBy('users.created_at', 'desc')
+        .orderBy("users.created_at", "desc")
         .offset(offset)
         .limit(limit);
 
@@ -86,11 +87,7 @@ class UserRepository {
   static async findAll(offset, limit) {
     try {
       // Select all user fields including status for admin interface
-      return await User.query()
-        .select('*')
-        .offset(offset)
-        .limit(limit)
-        .orderBy('created_at', 'desc');
+      return await User.query().select("*").offset(offset).limit(limit).orderBy("created_at", "desc");
     } catch (error) {
       throw error;
     }

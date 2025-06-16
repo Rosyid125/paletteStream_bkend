@@ -6,7 +6,8 @@ const UserExpService = require("./UserExpService");
 const bcrypt = require("bcryptjs");
 const customError = require("../errors/customError");
 
-class AdminService {  // User Management
+class AdminService {
+  // User Management
   static async getUsers({ search, page = 1, limit = 20 }) {
     const offset = (page - 1) * limit;
     if (search) {
