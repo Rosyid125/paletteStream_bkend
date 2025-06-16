@@ -903,7 +903,7 @@ class UserPostService {
         if (validTags.length > 0) {
           newPostTags = await Promise.all(validTags.map((tag) => PostTagRepository.create(postId, tag.id)));
         }
-      }      // Handle images update
+      } // Handle images update
       // Get existing images for cleanup
       const existingImages = await PostImageRepository.findByPostId(postId);
       const existingImageUrls = existingImages.map((img) => img.image_url);

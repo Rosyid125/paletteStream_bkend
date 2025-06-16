@@ -79,7 +79,7 @@ class ChallengeController {
       let badgeImg = null;
       if (req.file) {
         try {
-          const result = await uploadToCloudinary(req.file.buffer, 'badges', {
+          const result = await uploadToCloudinary(req.file.buffer, "badges", {
             public_id: `badge_${Date.now()}_${Math.random().toString(36).substring(7)}`,
           });
           badgeImg = result.secure_url;
@@ -113,7 +113,7 @@ class ChallengeController {
       // Handle file upload for badge image to Cloudinary
       if (req.file) {
         try {
-          const result = await uploadToCloudinary(req.file.buffer, 'badges', {
+          const result = await uploadToCloudinary(req.file.buffer, "badges", {
             public_id: `badge_${Date.now()}_${Math.random().toString(36).substring(7)}`,
           });
           updateData.badge_img = result.secure_url;

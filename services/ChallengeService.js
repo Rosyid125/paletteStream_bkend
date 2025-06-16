@@ -88,7 +88,7 @@ class ChallengeService {
       if (updateData.badge_img && existingChallenge.badge_img) {
         try {
           // Check if old image is from Cloudinary
-          if (existingChallenge.badge_img.includes('cloudinary.com')) {
+          if (existingChallenge.badge_img.includes("cloudinary.com")) {
             const publicId = extractPublicIdFromUrl(existingChallenge.badge_img);
             if (publicId) {
               await deleteFromCloudinary(publicId);
@@ -124,7 +124,8 @@ class ChallengeService {
       return { success: true, message: "Challenge closed successfully" };
     } catch (error) {
       throw error;
-    }  }
+    }
+  }
 
   // Delete challenge (Admin only)
   static async deleteChallenge(id) {
@@ -138,7 +139,7 @@ class ChallengeService {
       if (challenge.badge_img) {
         try {
           // Check if image is from Cloudinary
-          if (challenge.badge_img.includes('cloudinary.com')) {
+          if (challenge.badge_img.includes("cloudinary.com")) {
             const publicId = extractPublicIdFromUrl(challenge.badge_img);
             if (publicId) {
               await deleteFromCloudinary(publicId);

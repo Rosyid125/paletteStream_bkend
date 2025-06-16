@@ -1,5 +1,5 @@
-const multer = require('multer');
-const { uploadConfig } = require('./cloudinaryUtil');
+const multer = require("multer");
+const { uploadConfig } = require("./cloudinaryUtil");
 
 // Export upload configurations for different use cases
 const upload = uploadConfig;

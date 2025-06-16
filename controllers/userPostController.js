@@ -424,7 +424,7 @@ class UserPostController {
 
       res.status(500).json({ success: false, messege: "An unexpected error occurred." });
     }
-  }  // Edit a user post
+  } // Edit a user post
   static async updatePost(req, res) {
     try {
       // Gunakan multer untuk menangani upload sebelum memanggil service

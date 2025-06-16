@@ -1,5 +1,5 @@
-const { v2: cloudinary } = require('cloudinary');
-const multer = require('multer');
+const { v2: cloudinary } = require("cloudinary");
+const multer = require("multer");
 
 // Configure Cloudinary
 cloudinary.config({
@@ -13,11 +13,11 @@ const storage = multer.memoryStorage();
 
 // File filter for images
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+  const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only JPEG, PNG, JPG, and GIF files are allowed'), false);
+    cb(new Error("Only JPEG, PNG, JPG, and GIF files are allowed"), false);
   }
 };
 
@@ -35,45 +35,38 @@ const uploadToCloudinary = async (buffer, folder, options = {}) => {
   return new Promise((resolve, reject) => {
     const uploadOptions = {
       folder: `palettestream/${folder}`,
-      resource_type: 'image',
+      resource_type: "image",
       ...options,
     };
 
-    cloudinary.uploader.upload_stream(
-      uploadOptions,
-      (error, result) => {
+    cloudinary.uploader
+      .upload_stream(uploadOptions, (error, result) => {
         if (error) {
           reject(error);
         } else {
           resolve(result);
         }
-      }
-    ).end(buffer);
+      })
+      .end(buffer);
   });
 };
 
 // Specific upload functions
 const uploadPostImage = async (buffer) => {
-  return uploadToCloudinary(buffer, 'uploads', {
-    transformation: [
-      { width: 1200, height: 1200, crop: 'limit', quality: 'auto' }
-    ]
+  return uploadToCloudinary(buffer, "uploads", {
+    transformation: [{ width: 1200, height: 1200, crop: "limit", quality: "auto" }],
   });
 };
 
 const uploadAvatar = async (buffer) => {
-  return uploadToCloudinary(buffer, 'avatars', {
-    transformation: [
-      { width: 400, height: 400, crop: 'fill', gravity: 'face', quality: 'auto' }
-    ]
+  return uploadToCloudinary(buffer, "avatars", {
+    transformation: [{ width: 400, height: 400, crop: "fill", gravity: "face", quality: "auto" }],
   });
 };
 
 const uploadBadge = async (buffer) => {
-  return uploadToCloudinary(buffer, 'badges', {
-    transformation: [
-      { width: 200, height: 200, crop: 'fill', quality: 'auto' }
-    ]
+  return uploadToCloudinary(buffer, "badges", {
+    transformation: [{ width: 200, height: 200, crop: "fill", quality: "auto" }],
   });
 };
 
@@ -83,7 +76,7 @@ const deleteImage = async (publicId) => {
     const result = await cloudinary.uploader.destroy(publicId);
     return result;
   } catch (error) {
-    console.error('Error deleting image from Cloudinary:', error);
+    console.error("Error deleting image from Cloudinary:", error);
     throw error;
   }
 };
@@ -91,9 +84,9 @@ const deleteImage = async (publicId) => {
 // Helper function to extract public ID from Cloudinary URL
 const extractPublicId = (url) => {
   if (!url) return null;
-  
+
   // Handle Cloudinary URLs
-  if (url.includes('cloudinary.com')) {
+  if (url.includes("cloudinary.com")) {
     // Extract public_id from Cloudinary URL
     // Format: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/folder/public_id.jpg
     const matches = url.match(/\/v\d+\/(.+)\.(jpg|jpeg|png|gif|webp)$/);
@@ -101,33 +94,33 @@ const extractPublicId = (url) => {
       return matches[1]; // Returns folder/public_id
     }
   }
-  
+
   return null;
 };
 
 // Helper function to get optimized URL
 const getOptimizedUrl = (url, options = {}) => {
-  if (!url || !url.includes('cloudinary.com')) return url;
-  
-  const { width, height, quality = 'auto' } = options;
+  if (!url || !url.includes("cloudinary.com")) return url;
+
+  const { width, height, quality = "auto" } = options;
   const publicId = extractPublicId(url);
-  
+
   if (!publicId) return url;
-  
+
   let transformation = `q_${quality}`;
-  
+
   if (width && height) {
     transformation += `,w_${width},h_${height},c_fill`;
   } else if (width) {
     transformation += `,w_${width},c_scale`;
   }
-  
+
   return cloudinary.url(publicId, { transformation });
 };
 
 // Helper function to check if URL is from Cloudinary
 const isCloudinaryUrl = (url) => {
-  return url && url.includes('cloudinary.com');
+  return url && url.includes("cloudinary.com");
 };
 
 module.exports = {

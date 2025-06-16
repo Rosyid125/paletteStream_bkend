@@ -213,7 +213,7 @@ class UserProfileService {
       // 3. Persiapkan data untuk update tabel USERS (first_name, last_name)
       const userFieldsToUpdate = {};
       if (updateData.first_name !== undefined) userFieldsToUpdate.first_name = updateData.first_name;
-      if (updateData.last_name !== undefined) userFieldsToUpdate.last_name = updateData.last_name;      // 4. Persiapkan data untuk update tabel USER_PROFILES (username, bio, location, avatar)
+      if (updateData.last_name !== undefined) userFieldsToUpdate.last_name = updateData.last_name; // 4. Persiapkan data untuk update tabel USER_PROFILES (username, bio, location, avatar)
       const profileFieldsToUpdate = {};
       if (updateData.username !== undefined) profileFieldsToUpdate.username = updateData.username;
       if (updateData.bio !== undefined) profileFieldsToUpdate.bio = updateData.bio;
@@ -245,7 +245,7 @@ class UserProfileService {
         const socialLinksData = Array.isArray(updateData.platforms) ? updateData.platforms : [];
 
         await UserSocialLinkService.update(userId, socialLinksData);
-      }      // 8. Hapus avatar lama jika ada avatar baru dan berbeda
+      } // 8. Hapus avatar lama jika ada avatar baru dan berbeda
       if (userUpdateSuccess && profileUpdateSuccess && updateData.avatarUrl !== undefined && oldAvatarPath && oldAvatarPath !== updateData.avatarUrl) {
         // Tidak hapus avatar default
         if (oldAvatarPath !== "storage/avatars/noimage.png" && oldAvatarPath !== process.env.DEFAULT_USER_AVATAR) {
