@@ -3,7 +3,9 @@ const Knex = require("knex");
 const { Model } = require("objection");
 const knexConfig = require("../knexfile");
 
-const knex = Knex(knexConfig.development);
+// Determine environment
+const environment = process.env.NODE_ENV || "development";
+const knex = Knex(knexConfig[environment]);
 
 Model.knex(knex);
 
