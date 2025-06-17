@@ -4,7 +4,17 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "NODE_ENV=production pm2-runtime start ecosystem.config.js --env production",
+    "dev": "nodemon server.js",
+    "start:local": "NODE_ENV=production pm2 start ecosystem.config.js --env production",
+    "start:dev": "NODE_ENV=development pm2 start ecosystem.config.js",
+    "stop": "pm2 stop palettestream-api",
+    "restart": "pm2 restart palettestream-api",
+    "reload": "pm2 reload palettestream-api",
+    "delete": "pm2 delete palettestream-api",
+    "status": "pm2 status",
+    "logs": "pm2 logs palettestream-api",
+    "monitor": "pm2 monit"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +39,7 @@
     "node-cron": "^4.1.0",
     "nodemailer": "^7.0.3",
     "objection": "^3.1.5",
+    "pm2": "^5.4.2",
     "socket.io": "^4.8.1",
     "winston": "^3.17.0"
   },
