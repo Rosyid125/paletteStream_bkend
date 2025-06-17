@@ -9,6 +9,13 @@ const customError = require("../errors/customError");
 // Get env for frontend redirect
 const FRONTEND_URL = process.env.CORS_ORIGIN || "http://localhost:5173";
 
+// Helper function untuk konfigurasi cookie yang konsisten
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+});
+
 class AuthController {
   static async register(req, res) {
     try {
@@ -43,24 +50,16 @@ class AuthController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
-
   static async login(req, res) {
     try {
       const { email, password } = req.body;
       const { accessToken, refreshToken, user } = await AuthService.login(email, password);
 
       // Simpan token dalam HTTP-only cookies
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Aktifkan secure di produksi
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      });
+      const cookieOptions = getCookieOptions();
 
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      });
+      res.cookie("accessToken", accessToken, cookieOptions);
+      res.cookie("refreshToken", refreshToken, cookieOptions);
 
       res.json({ success: true, message: "Login successful", data: user });
     } catch (error) {
@@ -107,21 +106,13 @@ class AuthController {
       if (!oldRefreshToken) {
         return res.status(401).json({ error: "Unauthorized" });
       }
-
       const { accessToken, refreshToken } = await AuthService.refreshToken(oldRefreshToken);
 
       // Perbarui cookie dengan token baru
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      });
+      const cookieOptions = getCookieOptions();
 
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      });
+      res.cookie("accessToken", accessToken, cookieOptions);
+      res.cookie("refreshToken", refreshToken, cookieOptions);
 
       res.json({ success: true, message: "Token refreshed successfully" });
     } catch (error) {
@@ -177,7 +168,6 @@ class AuthController {
       res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
   }
-
   static async logout(req, res) {
     try {
       // Ambil refresh token dari cookie
@@ -186,9 +176,11 @@ class AuthController {
         await AuthService.logout(refreshToken);
       }
 
-      // Hapus cookie
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
+      // Hapus cookie dengan options yang sama seperti saat dibuat
+      const cookieOptions = getCookieOptions();
+
+      res.clearCookie("accessToken", cookieOptions);
+      res.clearCookie("refreshToken", cookieOptions);
 
       res.json({ success: true, message: "Logged out successfully" });
     } catch (error) {
@@ -198,7 +190,7 @@ class AuthController {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+      res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
   }
 
@@ -270,22 +262,17 @@ class AuthController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
-
   static async googleCallback(req, res) {
     try {
       const { code } = req.query;
       if (!code) return res.status(400).json({ success: false, message: "Missing code" });
       const { accessToken, refreshToken, user } = await AuthGoogleService.handleCallback(code);
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      });
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      });
+
+      // Set cookies dengan options yang konsisten
+      const cookieOptions = getCookieOptions();
+      res.cookie("accessToken", accessToken, cookieOptions);
+      res.cookie("refreshToken", refreshToken, cookieOptions);
+
       // Redirect ke halaman frontend setelah login Google sukses
       res.redirect(`${FRONTEND_URL}/home`);
     } catch (error) {
