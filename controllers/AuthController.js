@@ -7,7 +7,7 @@ const logger = require("../utils/winstonLogger");
 const customError = require("../errors/customError");
 
 // Get env for frontend redirect
-const FRONTEND_URL = process.env.CORS_ORIGIN || "http://localhost:5173";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Helper function untuk konfigurasi cookie yang konsisten
 const getCookieOptions = () => ({
