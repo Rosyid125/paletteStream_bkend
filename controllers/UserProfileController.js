@@ -93,8 +93,7 @@ class UserProfileController {
         res.status(500).json({ success: false, messege: "An unexpected error occurred." });
       }
     }
-  }
-  // update user profile
+  } // update user profile
   static async updateUserProfile(req, res) {
     try {
       // 1. Gunakan multer untuk menangani upload SATU file 'avatar'
@@ -104,7 +103,23 @@ class UserProfileController {
         if (err) {
           // Contoh error: file terlalu besar, tipe file salah, dll.
           logger.warn(`Avatar upload failed for user attempt: ${err.message}`, { code: err.code });
-          throw new customError("Avatar upload failed", 400); // Ganti dengan error yang sesuai
+
+          // Handle specific multer errors
+          let errorMessage = "Avatar upload failed";
+          let statusCode = 400;
+
+          if (err.code === "LIMIT_FILE_SIZE") {
+            errorMessage = "File size too large. Maximum size is 10MB";
+          } else if (err.code === "LIMIT_UNEXPECTED_FILE") {
+            errorMessage = "Unexpected file field";
+          } else if (err.message.includes("Only JPEG, PNG, JPG, and GIF")) {
+            errorMessage = "Invalid file type. Only JPEG, PNG, JPG, and GIF files are allowed";
+          }
+
+          return res.status(statusCode).json({
+            success: false,
+            message: errorMessage,
+          });
         }
 
         // Lanjutkan di dalam callback multer
@@ -155,12 +170,20 @@ class UserProfileController {
           // Jika service mengembalikan null/undefined karena user tidak ditemukan
           if (!updatedProfile) {
             return res.status(404).json({ success: false, error: "User profile not found." });
-          }
-
-          // 5. Kirim response ke client
+          } // 5. Kirim response ke client
           res.json({ success: true, message: "Profile updated successfully", data: updatedProfile });
         } catch (error) {
-          throw error;
+          // Handle errors yang terjadi di dalam callback multer
+          logger.error(`Error in updateUserProfile: ${error.message}`, {
+            stack: error.stack,
+            timestamp: new Date().toISOString(),
+          });
+
+          if (error instanceof customError) {
+            return res.status(error.statusCode).json({ success: false, message: error.message });
+          } else {
+            return res.status(500).json({ success: false, message: "An unexpected error occurred." });
+          }
         }
       });
     } catch (error) {

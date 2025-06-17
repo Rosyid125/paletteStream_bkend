@@ -364,14 +364,32 @@ class userPostController {
         return res.status(500).json({ success: false, messege: "An unexpected error occurred." });
       }
     }
-  }
-  // Create a user post
+  } // Create a user post
   static async createPost(req, res) {
     try {
       // Gunakan multer untuk menangani upload sebelum memanggil service
       uploadArray("images", 10)(req, res, async (err) => {
         if (err) {
-          return res.status(400).json({ error: "File upload failed", details: err.message });
+          logger.warn(`Post image upload failed: ${err.message}`, { code: err.code });
+
+          // Handle specific multer errors
+          let errorMessage = "File upload failed";
+          let statusCode = 400;
+
+          if (err.code === "LIMIT_FILE_SIZE") {
+            errorMessage = "One or more files are too large. Maximum size is 10MB per file";
+          } else if (err.code === "LIMIT_FILE_COUNT") {
+            errorMessage = "Too many files. Maximum 10 files allowed";
+          } else if (err.code === "LIMIT_UNEXPECTED_FILE") {
+            errorMessage = "Unexpected file field";
+          } else if (err.message.includes("Only JPEG, PNG, JPG, and GIF")) {
+            errorMessage = "Invalid file type. Only JPEG, PNG, JPG, and GIF files are allowed";
+          }
+
+          return res.status(statusCode).json({
+            success: false,
+            message: errorMessage,
+          });
         }
 
         // Karena multer menggunakan callback, kita perlu try-catch di dalam callback.
@@ -403,26 +421,32 @@ class userPostController {
           }
 
           // Panggil service dengan data yang sudah diproses
-          const newPost = await UserPostService.createPost(userId, title, description, tags, imageUrls, type);
-
-          // Kirim response ke client
+          const newPost = await UserPostService.createPost(userId, title, description, tags, imageUrls, type); // Kirim response ke client
           res.json({ success: true, data: newPost });
         } catch (error) {
-          logger.error(`Error: ${error.message}`, {
+          logger.error(`Error in createPost: ${error.message}`, {
             stack: error.stack,
             timestamp: new Date().toISOString(),
           });
 
-          res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+          if (error instanceof customError) {
+            return res.status(error.statusCode).json({ success: false, message: error.message });
+          } else {
+            return res.status(500).json({ success: false, message: "An unexpected error occurred." });
+          }
         }
       });
     } catch (error) {
-      logger.error(`Unexpected Error: ${error.message}`, {
+      logger.error(`Unexpected Error in createPost: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, messege: "An unexpected error occurred." });
+      if (error instanceof customError) {
+        return res.status(error.statusCode).json({ success: false, message: error.message });
+      } else {
+        return res.status(500).json({ success: false, message: "An unexpected error occurred." });
+      }
     }
   } // Edit a user post
   static async updatePost(req, res) {
@@ -430,7 +454,26 @@ class userPostController {
       // Gunakan multer untuk menangani upload sebelum memanggil service
       uploadArray("images", 10)(req, res, async (err) => {
         if (err) {
-          return res.status(400).json({ error: "File upload failed", details: err.message });
+          logger.warn(`Post image upload failed during update: ${err.message}`, { code: err.code });
+
+          // Handle specific multer errors
+          let errorMessage = "File upload failed";
+          let statusCode = 400;
+
+          if (err.code === "LIMIT_FILE_SIZE") {
+            errorMessage = "One or more files are too large. Maximum size is 10MB per file";
+          } else if (err.code === "LIMIT_FILE_COUNT") {
+            errorMessage = "Too many files. Maximum 10 files allowed";
+          } else if (err.code === "LIMIT_UNEXPECTED_FILE") {
+            errorMessage = "Unexpected file field";
+          } else if (err.message.includes("Only JPEG, PNG, JPG, and GIF")) {
+            errorMessage = "Invalid file type. Only JPEG, PNG, JPG, and GIF files are allowed";
+          }
+
+          return res.status(statusCode).json({
+            success: false,
+            message: errorMessage,
+          });
         }
 
         // Karena multer menggunakan callback, kita perlu try-catch di dalam callback
@@ -480,26 +523,32 @@ class userPostController {
           }
 
           // Panggil service dengan data yang sudah diproses
-          const updatedPost = await UserPostService.updatePost(postId, title, description, tags, newImageUrls, type);
-
-          // Kirim response ke client
+          const updatedPost = await UserPostService.updatePost(postId, title, description, tags, newImageUrls, type); // Kirim response ke client
           res.json({ success: true, data: updatedPost, message: "Post updated successfully" });
         } catch (error) {
-          logger.error(`Error: ${error.message}`, {
+          logger.error(`Error in updatePost: ${error.message}`, {
             stack: error.stack,
             timestamp: new Date().toISOString(),
           });
 
-          res.status(500).json({ success: false, message: "An unexpected error occurred." });
+          if (error instanceof customError) {
+            return res.status(error.statusCode).json({ success: false, message: error.message });
+          } else {
+            return res.status(500).json({ success: false, message: "An unexpected error occurred." });
+          }
         }
       });
     } catch (error) {
-      logger.error(`Unexpected Error: ${error.message}`, {
+      logger.error(`Unexpected Error in updatePost: ${error.message}`, {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
 
-      res.status(500).json({ success: false, message: "An unexpected error occurred." });
+      if (error instanceof customError) {
+        return res.status(error.statusCode).json({ success: false, message: error.message });
+      } else {
+        return res.status(500).json({ success: false, message: "An unexpected error occurred." });
+      }
     }
   }
 
