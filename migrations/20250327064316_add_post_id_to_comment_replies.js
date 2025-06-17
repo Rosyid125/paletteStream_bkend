@@ -14,6 +14,7 @@ export const up = function (knex) {
  */
 export const down = function (knex) {
   return knex.schema.table("comment_replies", (table) => {
-    table.dropColumn("post_id"); // Remove the column
+    table.dropForeign("post_id"); // Drop foreign key constraint first
+    table.dropColumn("post_id"); // Then remove the column
   });
 };

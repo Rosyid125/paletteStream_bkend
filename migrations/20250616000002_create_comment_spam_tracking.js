@@ -26,5 +26,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable("comment_spam_tracking");
+  return knex.schema.dropTableIfExists("comment_spam_tracking");
 };

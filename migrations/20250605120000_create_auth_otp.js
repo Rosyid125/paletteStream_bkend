@@ -18,5 +18,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable("auth_otp");
+  return knex.schema.dropTableIfExists("auth_otp");
 };

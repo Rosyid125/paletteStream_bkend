@@ -17,5 +17,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable("comment_replies");
+  return knex.schema.dropTableIfExists("comment_replies");
 };

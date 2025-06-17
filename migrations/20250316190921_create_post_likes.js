@@ -18,5 +18,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable("post_likes");
+  return knex.schema.dropTableIfExists("post_likes");
 };
