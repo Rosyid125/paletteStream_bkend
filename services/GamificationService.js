@@ -26,16 +26,6 @@ const expGainByEvent = {
   postCreated: 50, // Membuat post baru (daily limit akan diterapkan)
   postDeleted: -50, // Menghapus post
 
-  // === EVENT YANG TIDAK MEMBERIKAN EXP (Dihapus untuk mencegah spam) ===
-  // userFollowed: 0,            // Follow orang lain - DIHAPUS (bisa di-spam)
-  // userUnfollowed: 0,          // Unfollow orang lain - DIHAPUS (bisa di-spam)
-  // commentOnPost: 0,           // Komentar di post orang lain - DIHAPUS (bisa di-spam)
-  // commentOnPostDeleted: 0,    // Hapus komentar - DIHAPUS (bisa di-spam)
-  // replyOnComment: 0,          // Reply komentar - DIHAPUS (bisa di-spam)
-  // replyOnCommentDeleted: 0,   // Hapus reply - DIHAPUS (bisa di-spam)
-  // likeOnPost: 0,              // Like post orang lain - DIHAPUS (sangat mudah di-spam)
-  // likeOnPostDeleted: 0,       // Unlike post - DIHAPUS (sangat mudah di-spam)
-
   // Menembalikan event yang tidak memberikan EXP
   userFollowed: 5,
   userUnfollowed: -5,
@@ -44,7 +34,7 @@ const expGainByEvent = {
   replyOnComment: 1,
   replyOnCommentDeleted: -1,
   likeOnPost: 3, // DIHAPUS: Tidak memberikan EXP karena mudah di-spam
-  likeOnPostDeleted: 3, // DIHAPUS: Tidak memberikan EXP karena mudah di-spam
+  likeOnPostDeleted: -3, // DIHAPUS: Tidak memberikan EXP karena mudah di-spam
 
   // === FUTURE: Challenge Events (High Reward, Limited Participation) ===
   challengeWinner: 5000, // Menang challenge (rare reward)
