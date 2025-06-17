@@ -79,19 +79,25 @@ class AchievementService {
         break;
       }
       case "post_commented": {
-        // Well Commented (id:3): 20 comments from 10 different users on user's posts
         const posts = await UserPostRepository.findByUserId(userId, 0, 1000);
         const postIds = posts.map((p) => p.id);
         if (postIds.length === 0) return;
+
         const allComments = await Promise.all(
           postIds.map(async (pid) => {
-            const comments = await PostCommentRepository.findByPostId(pid, 0, 1000); // Get first 1000 comments
+            const comments = await PostCommentRepository.findByPostId(pid, 0, 1000);
             return comments;
           })
         );
+
         const flatComments = allComments.flat();
-        const uniqueCommenters = new Set(flatComments.map((c) => c.user_id).filter((uid) => uid !== userId));
-        await AchievementService._updateUserAchievementProgress(userId, 3, flatComments.length);
+        const filteredComments = flatComments.filter((c) => c.user_id !== userId);
+        const uniqueCommenters = new Set(filteredComments.map((c) => c.user_id));
+
+        // Hanya update progress jika sesuai dengan requirement
+        if (uniqueCommenters.size >= 10 && filteredComments.length >= 20) {
+          await AchievementService._updateUserAchievementProgress(userId, 3, filteredComments.length);
+        }
         break;
       }
       case "comment_replied": {
