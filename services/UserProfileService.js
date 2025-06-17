@@ -58,8 +58,8 @@ class UserProfileService {
       const userFollowingsCount = await UserFollowRepository.countFollowingsByUserId(userId);
       const userFollowersCount = await UserFollowRepository.countFollowersByUserId(userId);
       const userPostCount = await UserPostRepository.countByUserId(userId);
-      const userLikeCount = await PostLikeRepository.countByUserId(userId);
-      const userCommentCount = await PostCommentRepository.countByUserId(userId);
+      const userLikeCount = await PostLikeRepository.countLikesReceivedByUserId(userId);
+      const userCommentCount = await PostCommentRepository.countCommentsReceivedByUserId(userId);
 
       // Get challenge participation and wins count
       const userChallengeSubmissions = await ChallengePostService.findByUserId(userId);
@@ -112,10 +112,9 @@ class UserProfileService {
       const userProfile = await UserProfileRepository.findByUserId(userId);
       const userExp = await UserExpRepository.findByUserId(userId);
       // Get followers count
-      const userFollowersCount = await UserFollowRepository.countFollowersByUserId(userId);
-      // Get user post count
+      const userFollowersCount = await UserFollowRepository.countFollowersByUserId(userId); // Get user post count
       const userPostCount = await UserPostRepository.countByUserId(userId); // Get user post like count
-      const userLikeCount = await PostLikeRepository.countByUserId(userId); // Get challenge participation and wins count
+      const userLikeCount = await PostLikeRepository.countLikesReceivedByUserId(userId); // Get challenge participation and wins count
       const userChallengeSubmissions = await ChallengePostService.findByUserId(userId);
       const userChallengeCount = userChallengeSubmissions.length;
       const userChallengeWinCount = await UserBadgeRepository.countByUserId(userId);

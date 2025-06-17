@@ -214,7 +214,7 @@ class FairRankingService {
             UserExpRepository.findByUserId(id),
             UserFollowRepository.countFollowersByUserId(id),
             UserPostRepository.countByUserId(id),
-            PostLikeRepository.countByUserId(id),
+            PostLikeRepository.countLikesReceivedByUserId(id),
           ]);
 
           if (!user) continue;

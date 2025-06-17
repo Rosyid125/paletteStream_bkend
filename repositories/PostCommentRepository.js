@@ -115,6 +115,23 @@ class PostCommentRepository {
     }
   }
 
+  // Count comments received by user (from posts created by the user)
+  static async countCommentsReceivedByUserId(user_id) {
+    try {
+      // Join dengan user_posts untuk mendapatkan comments dari post-post yang dibuat user
+      const result = await PostComment.query().join("user_posts", "post_comments.post_id", "user_posts.id").where("user_posts.user_id", user_id).count("* as total");
+
+      // For comment replies on posts created by the user
+      const result2 = await CommentReply.query().join("user_posts", "comment_replies.post_id", "user_posts.id").where("user_posts.user_id", user_id).count("* as total");
+
+      // Sum the total of post comments and comment replies received
+      const total = Number(result[0]?.total || 0) + Number(result2[0]?.total || 0);
+      return total;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Get post comment ids from post id
   static async getPostCommentIdsByPostId(post_id) {
     try {

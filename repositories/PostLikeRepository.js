@@ -154,6 +154,18 @@ class PostLikeRepository {
       throw error;
     }
   }
+
+  // Count post likes received by user (from posts created by the user)
+  static async countLikesReceivedByUserId(user_id) {
+    try {
+      // Join dengan user_posts untuk mendapatkan likes dari post-post yang dibuat user
+      const result = await PostLike.query().join("user_posts", "post_likes.post_id", "user_posts.id").where("user_posts.user_id", user_id).count("* as total");
+
+      return Number(result[0]?.total || 0);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = PostLikeRepository;
