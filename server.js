@@ -8,9 +8,24 @@ require("./config/db");
 
 const app = express();
 
+// CORS Configuration untuk multiple domains
+const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim()) : ["http://localhost:5173"];
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  exposedHeaders: ["Set-Cookie"],
 };
 
 // ⛳️ HARUS di paling atas
@@ -52,8 +67,9 @@ const server = http.createServer(app);
 // Attach socket.io ke server HTTP
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN,
+    origin: allowedOrigins,
     credentials: true,
+    methods: ["GET", "POST"],
   },
 });
 
